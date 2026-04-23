@@ -1,0 +1,186 @@
+:root {
+
+/* Brand Palette: Primary */
+    --color-primary-10: #F1F5F8;
+    --color-primary-20: #E0E8F0;
+    --color-primary-30: #C5D3E2;
+    --color-primary-40: #A0B6CF;
+    --color-primary-50: #7E9CBE;
+    --color-primary-60: #5E83AE;
+    --color-primary-70: #496B92;
+    --color-primary-80: #385270;
+    --color-primary-90: #26374B;
+    --color-primary-100: #16202C;
+
+/* Brand Palette: Secondary */
+    --color-secondary-10: #FFFEFE;
+    --color-secondary-20: #FEFDFB;
+    --color-secondary-30: #FDFBF8;
+    --color-secondary-40: #FBF9F4;
+    --color-secondary-50: #FAF7F1;
+    --color-secondary-60: #F9F5ED;
+    --color-secondary-70: #C7C4BE;
+    --color-secondary-80: #95938E;
+    --color-secondary-90: #64625F;
+    --color-secondary-100: #32312F;
+
+/* Brand Palette: Tertiary */
+    --color-tertiary-10: #F2F3F4;
+    --color-tertiary-20: #E3E6E8;
+    --color-tertiary-30: #C8CCD0;
+    --color-tertiary-40: #ACB3B9;
+    --color-tertiary-50: #9199A1;
+    --color-tertiary-60: #75808A;
+    --color-tertiary-70: #75808A;
+    --color-tertiary-80: #5E666E;
+    --color-tertiary-90: #464D53;
+    --color-tertiary-100: #2F3337;
+
+
+/* Functional/Semantic Palette: Success */
+    --color-success-10:  #E9F3EE;
+    --color-success-20:  #D1E5DB;
+    --color-success-30:  #A4CBB8;
+    --color-success-40:  #76B294;
+    --color-success-50:  #499871;
+    --color-success-60:  #1B7E4D;
+    --color-success-70:  #16653E;
+    --color-success-80:  #104C2E;
+    --color-success-90:  #0B321F;
+    --color-success-100: #051910;
+
+/* Functional/Semantic Palette: Info */
+    --color-error-10:  #FDEDEE;
+    --color-info-10:  #EAF2F7;
+    --color-info-20:  #D4E4EE;
+    --color-info-30:  #A9C9DD;
+    --color-info-40:  #7DAECC;
+    --color-info-50:  #5293BB;
+    --color-info-60:  #2778AA;
+    --color-info-70:  #1F6088;
+    --color-info-80:  #174866;
+    --color-info-90:  #103044;
+    --color-info-100: #081822;
+
+ /* Functional/Semantic Palette: Danger */
+    --color-danger-10:  #F9ECEB;
+    --color-danger-20:  #F3D9D6;
+    --color-danger-30:  #E7B3AD;
+    --color-danger-40:  #DB8D84;
+    --color-danger-50:  #CF675B;
+    --color-danger-60:  #C34132;
+    --color-danger-70:  #9C3428;
+    --color-danger-80:  #75271E;
+    --color-danger-90:  #4E1A14;
+    --color-danger-100: #270D0A;
+
+/* Functional/Semantic Palette: Warning */
+    --color-warning-10:  #F3F1E7;
+    --color-warning-20:  #E6E1CD;
+    --color-warning-30:  #CEC49B;
+    --color-warning-40:  #B5A66A;
+    --color-warning-50:  #9D8938;
+    --color-warning-60:  #846B06;
+    --color-warning-70:  #6A5605;
+    --color-warning-80:  #4F4004;
+    --color-warning-90:  #352B03;
+    --color-warning-100: #1A1501;
+
+
+/* Neutral Palette */
+    --color-grey-10:  #F4F6F7;
+    --color-grey-20:  #E8EBEB;
+    --color-grey-30:  #DADDDE;
+    --color-grey-40:  #C1C4C6;
+    --color-grey-50:  #898D8F;
+    --color-grey-60:  #6E7375;
+    --color-grey-70:  #53575A;
+    --color-grey-80:  #2F3133;
+    --color-grey-90:  #1F2224;
+    --color-grey-100: #131214;
+    --color-white:    #FFFFFF;
+    --color-black:    #000000;
+
+
+/* Semantic Text */
+    --text-primary:         var(--color-grey-100);
+    --text-secondary:       var(--color-grey-70);
+    --text-tertiary:        var(--color-grey-60);
+    --text-disabled:        var(--color-grey-40);
+    --text-link:            var(--color-primary-70);
+    --text-link-hover:      var(--color-primary-80);
+    --text-inverse:         var(--color-tertiary-10);
+    --text-on-primary:      var(--color-white);
+    --text-success:         var(--color-success-60);
+    --text-success-strong:  var(--color-success-80);
+    --text-warning:         var(--color-warning-60);
+    --text-warning-strong:  var(--color-warning-80);
+    --text-error:           var(--color-danger-60);
+    --text-error-strong:    var(--color-danger-80);
+    --text-info:            var(--color-info-60);
+    --text-info-strong:     var(--color-info-80);
+    --text-danger:          var(--color-danger-60);
+    --text-danger-strong:   var(--color-danger-80);
+    --text-static-light:    var(--color-white);
+    --text-static-dark:     var(--color-grey-100);
+
+/* Semantic Background */
+    --bg-page:              var(--color-white);
+    --bg-surface:           var(--color-grey-10);
+    --bg-surface-light:     var(--color-grey-20);
+    --bg-surface-warm:      var(--color-secondary-50);
+    --bg-input:             var(--color-grey-10);
+    --bg-input-focus:       var(--color-white);
+    --bg-selected:          var(--color-primary-20);
+    --bg-primary:           var(--color-primary-60);
+    --bg-primary-hover:     var(--color-primary-70);
+    --bg-primary-press:     var(--color-primary-80);
+    --bg-success:           var(--color-success-10);
+    --bg-warning:           var(--color-warning-10);
+    --bg-info:              var(--color-info-10);
+    --bg-danger:            var(--color-danger-10);
+    --bg-overlay:           hsla(0, 0%, 0%, 0.7);
+
+
+/* Typography */
+    /* Font family */
+        --font-sans: 'Inter', system-ui, sans-serif;
+
+    /* Display */
+    --text-display-1-size:   64px;
+    --text-display-1-weight: 700;
+    --text-display-2-size:   40px;
+    --text-display-2-weight: 700;
+    --text-display-lh:       1.2;
+
+    /* Heading */
+    --text-h1-size:   32px;
+    --text-h1-weight: 700;
+    --text-h2-size:   24px;
+    --text-h2-weight: 700;
+    --text-h3-size:   18px;
+    --text-h3-weight: 700;
+    --text-h4-size:   16px;
+    --text-h4-weight: 700;
+    --text-h5-size:   14px;
+    --text-h5-weight: 700;
+    --text-h6-size:   12px;
+    --text-h6-weight: 700;
+    --text-heading-lh: 1.2;
+
+    /* Paragraph */
+    --text-para-lg-size:   18px;
+    --text-para-md-size:   16px;
+    --text-para-sm-size:   14px;
+    --text-para-xs-size:   12px;
+    --text-para-weight:    400;
+    --text-para-lh:        1.5;
+
+    /* Label */
+    --text-label-lg-size:   18px;
+    --text-label-md-size:   16px;
+    --text-label-sm-size:   14px;
+    --text-label-xs-size:   12px;
+    --text-label-weight:    700;
+    --text-label-lh:        1;
+}
