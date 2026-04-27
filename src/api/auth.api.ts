@@ -1,71 +1,72 @@
 import axiosClient from "./axiosClient";
 import { handleApiError } from "./api.helpers";
-import type { AuthResponse, User } from "@/types";
+import type { User } from "@/types";
+import type {
+  LoginCredentials,
+  RegisterPayload,
+  TokenResponse,
+  ForgotPasswordPayload,
+  ResetPasswordPayload,
+  ResendVerificationPayload,
+  MessageResponse,
+} from "@/types/auth.types";
 
-export async function login(credentials: {
-  email: string;
-  password: string;
-}): Promise<AuthResponse> {
+export async function login(credentials: LoginCredentials): Promise<TokenResponse> {
   try {
-    const res = await axiosClient.post("/auth/login", credentials);
-    return res.data as AuthResponse;
+    const res = await axiosClient.post<TokenResponse>("/auth/login", credentials);
+    return res.data;
   } catch (err) {
     handleApiError(err);
+    throw err;
   }
 }
 
-export async function register(payload: {
-  name: string;
-  email: string;
-  password: string;
-}): Promise<AuthResponse> {
+export async function register(payload: RegisterPayload): Promise<User> {
   try {
-    const res = await axiosClient.post("/auth/register", payload);
-    return res.data as AuthResponse;
+    const res = await axiosClient.post<User>("/auth/register", payload);
+    return res.data;
   } catch (err) {
     handleApiError(err);
+    throw err;
   }
 }
 
 export async function getProfile(): Promise<User> {
   try {
-    const res = await axiosClient.get("/auth/me");
-    return res.data as User;
+    const res = await axiosClient.get<User>("/auth/me");
+    return res.data;
   } catch (err) {
     handleApiError(err);
+    throw err;
   }
 }
 
-export async function forgotPassword(
-  email: string,
-): Promise<{ message: string }> {
+export async function forgotPassword(payload: ForgotPasswordPayload): Promise<MessageResponse> {
   try {
-    const res = await axiosClient.post("/auth/forgot-password", { email });
-    return res.data as { message: string };
+    const res = await axiosClient.post<MessageResponse>("/auth/forgot-password", payload);
+    return res.data;
   } catch (err) {
     handleApiError(err);
+    throw err;
   }
 }
 
-export async function resetPassword(payload: {
-  token: string;
-  password: string;
-}): Promise<{ message: string }> {
+export async function resetPassword(payload: ResetPasswordPayload): Promise<MessageResponse> {
   try {
-    const res = await axiosClient.post("/auth/reset-password", payload);
-    return res.data as { message: string };
+    const res = await axiosClient.post<MessageResponse>("/auth/reset-password", payload);
+    return res.data;
   } catch (err) {
     handleApiError(err);
+    throw err;
   }
 }
 
-export async function resendVerification(
-  email: string,
-): Promise<{ message: string }> {
+export async function resendVerification(payload: ResendVerificationPayload): Promise<MessageResponse> {
   try {
-    const res = await axiosClient.post("/auth/resend-verification", { email });
-    return res.data as { message: string };
+    const res = await axiosClient.post<MessageResponse>("/auth/resend-verification", payload);
+    return res.data;
   } catch (err) {
     handleApiError(err);
+    throw err;
   }
 }
