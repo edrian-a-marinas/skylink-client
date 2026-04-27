@@ -10,28 +10,25 @@ import {
 } from "@/api/auth.api";
 import { useAuthStore } from "@/store/useAuthStore";
 import type {
-  LoginCredentials,
-  RegisterPayload,
-  ForgotPasswordPayload,
-  ResetPasswordPayload,
-  ResendVerificationPayload,
-} from "@/types/auth.types";
+  LoginFormValues,
+  RegisterFormValues,
+  ForgotPasswordFormValues,
+  ResetPasswordFormValues,
+} from "@/validation/auth.schemas";
 
 export function useAuth() {
   const store = useAuthStore();
 
   /**
-   * Sign in: get token → attach to store → fetch profile → update store.
+   * Sign in: get token → attach to axios → fetch profile → store both.
    * Pages call this only — never touch auth.api.ts directly.
    */
   const signIn = useCallback(
-    async (credentials: LoginCredentials) => {
+    async (credentials: LoginFormValues) => {
       const { access_token } = await apiLogin(credentials);
-
-      // Set header directly so /auth/me request is authenticated immediately
+      // Set header directly so /auth/me is authenticated immediately
       // (store.login is async state update — localStorage may not be ready in time)
       axiosClient.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-
       const user = await getProfile();
       store.login(access_token, user);
     },
@@ -42,13 +39,13 @@ export function useAuth() {
    * Register: creates account only.
    * Does NOT auto-login — backend requires email verification first.
    */
-  const signUp = useCallback(async (payload: RegisterPayload) => {
-    return await apiRegister(payload);
-  }, []);
+  const signUp = useCallback(
+    async (payload: Omit<RegisterFormValues, "confirmPassword">) => {
+      return await apiRegister(payload);
+    },
+    [],
+  );
 
-  /**
-
-   */
   const signOut = useCallback(() => {
     store.logout();
   }, [store]);
@@ -62,16 +59,22 @@ export function useAuth() {
     store.setUser(user);
   }, [store]);
 
-  const sendForgotPassword = useCallback(async (payload: ForgotPasswordPayload) => {
-    return await apiForgotPassword(payload);
-  }, []);
+  const sendForgotPassword = useCallback(
+    async (payload: ForgotPasswordFormValues) => {
+      return await apiForgotPassword(payload);
+    },
+    [],
+  );
 
-  const sendResetPassword = useCallback(async (payload: ResetPasswordPayload) => {
-    return await apiResetPassword(payload);
-  }, []);
+  const sendResetPassword = useCallback(
+    async (payload: Omit<ResetPasswordFormValues, "confirmPassword">) => {
+      return await apiResetPassword(payload);
+    },
+    [],
+  );
 
-  const sendResendVerification = useCallback(async (payload: ResendVerificationPayload) => {
-    return await apiResendVerification(payload);
+  const sendResendVerification = useCallback(async (email: string) => {
+    return await apiResendVerification(email);
   }, []);
 
   return {
