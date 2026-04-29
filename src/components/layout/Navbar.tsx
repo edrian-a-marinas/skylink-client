@@ -3,6 +3,8 @@ import { ROUTES } from "@/constants/routes";
 import { useAuthStore } from "@/store/useAuthStore";
 import { cn } from "@/utils/cn";
 import { CircleUserRound } from "lucide-react";
+import logos1 from "@/assets/logos/Logos-1.png";
+import { colors, typography } from "@/constants/theme";
 
 const Navbar = () => {
   const { isAuthenticated, user } = useAuthStore();
@@ -10,11 +12,10 @@ const Navbar = () => {
   const isAdmin = user?.role_id === 1;
 
   const navLinks = [
-    { label: "Search", path: ROUTES.HOME },
-    { label: "My Bookings", path: ROUTES.MY_BOOKINGS },
-    { label: "Destinations", path: "#" },
+    { label: "Book", path: ROUTES.SEARCH_RESULTS },
+    { label: "Explore", path: "#" },
+    { label: "Flight Status", path: "#" },
     { label: "Manage", path: ROUTES.PNR_STATUS },
-    { label: "Offers", path: "#" },
   ];
 
   const isActive = (path: string) => {
@@ -28,8 +29,9 @@ const Navbar = () => {
     <header className="bg-white border-b border-slate-100 sticky top-0 z-50">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         {/* Logo */}
-        <Link to={ROUTES.HOME} className="flex items-center gap-2">
-          <span className="text-2xl font-bold text-[#496B92]">SkyLink</span>
+        <Link to={ROUTES.HOME} className="flex items-center gap-0">
+          <img src={logos1} alt="SkyLink logo" className="size-16" />
+          <span className="text-[24px] font-normal text-[#496B92] tracking-[0.01em]" style={{ fontFamily: "'Russo One', sans-serif" }}>SkyLink</span>
         </Link>
 
         {/* Navigation Links */}
@@ -52,19 +54,14 @@ const Navbar = () => {
 
         {/* Right side Actions */}
         <div className="flex items-center gap-6">
-          <Link to="#" className="text-[16px] font-medium text-slate-700 hover:text-slate-900">
-            Support
-          </Link>
 
           <div className="flex items-center gap-3">
             {!isAuthenticated ? (
               <Link
                 to={ROUTES.LOGIN}
-                className="flex items-center justify-center"
+                className={`${colors.action.ghost} ${typography.label.sm.semiBold} rounded-lg px-4 py-2 hover:bg-primary-10 transition-colors whitespace-nowrap w-78px h-37px`}
               >
-                <div className="w-10 h-10 rounded-lg bg-[#0D3B3F] flex items-center justify-center text-white overflow-hidden">
-                  <CircleUserRound size={24} />
-                </div>
+                Sign In
               </Link>
             ) : (
               <Link
