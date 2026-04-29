@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { colors, typography } from "@/constants/theme";
-import { CiCalendar, CiLocationOn } from "react-icons/ci"
+import { CiLocationOn } from "react-icons/ci"
 import { CiSearch } from 'react-icons/ci'
 import { CiClock2 } from "react-icons/ci"
-import { RxPeople } from "react-icons/rx";
+import DatePicker from "@/components/ui/DatePicker";
+import TripTypePill, { type TripType } from "./components/TripTypePill";
+import PassengerSelector from "./components/PassengerSelector";
 
-
-type TripType = "one-way" | "round-trip";
 
 type Deal = {
   id: string;
@@ -204,7 +204,7 @@ const SearchResultsPage = () => {
     <div className="bg-bg-surface min-h-screen">
 
       {/* Hero */}
-      <section className="relative overflow-hidden">
+      <section className="relative pb-5">
         <div className="absolute inset-0 bg-primary-90" />
         <div className="absolute inset-0 bg-gradient-to-b from-primary-100/65 via-primary-100/50 to-primary-100/30" />
 
@@ -218,25 +218,15 @@ const SearchResultsPage = () => {
         </div>
 
         {/* Search card */}
-        <div className="relative z-10 mx-auto mt-8 mb-8 w-full max-w-[800px] px-4">
+        <div className="relative z-10 mx-auto mb-16 mt-8 w-full max-w-[800px] px-4">
           <div className="bg-bg-page rounded-2xl shadow-[0px_4px_12px_rgba(0,0,0,0.08)] p-6 flex flex-col gap-4">
 
             {/* Trip type pills */}
             <div className="flex gap-2">
-              {(["one-way", "round-trip"] as const).map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => setTripType(type)}
-                  className={`px-4 py-[6px] rounded-full ${typography.label.sm.semiBold} transition-colors ${
-                    tripType === type
-                      ? `${colors.action.primary}`
-                      : "bg-tertiary-10 text-tertiary-80"
-                  }`}
-                >
-                  {type === "one-way" ? "One Way" : "Round Trip"}
-                </button>
-              ))}
+              <TripTypePill 
+                tripType={tripType} 
+                setTripType={setTripType} 
+              />
             </div>
 
             {/* From / To */}
@@ -261,25 +251,8 @@ const SearchResultsPage = () => {
 
             {/* Date / Passengers */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <label className={`flex items-center gap-2 ${colors.surface.input} border border-tertiary-30 rounded-[10px] px-4 h-14 cursor-text`}>
-                <CiCalendar size={16} strokeWidth={1} className={`shrink-0 text-primary-60`} />
-                <input
-                  type="date"
-                  className={`bg-transparent flex-1 ${typography.paragraph.md.normal} ${colors.text.primary} outline-none`}
-                />
-              </label>
-              <button
-                type="button"
-                className={`flex items-center justify-between gap-2 ${colors.surface.input} border border-tertiary-30 rounded-[10px] px-4 h-14 text-left`}
-              >
-                <div className="flex items-center gap-2">
-                  <RxPeople size={16} strokeWidth={.5} className={`shrink-0 text-primary-60`} />
-                  <span className={`${typography.paragraph.md.normal} ${colors.text.primary}`}>1 Passenger, Economy</span>
-                </div>
-                <svg className={`w-4 h-4 ${colors.text.tertiary}`} viewBox="0 0 16 16" fill="currentColor">
-                  <path fillRule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z" />
-                </svg>
-              </button>
+              <DatePicker />
+              <PassengerSelector />
             </div>
 
             {/* Search CTA */}

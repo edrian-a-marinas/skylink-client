@@ -9,7 +9,7 @@ import ScreenPlaceholder from "@/components/ui/ScreenPlaceholder";
 import HomePage from "@/pages/HomePage";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
-import SearchResultsPage from "@/pages/SearchResultsPage";
+import SearchResultsPage from "@/pages/SearchResultsPage/SearchResultsPage";
 import BookingPage from "@/pages/BookingPage";
 import BookingDetailPage from "@/pages/BookingDetailPage";
 import MyBookingsPage from "@/pages/MyBookingsPage";
