@@ -197,7 +197,7 @@ function SectionHeader({ title, linkLabel }: { title: string; linkLabel: string 
   );
 }
 
-const SearchResultsPage = () => {
+const HomePage = () => {
   const [tripType, setTripType] = useState<TripType>("one-way");
 
   return (
@@ -302,4 +302,4 @@ const SearchResultsPage = () => {
   );
 };
 
-export default SearchResultsPage;
+export default HomePage;
