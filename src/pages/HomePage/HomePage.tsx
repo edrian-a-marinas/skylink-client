@@ -6,6 +6,7 @@ import { CiClock2 } from "react-icons/ci"
 import DatePicker from "@/components/ui/DatePicker";
 import TripTypePill, { type TripType } from "./components/TripTypePill";
 import PassengerSelector from "./components/PassengerSelector";
+import { HiChevronRight } from "react-icons/hi2";
 
 
 type Deal = {
@@ -86,14 +87,6 @@ const DESTINATIONS: Destination[] = [
   { id: "3", city: "Kalibo (Boracay)", startingFrom: "From ₱1,650", bgClass: "bg-info-50"    },
   { id: "4", city: "Davao",            startingFrom: "From ₱1,750", bgClass: "bg-primary-80" },
 ];
-
-function IconChevronRight() {
-  return (
-    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="currentColor">
-      <path fillRule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z" />
-    </svg>
-  );
-}
 
 function DealCard({ deal }: { deal: Deal }) {
   return (
@@ -191,7 +184,7 @@ function SectionHeader({ title, linkLabel }: { title: string; linkLabel: string 
         className={`${typography.label.sm.semiBold} ${colors.text.link} flex items-center gap-1 transition-colors`}
       >
         {linkLabel}
-        <IconChevronRight />
+        <HiChevronRight size={16} strokeWidth={1} className={`shrink-0 text-primary-60`} />
       </button>
     </div>
   );
@@ -212,7 +205,7 @@ const HomePage = () => {
           <h1 className={`${typography.heading.h1.bold} md:text-display-2 text-text-static-light text-center`}>
             Where do you want to fly?
           </h1>
-          <p className={`${typography.paragraph.md.normal} md:text-para-lg text-white/80 text-center`}>
+          <p className={`${typography.paragraph.md.normal} text-white/80 text-center`}>
             Great fares, simple booking, seamless travel — only on SkyLink.
           </p>
         </div>

@@ -49,6 +49,13 @@ export const typography = {
       normal:   'text-display-2 font-normal leading-tight',
       light:    'text-display-2 font-light leading-tight',
     },
+    d3: {
+      bold:     'text-display-3 font-bold leading-tight',
+      semiBold: 'text-display-3 font-semibold leading-tight',
+      medium:   'text-display-3 font-medium leading-tight',
+      normal:   'text-display-3 font-normal leading-tight',
+      light:    'text-display-3 font-light leading-tight',
+    },
   },
   heading: {
     h1: {
