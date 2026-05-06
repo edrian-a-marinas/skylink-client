@@ -2,6 +2,7 @@ export const ROUTES = {
   // Public Screens
   HOME: "/",
   BOOK: "/book",
+  EXPLORE: "/explore",
   SEARCH_RESULTS: "/search",
   FLIGHT_DETAIL: "/flights/:id",
   PNR_STATUS: "/pnr-status",

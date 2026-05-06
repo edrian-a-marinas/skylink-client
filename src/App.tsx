@@ -19,6 +19,7 @@ import AdminDashboardPage from "@/pages/admin/AdminDashboardPage";
 import AdminFlightsPage from "@/pages/admin/AdminFlightsPage";
 import AdminUsersPage from "@/pages/admin/AdminUsersPage";
 import AdminReportsPage from "@/pages/admin/AdminReportsPage";
+import ExplorePage from "./pages/ExplorePage/ExplorePage";
 
 function screen(
   id: string,
@@ -45,6 +46,7 @@ function App() {
           {/* Public Routes */}
           <Route path={ROUTES.HOME} element={<HomePage />} />
           <Route path={ROUTES.SEARCH_RESULTS} element={<SearchResultsPage />} />
+          <Route path={ROUTES.EXPLORE} element={<ExplorePage />} />
           <Route
             path={ROUTES.FLIGHT_DETAIL}
             element={screen(
