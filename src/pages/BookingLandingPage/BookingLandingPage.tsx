@@ -4,8 +4,8 @@ import { CiLocationOn } from "react-icons/ci"
 import { CiSearch } from 'react-icons/ci'
 import { CiClock2 } from "react-icons/ci"
 import DatePicker from "@/components/ui/DatePicker";
-import TripTypePill, { type TripType } from "../HomePage/components/TripTypePill";
-import PassengerSelector from "../HomePage/components/PassengerSelector";
+import TripTypePill, { type TripType } from "./components/TripTypePill";
+import PassengerSelector from "./components/PassengerSelector";
 
 
 type Deal = {
