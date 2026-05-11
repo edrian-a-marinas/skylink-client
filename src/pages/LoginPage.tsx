@@ -4,27 +4,47 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ROUTES } from "@/constants/routes";
 import { useAuth } from "@/hooks/useAuth";
-import { loginSchema } from "@/validation/auth.schemas";
-import type { LoginFormValues } from "@/validation/auth.schemas";
+import { loginSchema, registerSchema } from "@/validation/auth.schemas";
+import type { LoginFormValues, RegisterFormValues } from "@/validation/auth.schemas";
+import { Mail, Lock, Eye, EyeOff, User, Phone, CheckCircle2 } from "lucide-react";
 
 type AuthTab = "login" | "register";
 
-const LoginPage = () => {
-  const navigate = useNavigate();
-  const { signIn } = useAuth();
+interface LoginPageProps {
+  defaultTab?: AuthTab;
+}
 
-  const [activeTab, setActiveTab] = useState<AuthTab>("login");
+const LoginPage = ({ defaultTab = "login" }: LoginPageProps) => {
+  const navigate = useNavigate();
+  const { signIn, signUp } = useAuth();
+
+  const [activeTab, setActiveTab] = useState<AuthTab>(defaultTab);
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [rememberMe, setRememberMe] = useState(false);
 
+  // Login Form
   const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
+    register: loginRegister,
+    handleSubmit: handleLoginSubmit,
+    formState: { errors: loginErrors, isSubmitting: isLoggingIn },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
+    mode: "onChange",
+  });
+
+  // Register Form
+  const {
+    register: registerRegister,
+    handleSubmit: handleRegisterSubmit,
+    formState: { errors: registerErrors, isSubmitting: isRegistering },
+    reset: resetRegisterForm,
+  } = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    mode: "onChange",
   });
 
   const handleTabChange = (tab: AuthTab) => {
@@ -37,237 +57,221 @@ const LoginPage = () => {
     setServerError(null);
     try {
       await signIn({ email: data.email, password: data.password });
+      // In a real app, you'd handle rememberMe logic here
       navigate(ROUTES.HOME);
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { detail?: unknown } } };
       const detail = axiosErr?.response?.data?.detail;
-      if (typeof detail === "string") {
-        setServerError(detail);
-      } else {
-        setServerError("Login failed. Please try again.");
-      }
+      setServerError(typeof detail === "string" ? detail : "Login failed. Please try again.");
+    }
+  };
+
+  const onRegisterSubmit = async (data: RegisterFormValues) => {
+    setServerError(null);
+    try {
+      const { confirmPassword: _, ...payload } = data;
+      await signUp(payload);
+      setSuccessMsg("Registration successful! Please check your email to verify your account.");
+      setActiveTab("login");
+      resetRegisterForm();
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { detail?: unknown } } };
+      const detail = axiosErr?.response?.data?.detail;
+      setServerError(typeof detail === "string" ? detail : "Registration failed. Please try again.");
     }
   };
 
   return (
-    <section className="flex min-h-[calc(100vh-160px)] items-center justify-center bg-[var(--sky-muted)] px-6 py-16">
-      <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-[0_24px_50px_rgba(15,23,42,0.08)]">
+    <section className="relative min-h-[calc(100vh-80px)] flex items-center justify-center overflow-hidden px-4 py-12 md:px-6 bg-[#FDFBF8]">
+      {/* Background decoration */}
+      <div className="absolute inset-0 z-0 bg-[#5E83AE]">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-white/10 blur-[80px]" />
+        <div className="absolute bottom-[10%] right-[-5%] w-[35%] h-[35%] rounded-full bg-white/10 blur-[60px]" />
+      </div>
 
-        {/* Tabs */}
-        <div className="flex items-center text-sm font-semibold text-slate-500">
-          <button
-            type="button"
-            onClick={() => handleTabChange("login")}
-            className={`flex-1 border-b-2 px-6 py-4 ${
-              activeTab === "login"
-                ? "border-[var(--sky-primary)] text-[var(--sky-primary)]"
-                : "border-transparent hover:text-slate-700"
-            }`}
-          >
-            Sign In
-          </button>
-          <button
-            type="button"
-            onClick={() => handleTabChange("register")}
-            className={`flex-1 border-b-2 px-6 py-4 ${
-              activeTab === "register"
-                ? "border-[var(--sky-primary)] text-[var(--sky-primary)]"
-                : "border-transparent hover:text-slate-700"
-            }`}
-          >
-            Register
-          </button>
-        </div>
+      <div className="relative z-10 w-full max-w-[500px]">
+        <div className="bg-white rounded-[32px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] overflow-hidden border border-slate-100">
+          
+          {/* Tab Switcher */}
+          <div className="flex border-b border-slate-100 bg-slate-50/50">
+            <button
+              type="button"
+              onClick={() => handleTabChange("login")}
+              className={`flex-1 py-6 text-[15px] font-bold transition-all relative ${
+                activeTab === "login" ? "text-primary-60 bg-white" : "text-slate-400 hover:text-slate-600"
+              }`}
+            >
+              Sign In
+              {activeTab === "login" && <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-primary-60" />}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleTabChange("register")}
+              className={`flex-1 py-6 text-[15px] font-bold transition-all relative ${
+                activeTab === "register" ? "text-primary-60 bg-white" : "text-slate-400 hover:text-slate-600"
+              }`}
+            >
+              Register
+              {activeTab === "register" && <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-primary-60" />}
+            </button>
+          </div>
 
-        <div className="px-8 pb-8 pt-6">
-
-          {/* Feedback banners */}
-          {serverError && (
-            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-              {serverError}
-            </div>
-          )}
-          {successMsg && (
-            <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-              {successMsg}
-            </div>
-          )}
-
-          {/* ── LOGIN ── */}
-          {activeTab === "login" ? (
-            <form className="space-y-5" onSubmit={handleSubmit(onLoginSubmit)} noValidate>
-
-              <div>
-                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Email Address
-                </label>
-                <div className={`mt-2 flex items-center gap-3 rounded-lg border bg-slate-50 px-3 py-2 ${errors.email ? "border-red-400" : "border-slate-200"}`}>
-                  <MailIcon />
-                  <input
-                    type="email"
-                    placeholder="your@email.com"
-                    autoComplete="email"
-                    {...register("email")}
-                    className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
-                  />
-                </div>
-                {errors.email && (
-                  <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>
-                )}
+          <div className="p-8 md:p-10">
+            {/* Feedback banners */}
+            {serverError && (
+              <div className="mb-6 rounded-2xl border border-danger-20 bg-danger-5 px-4 py-3 text-sm text-danger-60 font-medium flex gap-3 items-center">
+                <div className="w-1.5 h-1.5 rounded-full bg-danger-60 shrink-0" />
+                {serverError}
               </div>
-
-              <div>
-                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Password
-                </label>
-                <div className={`mt-2 flex items-center gap-3 rounded-lg border bg-slate-50 px-3 py-2 ${errors.password ? "border-red-400" : "border-slate-200"}`}>
-                  <LockIcon />
-                  <input
-                    type={showLoginPassword ? "text" : "password"}
-                    placeholder="Your password"
-                    autoComplete="current-password"
-                    {...register("password")}
-                    className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowLoginPassword((p) => !p)}
-                    className="text-slate-400 hover:text-slate-600"
-                    aria-label={showLoginPassword ? "Hide password" : "Show password"}
-                  >
-                    <EyeIcon />
-                  </button>
-                </div>
-                {errors.password && (
-                  <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>
-                )}
+            )}
+            {successMsg && (
+              <div className="mb-6 rounded-2xl border border-success-20 bg-success-5 px-4 py-3 text-sm text-success-60 font-medium flex gap-3 items-center">
+                <CheckCircle2 size={18} className="shrink-0" />
+                {successMsg}
               </div>
+            )}
 
-              <div className="text-right">
-                <Link
-                  to={ROUTES.FORGOT_PASSWORD}
-                  className="text-xs font-semibold text-[var(--sky-primary)] hover:text-[var(--sky-primary-dark)]"
+            {activeTab === "login" ? (
+              <form className="space-y-6" onSubmit={handleLoginSubmit(onLoginSubmit)} noValidate>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[13px] font-bold text-slate-500 uppercase tracking-widest ml-1">Email</label>
+                    <div className={`flex items-center gap-3 rounded-2xl border bg-slate-50 px-4 h-14 transition-all focus-within:bg-white focus-within:ring-4 focus-within:ring-primary-60/5 ${loginErrors.email ? "border-danger-40" : "border-slate-200 focus-within:border-primary-60"}`}>
+                      <Mail size={18} className="text-slate-400" />
+                      <input
+                        type="email"
+                        placeholder="your@email.com"
+                        {...loginRegister("email")}
+                        className="w-full bg-transparent text-[15px] outline-none font-medium text-slate-700"
+                      />
+                    </div>
+                    {loginErrors.email && <p className="text-xs text-danger-60 font-bold ml-1">{loginErrors.email.message}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[13px] font-bold text-slate-500 uppercase tracking-widest ml-1">Password</label>
+                    <div className={`flex items-center gap-3 rounded-2xl border bg-slate-50 px-4 h-14 transition-all focus-within:bg-white focus-within:ring-4 focus-within:ring-primary-60/5 ${loginErrors.password ? "border-danger-40" : "border-slate-200 focus-within:border-primary-60"}`}>
+                      <Lock size={18} className="text-slate-400" />
+                      <input
+                        type={showLoginPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        {...loginRegister("password")}
+                        className="w-full bg-transparent text-[15px] outline-none font-medium text-slate-700"
+                      />
+                      <button type="button" onClick={() => setShowLoginPassword(!showLoginPassword)} className="text-slate-300 hover:text-slate-500">
+                        {showLoginPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                    {loginErrors.password && <p className="text-xs text-danger-60 font-bold ml-1">{loginErrors.password.message}</p>}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between px-1">
+                  <label className="flex items-center gap-2 cursor-pointer group">
+                    <div className="relative flex items-center justify-center">
+                      <input
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                        className="peer sr-only"
+                      />
+                      <div className="w-5 h-5 border-2 border-slate-200 rounded-md transition-all peer-checked:bg-primary-60 peer-checked:border-primary-60 group-hover:border-primary-60/50" />
+                      <CheckCircle2 size={12} className="absolute text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
+                    </div>
+                    <span className="text-[13px] font-bold text-slate-500 group-hover:text-slate-700">Remember me</span>
+                  </label>
+                  <Link to={ROUTES.FORGOT_PASSWORD} className="text-[13px] font-bold text-primary-60 hover:text-primary-80">
+                    Forgot password?
+                  </Link>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoggingIn}
+                  className="w-full h-14 rounded-2xl bg-primary-60 hover:bg-primary-70 active:scale-[0.98] text-white font-bold shadow-xl shadow-primary-60/20 transition-all disabled:opacity-50 disabled:active:scale-100"
                 >
-                  Forgot password?
-                </Link>
-              </div>
+                  {isLoggingIn ? "Signing in..." : "Sign In"}
+                </button>
+              </form>
+            ) : (
+              <form className="space-y-5" onSubmit={handleRegisterSubmit(onRegisterSubmit)} noValidate>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">First Name</label>
+                    <div className={`flex items-center gap-3 rounded-xl border bg-slate-50 px-4 h-12 transition-all focus-within:bg-white ${registerErrors.first_name ? "border-danger-40" : "border-slate-200 focus-within:border-primary-60"}`}>
+                      <User size={16} className="text-slate-400" />
+                      <input type="text" placeholder="John" {...registerRegister("first_name")} className="w-full bg-transparent text-[14px] outline-none font-medium" />
+                    </div>
+                    {registerErrors.first_name && <p className="text-[10px] text-danger-60 font-bold">{registerErrors.first_name.message}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Last Name</label>
+                    <div className={`flex items-center gap-3 rounded-xl border bg-slate-50 px-4 h-12 transition-all focus-within:bg-white ${registerErrors.last_name ? "border-danger-40" : "border-slate-200 focus-within:border-primary-60"}`}>
+                      <input type="text" placeholder="Doe" {...registerRegister("last_name")} className="w-full bg-transparent text-[14px] outline-none font-medium ml-2" />
+                    </div>
+                    {registerErrors.last_name && <p className="text-[10px] text-danger-60 font-bold">{registerErrors.last_name.message}</p>}
+                  </div>
+                </div>
 
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full rounded-lg bg-[var(--sky-primary)] py-3 text-sm font-semibold text-white shadow-sm hover:bg-[var(--sky-primary-dark)] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {isSubmitting ? "Signing in…" : "Log In"}
-              </button>
-            </form>
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
+                  <div className={`flex items-center gap-3 rounded-xl border bg-slate-50 px-4 h-12 transition-all focus-within:bg-white ${registerErrors.email ? "border-danger-40" : "border-slate-200 focus-within:border-primary-60"}`}>
+                    <Mail size={16} className="text-slate-400" />
+                    <input type="email" placeholder="john@example.com" {...registerRegister("email")} className="w-full bg-transparent text-[14px] outline-none font-medium" />
+                  </div>
+                  {registerErrors.email && <p className="text-[10px] text-danger-60 font-bold">{registerErrors.email.message}</p>}
+                </div>
 
-          ) : (
-            /* ── REGISTER (UI only — not wired yet) ── */
-            <form className="space-y-5">
-              <div>
-                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Full Name
-                </label>
-                <div className="mt-2 flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-                  <UserIcon />
-                  <input
-                    type="text"
-                    placeholder="Juan Dela Cruz"
-                    className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
-                  />
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone Number (Optional)</label>
+                  <div className={`flex items-center gap-3 rounded-xl border bg-slate-50 px-4 h-12 transition-all focus-within:bg-white ${registerErrors.phone_number ? "border-danger-40" : "border-slate-200 focus-within:border-primary-60"}`}>
+                    <Phone size={16} className="text-slate-400" />
+                    <input type="tel" placeholder="+1234567890" {...registerRegister("phone_number")} className="w-full bg-transparent text-[14px] outline-none font-medium" />
+                  </div>
+                  {registerErrors.phone_number && <p className="text-[10px] text-danger-60 font-bold">{registerErrors.phone_number.message}</p>}
                 </div>
-              </div>
-              <div>
-                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Email Address
-                </label>
-                <div className="mt-2 flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-                  <MailIcon />
-                  <input
-                    type="email"
-                    placeholder="your@email.com"
-                    className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
-                  />
+
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Password</label>
+                  <div className={`flex items-center gap-3 rounded-xl border bg-slate-50 px-4 h-12 transition-all focus-within:bg-white ${registerErrors.password ? "border-danger-40" : "border-slate-200 focus-within:border-primary-60"}`}>
+                    <Lock size={16} className="text-slate-400" />
+                    <input type={showRegisterPassword ? "text" : "password"} placeholder="••••••••" {...registerRegister("password")} className="w-full bg-transparent text-[14px] outline-none font-medium" />
+                    <button type="button" onClick={() => setShowRegisterPassword(!showRegisterPassword)} className="text-slate-300 hover:text-slate-500">
+                      {showRegisterPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                  {registerErrors.password && <p className="text-[10px] text-danger-60 font-bold leading-tight">{registerErrors.password.message}</p>}
                 </div>
-              </div>
-              <div>
-                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Phone Number
-                </label>
-                <div className="mt-2 flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-                  <PhoneIcon />
-                  <input
-                    type="tel"
-                    placeholder="+63 9XX XXX XXXX"
-                    className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
-                  />
+
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Confirm Password</label>
+                  <div className={`flex items-center gap-3 rounded-xl border bg-slate-50 px-4 h-12 transition-all focus-within:bg-white ${registerErrors.confirmPassword ? "border-danger-40" : "border-slate-200 focus-within:border-primary-60"}`}>
+                    <Lock size={16} className="text-slate-400" />
+                    <input type={showConfirmPassword ? "text" : "password"} placeholder="••••••••" {...registerRegister("confirmPassword")} className="w-full bg-transparent text-[14px] outline-none font-medium" />
+                    <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="text-slate-300 hover:text-slate-500">
+                      {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                  {registerErrors.confirmPassword && <p className="text-[10px] text-danger-60 font-bold">{registerErrors.confirmPassword.message}</p>}
                 </div>
-              </div>
-              <div>
-                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Password
-                </label>
-                <div className="mt-2 flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-                  <LockIcon />
-                  <input
-                    type={showRegisterPassword ? "text" : "password"}
-                    placeholder="Min. 8 characters"
-                    className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowRegisterPassword((p) => !p)}
-                    className="text-slate-400 hover:text-slate-600"
-                  >
-                    <EyeIcon />
-                  </button>
-                </div>
-              </div>
-              <button
-                type="submit"
-                className="w-full rounded-lg bg-[var(--sky-primary)] py-3 text-sm font-semibold text-white shadow-sm hover:bg-[var(--sky-primary-dark)]"
-              >
-                Create Account
-              </button>
-              <p className="text-center text-[11px] text-slate-400">
-                By registering, you agree to our Terms & Privacy Policy.
-              </p>
-            </form>
-          )}
+
+                <button
+                  type="submit"
+                  disabled={isRegistering}
+                  className="w-full h-14 rounded-2xl bg-primary-60 hover:bg-primary-70 active:scale-[0.98] text-white font-bold shadow-xl shadow-primary-60/20 transition-all mt-2 disabled:opacity-50"
+                >
+                  {isRegistering ? "Creating account..." : "Create Account"}
+                </button>
+                <p className="text-center text-[12px] text-slate-400 font-medium">
+                  By registering, you agree to our <span className="text-primary-60 hover:underline cursor-pointer">Terms & Privacy Policy</span>.
+                </p>
+              </form>
+            )}
+          </div>
         </div>
       </div>
     </section>
   );
 };
-
-const MailIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-slate-400">
-    <path d="M4 6h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z" />
-    <path d="m22 8-10 6L2 8" />
-  </svg>
-);
-const LockIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-slate-400">
-    <rect x="4" y="10" width="16" height="10" rx="2" />
-    <path d="M8 10V7a4 4 0 1 1 8 0v3" />
-  </svg>
-);
-const EyeIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-slate-400">
-    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
-const UserIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-slate-400">
-    <circle cx="12" cy="8" r="3" />
-    <path d="M5 20a7 7 0 0 1 14 0" />
-  </svg>
-);
-const PhoneIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-slate-400">
-    <path d="M22 16.5v3a2 2 0 0 1-2.2 2 19 19 0 0 1-8.3-2.9 18.6 18.6 0 0 1-5.7-5.7A19 19 0 0 1 2.5 4.2 2 2 0 0 1 4.5 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.6a2 2 0 0 1-.5 2.1L8.5 9.5a16 16 0 0 0 6 6l1.1-1.1a2 2 0 0 1 2.1-.5c.8.3 1.7.5 2.6.6a2 2 0 0 1 1.7 2Z" />
-  </svg>
-);
 
 export default LoginPage;

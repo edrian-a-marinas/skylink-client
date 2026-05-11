@@ -1,14 +1,7 @@
-import ScreenPlaceholder from "@/components/ui/ScreenPlaceholder";
+import LoginPage from "./LoginPage";
 
 const RegisterPage = () => {
-  return (
-    <ScreenPlaceholder
-      id="S-08"
-      title="Register"
-      scope="public"
-      description="New account registration and verification entry point."
-    />
-  );
+  return <LoginPage defaultTab="register" />;
 };
 
 export default RegisterPage;
