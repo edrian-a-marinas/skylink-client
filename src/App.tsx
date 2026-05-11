@@ -7,6 +7,7 @@ import PublicOnlyRoute from "@/components/layout/PublicOnlyRoute";
 import AdminRoute from "@/components/layout/AdminRoute";
 import ScreenPlaceholder from "@/components/ui/ScreenPlaceholder";
 import HomePage from "@/pages/HomePage/HomePage";
+import BookingLandingPage from "@/pages/Booking/BookingLandingPage";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
 import SearchResultsPage from "@/pages/SearchResultsPage";
@@ -45,6 +46,7 @@ function App() {
         <Routes>
           {/* Public Routes */}
           <Route path={ROUTES.HOME} element={<HomePage />} />
+          <Route path={ROUTES.BOOK} element={<BookingLandingPage />} />
           <Route path={ROUTES.SEARCH_RESULTS} element={<SearchResultsPage />} />
           <Route path={ROUTES.EXPLORE} element={<ExplorePage />} />
           <Route

@@ -12,7 +12,7 @@ const Navbar = () => {
   const isAdmin = user?.role_id === 1;
 
   const navLinks = [
-    { label: "Book", path: ROUTES.HOME },
+    { label: "Book", path: ROUTES.BOOK },
     { label: "Explore", path: ROUTES.EXPLORE },
     { label: "Flight Status", path: "#" },
     { label: "Manage", path: ROUTES.PNR_STATUS },

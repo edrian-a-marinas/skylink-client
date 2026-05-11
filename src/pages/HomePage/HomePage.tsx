@@ -1,297 +1,158 @@
-import { useState } from "react";
-import { colors, typography } from "@/constants/theme";
-import { CiLocationOn } from "react-icons/ci"
-import { CiSearch } from 'react-icons/ci'
-import { CiClock2 } from "react-icons/ci"
-import DatePicker from "@/components/ui/DatePicker";
-import TripTypePill, { type TripType } from "./components/TripTypePill";
-import PassengerSelector from "./components/PassengerSelector";
-import { HiChevronRight } from "react-icons/hi2";
-
-
-type Deal = {
-  id: string;
-  title: string;
-  price: string;
-  originalPrice: string;
-  discount: string;
-  badge: string;
-  badgeClass: string;
-  validUntil: string;
-  image?: string;
-};
-
-type Route = {
-  id: string;
-  from: string;
-  fromCode: string;
-  to: string;
-  toCode: string;
-  price: string;
-  duration: string;
-};
-
-type Destination = {
-  id: string;
-  city: string;
-  startingFrom: string;
-  bgClass: string;
-  image?: string;
-};
-
-const DEALS: Deal[] = [
-  {
-    id: "1",
-    title: "Flash Sale: Manila–Cebu",
-    price: "₱1,490",
-    originalPrice: "₱3,500",
-    discount: "-57%",
-    badge: "Flash",
-    badgeClass: "bg-warning-60",
-    validUntil: "Until April 30",
-  },
-  {
-    id: "2",
-    title: "Weekend Escape: Manila–Palawan",
-    price: "₱2,199",
-    originalPrice: "₱4,200",
-    discount: "-48%",
-    badge: "Weekend",
-    badgeClass: "bg-success-60",
-    validUntil: "Until May 15",
-  },
-  {
-    id: "3",
-    title: "Fly to Singapore from ₱7,500",
-    price: "₱7,500",
-    originalPrice: "₱12,500",
-    discount: "-40%",
-    badge: "International",
-    badgeClass: "bg-success-60",
-    validUntil: "Until May 31",
-  },
-];
-
-const ROUTES: Route[] = [
-  { id: "1", from: "Manila", fromCode: "MNL", to: "Cebu",      toCode: "CEB", price: "₱1,890",  duration: "1h 20m" },
-  { id: "2", from: "Manila", fromCode: "MNL", to: "Davao",     toCode: "DVO", price: "₱1,750",  duration: "1h 45m" },
-  { id: "3", from: "Manila", fromCode: "MNL", to: "Palawan",   toCode: "PPS", price: "₱2,499",  duration: "1h 20m" },
-  { id: "4", from: "Manila", fromCode: "MNL", to: "Boracay",   toCode: "KLO", price: "₱1,650",  duration: "1h 10m" },
-  { id: "5", from: "Manila", fromCode: "MNL", to: "Singapore", toCode: "SIN", price: "₱7,500",  duration: "4h 00m" },
-  { id: "6", from: "Manila", fromCode: "MNL", to: "Hong Kong", toCode: "HKG", price: "₱11,200", duration: "2h 30m" },
-];
-
-const DESTINATIONS: Destination[] = [
-  { id: "1", city: "Cebu",             startingFrom: "From ₱1,890", bgClass: "bg-primary-60" },
-  { id: "2", city: "Puerto Princesa",  startingFrom: "From ₱2,499", bgClass: "bg-success-70" },
-  { id: "3", city: "Kalibo (Boracay)", startingFrom: "From ₱1,650", bgClass: "bg-info-50"    },
-  { id: "4", city: "Davao",            startingFrom: "From ₱1,750", bgClass: "bg-primary-80" },
-];
-
-function DealCard({ deal }: { deal: Deal }) {
-  return (
-    <button
-      type="button"
-      className="bg-bg-page border border-tertiary-30 rounded-[14px] overflow-hidden shadow-[0px_2px_8px_rgba(0,0,0,0.04)] text-left w-full hover:shadow-md transition-shadow"
-    >
-      <div className="relative h-[140px] bg-tertiary-20">
-        {deal.image
-          ? <img src={deal.image} alt={deal.title} className="absolute inset-0 w-full h-full object-cover" />
-          : <div className="absolute inset-0 bg-tertiary-20" />
-        }
-        <span className={`absolute top-3 left-3 bg-danger-60 text-text-on-primary ${typography.label.xs.bold} px-2 py-1 rounded-full`}>
-          {deal.discount}
-        </span>
-        <span className={`absolute bottom-3 right-3 ${deal.badgeClass} text-text-on-primary ${typography.label.xs.semiBold} px-2 py-1 rounded-full`}>
-          {deal.badge}
-        </span>
-      </div>
-      <div className="p-4">
-        <p className={`${typography.label.md.bold} ${colors.text.primary}`}>{deal.title}</p>
-        <div className="flex items-baseline gap-2 mt-2">
-          <span className={`${typography.heading.h3.bold} font-extrabold text-primary-60`}>{deal.price}</span>
-          <span className={`${typography.paragraph.sm.medium} ${colors.text.secondary} line-through`}>{deal.originalPrice}</span>
-        </div>
-        <div className={`flex items-center gap-1.5 mt-2 ${colors.text.secondary}`}>
-          <CiClock2 size={11} className="shrink-0" />
-          <span className={typography.paragraph.xs.medium}>{deal.validUntil}</span>
-        </div>
-      </div>
-    </button>
-  );
-}
-
-function RouteCard({ route }: { route: Route }) {
-  return (
-    <button
-      type="button"
-      className="bg-bg-page border border-tertiary-30 rounded-[14px] p-4 flex items-center justify-between hover:shadow-sm transition-shadow w-full text-left"
-    >
-      <div className="flex items-center gap-3">
-        <div>
-          <p className={`${typography.label.sm.semiBold} ${colors.text.primary}`}>{route.from}</p>
-          <p className={`mt-2 ${typography.paragraph.xs.medium} ${colors.text.secondary}`}>{route.fromCode}</p>
-        </div>
-        <svg
-          className={`w-[15px] h-[15px] shrink-0 ${colors.text.tertiary}`}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M5 12h14M12 5l7 7-7 7" />
-        </svg>
-        <div>
-          <p className={`${typography.label.sm.semiBold} ${colors.text.primary}`}>{route.to}</p>
-          <p className={`mt-2 ${typography.paragraph.xs.medium} ${colors.text.secondary}`}>{route.toCode}</p>
-        </div>
-      </div>
-      <div className="text-right">
-        <p className={`${typography.label.md.bold} text-primary-60`}>{route.price}</p>
-        <p className={`mt-2 ${typography.paragraph.xs.medium} ${colors.text.secondary}`}>{route.duration}</p>
-      </div>
-    </button>
-  );
-}
-
-function DestinationCard({ destination }: { destination: Destination }) {
-  return (
-    <button
-      type="button"
-      className="relative h-[200px] rounded-[14px] overflow-hidden shadow-[0px_2px_8px_rgba(0,0,0,0.06)] w-full text-left hover:shadow-md transition-shadow"
-    >
-      {destination.image
-        ? <img src={destination.image} alt={destination.city} className="absolute inset-0 w-full h-full object-cover" />
-        : <div className={`absolute inset-0 ${destination.bgClass}`} />
-      }
-      <div className="absolute inset-0 bg-gradient-to-t from-primary-100/75 to-transparent" />
-      <div className="absolute bottom-3 left-3">
-        <p className={`${typography.label.md.bold} text-text-static-light`}>{destination.city}</p>
-        <p className={`mt-2 ${typography.paragraph.xs.medium} text-white/80`}>{destination.startingFrom}</p>
-      </div>
-    </button>
-  );
-}
-
-function SectionHeader({ title, linkLabel }: { title: string; linkLabel: string }) {
-  return (
-    <div className="flex items-center justify-between mb-5">
-      <h2 className={`${typography.heading.h3.bold} ${colors.text.primary}`}>{title}</h2>
-      <button
-        type="button"
-        className={`${typography.label.sm.semiBold} ${colors.text.link} flex items-center gap-1 transition-colors`}
-      >
-        {linkLabel}
-        <HiChevronRight size={16} strokeWidth={1} className={`shrink-0 text-primary-60`} />
-      </button>
-    </div>
-  );
-}
+import HeroImage from "@/assets/BackgroundImages/homepagePlane.png";
+import LondonImg from "@/assets/BackgroundImages/london.png";
+import ParisImg from "@/assets/BackgroundImages/paris.png";
+import TokyoImg from "@/assets/BackgroundImages/tokyo.png";
+import SydneyImg from "@/assets/BackgroundImages/sydney.png";
+import FlightSearchForm from "@/components/flights/FlightSearchForm";
+import { ArrowRight, ConciergeBell, Plane, Leaf } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const HomePage = () => {
-  const [tripType, setTripType] = useState<TripType>("one-way");
-
   return (
-    <div className="bg-bg-surface min-h-screen">
-
-      {/* Hero */}
-      <section className="relative pb-5">
-        <div className="absolute inset-0 bg-primary-90" />
-        <div className="absolute inset-0 bg-gradient-to-b from-primary-100/65 via-primary-100/50 to-primary-100/30" />
-
-        <div className="relative z-10 flex flex-col items-center gap-2 pt-8 px-4">
-          <h1 className={`${typography.heading.h1.bold} md:text-display-2 text-text-static-light text-center`}>
-            Where do you want to fly?
-          </h1>
-          <p className={`${typography.paragraph.md.normal} text-white/80 text-center`}>
-            Great fares, simple booking, seamless travel — only on SkyLink.
-          </p>
+    <main className="relative min-h-screen bg-[#FDFBF8]">
+      {/* Hero Section */}
+      <section className="relative h-[85vh] min-h-[650px] w-full flex flex-col justify-center overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <img
+            src={HeroImage}
+            alt="SkyLink Hero"
+            className="h-full w-full object-cover object-[center_45%] scale-110"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-white/40 via-transparent to-transparent"></div>
         </div>
 
-        {/* Search card */}
-        <div className="relative z-10 mx-auto mb-16 mt-8 w-full max-w-[800px] px-4">
-          <div className="bg-bg-page rounded-2xl shadow-[0px_4px_12px_rgba(0,0,0,0.08)] p-6 flex flex-col gap-4">
-
-            {/* Trip type pills */}
-            <div className="flex gap-2">
-              <TripTypePill 
-                tripType={tripType} 
-                setTripType={setTripType} 
-              />
+        {/* Hero Content */}
+        <div className="relative mx-auto max-w-7xl px-6 lg:px-8 w-full">
+          <div className="max-w-3xl space-y-4 md:space-y-6">
+            <div className="space-y-0">
+              <h1 className="text-[42px] md:text-[64px] lg:text-[84px] font-normal tracking-tight text-[#16202C] leading-[1.1]">
+                Your Journey,
+              </h1>
+              <h1 className="text-[42px] md:text-[64px] lg:text-[84px] font-bold italic tracking-tight text-[#496B92] leading-[1.1] mt-[-5px] md:mt-[-10px]">
+                Refined.
+              </h1>
             </div>
 
-            {/* From / To */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <label className={`flex items-center gap-2 ${colors.surface.input} border border-tertiary-30 rounded-[10px] px-4 h-14 cursor-text`}>
-                <CiLocationOn size={16} strokeWidth={1} className={`shrink-0 text-primary-60`} />
-                <input
-                  type="text"
-                  placeholder="From — City or airport"
-                  className={`bg-transparent flex-1 ${typography.paragraph.md.normal} ${colors.text.primary} outline-none placeholder:${colors.text.tertiary}`}
-                />
-              </label>
-              <label className={`flex items-center gap-2 ${colors.surface.input} border border-tertiary-30 rounded-[10px] px-4 h-14 cursor-text`}>
-                <CiLocationOn size={16} strokeWidth={1} className={`shrink-0 text-primary-60`} />
-                <input
-                  type="text"
-                  placeholder="To — City or airport"
-                  className={`bg-transparent flex-1 ${typography.paragraph.md.normal} ${colors.text.primary} outline-none placeholder:${colors.text.tertiary}`}
-                />
-              </label>
-            </div>
+            <p className="text-[15px] md:text-[18px] lg:text-[21px] text-slate-700 max-w-xl leading-[1.6] font-medium opacity-90">
+              Experience flight as it was intended. Seamless transitions, curated
+              comfort, and the attentive care of the Digital Concierge.
+            </p>
 
-            {/* Date / Passengers */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <DatePicker />
-              <PassengerSelector />
+            <div className="pt-4 md:pt-8 w-full">
+              <FlightSearchForm />
             </div>
-
-            {/* Search CTA */}
-            <button
-              type="button"
-              className={`w-full ${colors.action.primary} ${colors.action.primaryHover} ${colors.action.primaryPress} ${typography.label.md.semiBold} h-14 rounded-[10px] flex items-center justify-center gap-2 transition-colors`}
-            >
-              <CiSearch size={18} strokeWidth={1.5} className="shrink-0" />
-              Search Flights
-            </button>
           </div>
         </div>
       </section>
 
-      {/* Content sections */}
-      <div className="max-w-[1131px] mx-auto px-6 py-10 flex flex-col gap-12">
-
-        <section>
-          <SectionHeader title="Best Deals Right Now" linkLabel="See all deals" />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {DEALS.map((deal) => (
-              <DealCard key={deal.id} deal={deal} />
-            ))}
+      {/* Seasonal Escapes Section */}
+      <section className="py-12 md:py-16 bg-[#FDFBF8]">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8 md:mb-10">
+            <div>
+              <h2 className="text-[30px] md:text-[40px] font-bold text-[#16202C] mb-2 tracking-tight">Seasonal Escapes</h2>
+              <p className="text-[14px] md:text-[16px] text-slate-500 font-medium">Hand-picked by our SkyLink Concierge.</p>
+            </div>
+            <Link to="#" className="flex items-center gap-2 text-[#496B92] font-bold text-[14px] md:text-[15px] hover:underline group">
+              View all destinations <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+            </Link>
           </div>
-        </section>
 
-        <section>
-          <SectionHeader title="Popular Routes" linkLabel="Explore all" />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {ROUTES.map((route) => (
-              <RouteCard key={route.id} route={route} />
-            ))}
+          {/* Strict Bento Grid - London is the height anchor */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-6xl">
+            {/* Left: London - Large Square spanning 2 row heights */}
+            <div className="relative rounded-[16px] md:rounded-[24px] overflow-hidden group cursor-pointer aspect-square">
+              <img src={LondonImg} alt="London" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
+              <div className="absolute bottom-6 left-6 md:bottom-8 md:left-8 text-white">
+                <p className="text-[10px] md:text-[12px] font-bold uppercase tracking-widest opacity-80 mb-1">United Kingdom</p>
+                <h3 className="text-[24px] md:text-[32px] font-bold">London</h3>
+              </div>
+            </div>
+
+            {/* Right: Nested Grid for perfect alignment */}
+            <div className="grid grid-rows-2 gap-4 md:gap-6">
+              {/* Paris - Horizontal Rectangle (Top Half) */}
+              <div className="relative rounded-[16px] md:rounded-[24px] overflow-hidden group cursor-pointer h-full">
+                <img src={ParisImg} alt="Paris" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
+                <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 text-white">
+                  <p className="text-[10px] md:text-[12px] font-bold uppercase tracking-widest opacity-80 mb-0.5">France</p>
+                  <h3 className="text-[20px] md:text-[28px] font-bold">Paris</h3>
+                </div>
+              </div>
+
+              {/* Bottom Row: Tokyo & Sydney - Two Squares (Bottom Half) */}
+              <div className="grid grid-cols-2 gap-4 md:gap-6 h-full">
+                <div className="relative rounded-[16px] md:rounded-[24px] overflow-hidden group cursor-pointer aspect-square md:aspect-auto">
+                  <img src={TokyoImg} alt="Tokyo" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
+                  <div className="absolute bottom-4 left-4 md:bottom-5 md:left-5 text-white">
+                    <p className="text-[9px] md:text-[11px] font-bold uppercase tracking-widest opacity-80 mb-0.5">Japan</p>
+                    <h3 className="text-[18px] md:text-[22px] font-bold">Tokyo</h3>
+                  </div>
+                </div>
+                <div className="relative rounded-[16px] md:rounded-[24px] overflow-hidden group cursor-pointer aspect-square md:aspect-auto">
+                  <img src={SydneyImg} alt="Sydney" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
+                  <div className="absolute bottom-4 left-4 md:bottom-5 md:left-5 text-white">
+                    <p className="text-[9px] md:text-[11px] font-bold uppercase tracking-widest opacity-80 mb-0.5">Australia</p>
+                    <h3 className="text-[18px] md:text-[22px] font-bold">Sydney</h3>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section>
-          <SectionHeader title="Explore Destinations" linkLabel="View all" />
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {DESTINATIONS.map((dest) => (
-              <DestinationCard key={dest.id} destination={dest} />
-            ))}
+      {/* Information / Features Section */}
+      <section className="py-16 md:py-20 bg-[#FDFBF8]">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-16">
+            <div className="space-y-5">
+              <div className="w-12 h-12 bg-white rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex items-center justify-center text-[#496B92]">
+                <ConciergeBell size={22} className="stroke-[1.5px]" />
+              </div>
+              <div className="space-y-3">
+                <h3 className="text-[18px] md:text-[20px] font-bold text-[#16202C]">Personal Concierge</h3>
+                <p className="text-[15px] text-slate-500 leading-[1.6]">
+                  Dedicated assistance from booking to landing, ensuring every detail is handled with precision.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-5">
+              <div className="w-12 h-12 bg-white rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex items-center justify-center text-[#496B92]">
+                <Plane size={22} className="stroke-[1.5px]" />
+              </div>
+              <div className="space-y-3">
+                <h3 className="text-[18px] md:text-[20px] font-bold text-[#16202C]">Curated Lounges</h3>
+                <p className="text-[15px] text-slate-500 leading-[1.6]">
+                  Access to our private network of airport retreats designed for tranquility and productivity.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-5">
+              <div className="w-12 h-12 bg-white rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex items-center justify-center text-[#496B92]">
+                <Leaf size={22} className="stroke-[1.5px]" />
+              </div>
+              <div className="space-y-3">
+                <h3 className="text-[18px] md:text-[20px] font-bold text-[#16202C]">Sustainable Flight</h3>
+                <p className="text-[15px] text-slate-500 leading-[1.6]">
+                  We lead with SAF-powered aircraft and a commitment to zero-emission operational targets.
+                </p>
+              </div>
+            </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-      </div>
-    </div>
+      {/* Minimal gap before footer */}
+      <div className="h-4 md:h-8"></div>
+    </main>
   );
 };
 
