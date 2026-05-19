@@ -178,12 +178,12 @@ const DestinationPage = () => {
                 PHP 1,890
               </p>
               <p className="mt-1 text-xs text-slate-500">One-way - Economy</p>
-              <button
-                type="button"
-                className="mt-4 w-full rounded-lg bg-[#5D7FA7] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#4E6B8D]"
+              <Link
+                to={ROUTES.BOOK}
+                className="mt-4 block w-full rounded-lg bg-[#5D7FA7] px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-[#4E6B8D]"
               >
                 Book Now
-              </button>
+              </Link>
             </div>
           </div>
         </div>

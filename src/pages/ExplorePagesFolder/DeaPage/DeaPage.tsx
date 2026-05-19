@@ -95,12 +95,12 @@ const DeaPage = () => {
                         One way
                       </p>
                     </div>
-                    <button
-                      type="button"
+                    <Link
+                      to={ROUTES.BOOK}
                       className="rounded-lg bg-[#5D7FA7] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#4E6B8D]"
                     >
                       Book
-                    </button>
+                    </Link>
                   </div>
                 </div>
               ))}

@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { Clock, Tag } from "lucide-react";
+import { ROUTES } from "@/constants/routes";
 
 type PromoTag = "Flash" | "Weekend" | "International" | "Domestic" | "Business";
 
@@ -159,55 +161,58 @@ const PromosPage = () => {
 
           <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {filteredPromos.map((promo) => (
-              <article
+              <Link
                 key={promo.id}
-                className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+                to={ROUTES.EXPLORE_PROMO_DETAIL}
+                className="block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
               >
-                <div className="relative">
-                  <img
-                    src={promo.image}
-                    alt={promo.title}
-                    className="h-40 w-full object-cover"
-                    loading="lazy"
-                  />
-                  <span className="absolute left-3 top-3 rounded-full bg-rose-500 px-2 py-1 text-[10px] font-semibold text-white">
-                    {promo.discount}
-                  </span>
-                  <span
-                    className={`absolute right-3 top-3 rounded-full px-2 py-1 text-[10px] font-semibold text-white ${
-                      TAG_STYLES[promo.tag]
-                    }`}
-                  >
-                    {promo.tag}
-                  </span>
-                </div>
-
-                <div className="space-y-3 p-4">
-                  <div>
-                    <h3 className="text-sm font-semibold text-slate-900">
-                      {promo.title}
-                    </h3>
-                    <p className="mt-1 text-xs text-slate-500">
-                      {promo.description}
-                    </p>
+                <article>
+                  <div className="relative">
+                    <img
+                      src={promo.image}
+                      alt={promo.title}
+                      className="h-40 w-full object-cover"
+                      loading="lazy"
+                    />
+                    <span className="absolute left-3 top-3 rounded-full bg-rose-500 px-2 py-1 text-[10px] font-semibold text-white">
+                      {promo.discount}
+                    </span>
+                    <span
+                      className={`absolute right-3 top-3 rounded-full px-2 py-1 text-[10px] font-semibold text-white ${
+                        TAG_STYLES[promo.tag]
+                      }`}
+                    >
+                      {promo.tag}
+                    </span>
                   </div>
 
-                  <div className="flex items-center justify-between">
+                  <div className="space-y-3 p-4">
                     <div>
-                      <p className="text-base font-semibold text-[#5D7FA7]">
-                        {promo.price}
-                      </p>
-                      <p className="text-xs text-slate-400 line-through">
-                        {promo.oldPrice}
+                      <h3 className="text-sm font-semibold text-slate-900">
+                        {promo.title}
+                      </h3>
+                      <p className="mt-1 text-xs text-slate-500">
+                        {promo.description}
                       </p>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-slate-400">
-                      <Clock size={12} />
-                      {promo.validUntil}
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-base font-semibold text-[#5D7FA7]">
+                          {promo.price}
+                        </p>
+                        <p className="text-xs text-slate-400 line-through">
+                          {promo.oldPrice}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-slate-400">
+                        <Clock size={12} />
+                        {promo.validUntil}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </article>
+                </article>
+              </Link>
             ))}
           </div>
         </div>
