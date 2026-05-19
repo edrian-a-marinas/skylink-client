@@ -8,6 +8,7 @@ export const ROUTES = {
   PNR_STATUS: "/pnr-status",
   MANAGE: "/manage",
   EXPLORE_DESTINATION: "/explore/destination",
+  EXPLORE_PROMOS: "/explore/promos",
   LOGIN: "/login",
   FORGOT_PASSWORD: "/forgot-password",
   RESET_PASSWORD: "/reset-password",
