@@ -9,6 +9,7 @@ export const ROUTES = {
   MANAGE: "/manage",
   EXPLORE_DESTINATION: "/explore/destination",
   EXPLORE_PROMOS: "/explore/promos",
+  EXPLORE_PROMO_DETAIL: "/explore/promos/deal",
   LOGIN: "/login",
   FORGOT_PASSWORD: "/forgot-password",
   RESET_PASSWORD: "/reset-password",

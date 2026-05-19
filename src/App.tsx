@@ -24,6 +24,7 @@ import AdminReportsPage from "@/pages/admin/AdminReportsPage";
 import ExplorePage from "@/pages/MainPagesFolder/ExplorePage/ExplorePage";
 import DestinationPage from "@/pages/ExplorePagesFolder/DestinationPage/DestinationPage";
 import PromosPage from "@/pages/ExplorePagesFolder/PromosPage/PromosPage";
+import DeaPage from "@/pages/ExplorePagesFolder/DeaPage/DeaPage";
 
 function screen(
   id: string,
@@ -57,6 +58,7 @@ function App() {
             element={<DestinationPage />}
           />
           <Route path={ROUTES.EXPLORE_PROMOS} element={<PromosPage />} />
+          <Route path={ROUTES.EXPLORE_PROMO_DETAIL} element={<DeaPage />} />
           <Route
             path={ROUTES.FLIGHT_DETAIL}
             element={screen(
