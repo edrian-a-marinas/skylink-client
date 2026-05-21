@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { colors, typography } from "@/constants/theme";
+import { ROUTES } from "@/constants/routes";
 import { CiLocationOn } from "react-icons/ci";
 import { CiSearch } from "react-icons/ci";
 import { CiClock2 } from "react-icons/ci";
@@ -37,6 +39,13 @@ type Destination = {
   image?: string;
 };
 
+type AirportOption = {
+  code: string;
+  city: string;
+  airport: string;
+  country: string;
+};
+
 const DEALS: Deal[] = [
   {
     id: "1",
@@ -70,7 +79,7 @@ const DEALS: Deal[] = [
   },
 ];
 
-const ROUTES: Route[] = [
+const POPULAR_ROUTES: Route[] = [
   {
     id: "1",
     from: "Manila",
@@ -154,6 +163,51 @@ const DESTINATIONS: Destination[] = [
   },
 ];
 
+const AIRPORTS: AirportOption[] = [
+  {
+    code: "MNL",
+    city: "Manila",
+    airport: "Ninoy Aquino International Airport",
+    country: "Philippines",
+  },
+  {
+    code: "CEB",
+    city: "Cebu",
+    airport: "Mactan-Cebu International Airport",
+    country: "Philippines",
+  },
+  {
+    code: "DVO",
+    city: "Davao",
+    airport: "Francisco Bangoy International Airport",
+    country: "Philippines",
+  },
+  {
+    code: "PPS",
+    city: "Palawan",
+    airport: "Puerto Princesa International Airport",
+    country: "Philippines",
+  },
+  {
+    code: "KLO",
+    city: "Kalibo",
+    airport: "Kalibo International Airport",
+    country: "Philippines",
+  },
+  {
+    code: "SIN",
+    city: "Singapore",
+    airport: "Changi International Airport",
+    country: "Singapore",
+  },
+  {
+    code: "HKG",
+    city: "Hong Kong",
+    airport: "Hong Kong International Airport",
+    country: "Hong Kong",
+  },
+];
+
 function IconChevronRight() {
   return (
     <svg className="w-4 h-4" viewBox="0 0 16 16" fill="currentColor">
@@ -165,10 +219,28 @@ function IconChevronRight() {
   );
 }
 
+function filterAirports(query: string) {
+  const normalized = query.trim().toLowerCase();
+  if (!normalized) {
+    return AIRPORTS;
+  }
+  return AIRPORTS.filter((airport) =>
+    [airport.city, airport.code, airport.airport, airport.country]
+      .join(" ")
+      .toLowerCase()
+      .includes(normalized),
+  );
+}
+
+function getCode(value: string) {
+  const match = value.match(/\(([A-Z]{3})\)/);
+  return match ? match[1] : "";
+}
+
 function DealCard({ deal }: { deal: Deal }) {
   return (
-    <button
-      type="button"
+    <Link
+      to={ROUTES.EXPLORE_PROMO_DETAIL}
       className="bg-bg-page border border-tertiary-30 rounded-[14px] overflow-hidden shadow-[0px_2px_8px_rgba(0,0,0,0.04)] text-left w-full hover:shadow-md transition-shadow"
     >
       <div className="relative h-[140px] bg-tertiary-20">
@@ -217,14 +289,14 @@ function DealCard({ deal }: { deal: Deal }) {
           </span>
         </div>
       </div>
-    </button>
+    </Link>
   );
 }
 
 function RouteCard({ route }: { route: Route }) {
   return (
-    <button
-      type="button"
+    <Link
+      to={ROUTES.SEARCH_RESULTS}
       className="bg-bg-page border border-tertiary-30 rounded-[14px] p-4 flex items-center justify-between hover:shadow-sm transition-shadow w-full text-left"
     >
       <div className="flex items-center gap-3">
@@ -274,14 +346,14 @@ function RouteCard({ route }: { route: Route }) {
           {route.duration}
         </p>
       </div>
-    </button>
+    </Link>
   );
 }
 
 function DestinationCard({ destination }: { destination: Destination }) {
   return (
-    <button
-      type="button"
+    <Link
+      to={ROUTES.EXPLORE_DESTINATION}
       className="relative h-[200px] rounded-[14px] overflow-hidden shadow-[0px_2px_8px_rgba(0,0,0,0.06)] w-full text-left hover:shadow-md transition-shadow"
     >
       {destination.image ? (
@@ -302,35 +374,85 @@ function DestinationCard({ destination }: { destination: Destination }) {
           {destination.startingFrom}
         </p>
       </div>
-    </button>
+    </Link>
   );
 }
 
 function SectionHeader({
   title,
   linkLabel,
+  to,
 }: {
   title: string;
   linkLabel: string;
+  to?: string;
 }) {
   return (
     <div className="flex items-center justify-between mb-5">
       <h2 className={`${typography.heading.h3.bold} ${colors.text.primary}`}>
         {title}
       </h2>
-      <button
-        type="button"
-        className={`${typography.label.sm.semiBold} ${colors.text.link} flex items-center gap-1 transition-colors`}
-      >
-        {linkLabel}
-        <IconChevronRight />
-      </button>
+      {to ? (
+        <Link
+          to={to}
+          className={`${typography.label.sm.semiBold} ${colors.text.link} flex items-center gap-1 transition-colors`}
+        >
+          {linkLabel}
+          <IconChevronRight />
+        </Link>
+      ) : (
+        <button
+          type="button"
+          className={`${typography.label.sm.semiBold} ${colors.text.link} flex items-center gap-1 transition-colors`}
+        >
+          {linkLabel}
+          <IconChevronRight />
+        </button>
+      )}
     </div>
   );
 }
 
 const BookingLandingPage = () => {
   const [tripType, setTripType] = useState<TripType>("one-way");
+  const [fromQuery, setFromQuery] = useState("Manila (MNL)");
+  const [toQuery, setToQuery] = useState("Cebu (CEB)");
+  const [openField, setOpenField] = useState<"from" | "to" | null>(null);
+  const fromRef = useRef<HTMLDivElement>(null);
+  const toRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (event: MouseEvent) => {
+      if (fromRef.current?.contains(event.target as Node)) {
+        return;
+      }
+      if (toRef.current?.contains(event.target as Node)) {
+        return;
+      }
+      setOpenField(null);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const selectedFromCode = getCode(fromQuery);
+  const selectedToCode = getCode(toQuery);
+  const fromOptions = filterAirports(fromQuery).filter(
+    (option) => option.code !== selectedToCode,
+  );
+  const toOptions = filterAirports(toQuery).filter(
+    (option) => option.code !== selectedFromCode,
+  );
+
+  const selectFrom = (option: AirportOption) => {
+    setFromQuery(`${option.city} (${option.code})`);
+    setOpenField(null);
+  };
+
+  const selectTo = (option: AirportOption) => {
+    setToQuery(`${option.city} (${option.code})`);
+    setOpenField(null);
+  };
 
   return (
     <div className="bg-bg-surface min-h-screen">
@@ -362,34 +484,103 @@ const BookingLandingPage = () => {
 
             {/* From / To */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <label
-                className={`flex items-center gap-2 ${colors.surface.input} border border-tertiary-30 rounded-[10px] px-4 h-14 cursor-text`}
-              >
-                <CiLocationOn
-                  size={16}
-                  strokeWidth={1}
-                  className={`shrink-0 text-primary-60`}
-                />
-                <input
-                  type="text"
-                  placeholder="From — City or airport"
-                  className={`bg-transparent flex-1 ${typography.paragraph.md.normal} ${colors.text.primary} outline-none placeholder:${colors.text.tertiary}`}
-                />
-              </label>
-              <label
-                className={`flex items-center gap-2 ${colors.surface.input} border border-tertiary-30 rounded-[10px] px-4 h-14 cursor-text`}
-              >
-                <CiLocationOn
-                  size={16}
-                  strokeWidth={1}
-                  className={`shrink-0 text-primary-60`}
-                />
-                <input
-                  type="text"
-                  placeholder="To — City or airport"
-                  className={`bg-transparent flex-1 ${typography.paragraph.md.normal} ${colors.text.primary} outline-none placeholder:${colors.text.tertiary}`}
-                />
-              </label>
+              <div ref={fromRef} className="relative">
+                <div
+                  className={`flex items-center gap-2 ${colors.surface.input} border border-tertiary-30 rounded-[10px] px-4 h-14 cursor-text`}
+                  onClick={() => setOpenField("from")}
+                >
+                  <CiLocationOn
+                    size={16}
+                    strokeWidth={1}
+                    className={`shrink-0 text-primary-60`}
+                  />
+                  <input
+                    type="text"
+                    value={fromQuery}
+                    onChange={(event) => {
+                      setFromQuery(event.target.value);
+                      setOpenField("from");
+                    }}
+                    onFocus={() => setOpenField("from")}
+                    placeholder="From - City or airport"
+                    className={`bg-transparent flex-1 ${typography.paragraph.md.normal} ${colors.text.primary} outline-none placeholder:${colors.text.tertiary}`}
+                    autoComplete="off"
+                  />
+                </div>
+                {openField === "from" && (
+                  <div className="absolute z-40 mt-2 w-full rounded-[14px] border border-tertiary-30 bg-white p-2 shadow-[0px_10px_20px_rgba(0,0,0,0.12)]">
+                    {fromOptions.map((option) => (
+                      <button
+                        key={option.code}
+                        type="button"
+                        onClick={() => selectFrom(option)}
+                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left hover:bg-slate-50"
+                      >
+                        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-100 text-xs font-semibold text-slate-600">
+                          {option.code}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-slate-900">
+                            {option.city}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {option.airport} - {option.country}
+                          </p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div ref={toRef} className="relative">
+                <div
+                  className={`flex items-center gap-2 ${colors.surface.input} border border-tertiary-30 rounded-[10px] px-4 h-14 cursor-text`}
+                  onClick={() => setOpenField("to")}
+                >
+                  <CiLocationOn
+                    size={16}
+                    strokeWidth={1}
+                    className={`shrink-0 text-primary-60`}
+                  />
+                  <input
+                    type="text"
+                    value={toQuery}
+                    onChange={(event) => {
+                      setToQuery(event.target.value);
+                      setOpenField("to");
+                    }}
+                    onFocus={() => setOpenField("to")}
+                    placeholder="To - City or airport"
+                    className={`bg-transparent flex-1 ${typography.paragraph.md.normal} ${colors.text.primary} outline-none placeholder:${colors.text.tertiary}`}
+                    autoComplete="off"
+                  />
+                </div>
+                {openField === "to" && (
+                  <div className="absolute z-40 mt-2 w-full rounded-[14px] border border-tertiary-30 bg-white p-2 shadow-[0px_10px_20px_rgba(0,0,0,0.12)]">
+                    {toOptions.map((option) => (
+                      <button
+                        key={option.code}
+                        type="button"
+                        onClick={() => selectTo(option)}
+                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left hover:bg-slate-50"
+                      >
+                        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-100 text-xs font-semibold text-slate-600">
+                          {option.code}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-slate-900">
+                            {option.city}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {option.airport} - {option.country}
+                          </p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Date / Passengers */}
@@ -399,13 +590,13 @@ const BookingLandingPage = () => {
             </div>
 
             {/* Search CTA */}
-            <button
-              type="button"
+            <Link
+              to={ROUTES.SEARCH_RESULTS}
               className={`w-full ${colors.action.primary} ${colors.action.primaryHover} ${colors.action.primaryPress} ${typography.label.md.semiBold} h-14 rounded-[10px] flex items-center justify-center gap-2 transition-colors`}
             >
               <CiSearch size={18} strokeWidth={1.5} className="shrink-0" />
               Search Flights
-            </button>
+            </Link>
           </div>
         </div>
       </section>
@@ -416,6 +607,7 @@ const BookingLandingPage = () => {
           <SectionHeader
             title="Best Deals Right Now"
             linkLabel="See all deals"
+            to={ROUTES.EXPLORE_PROMOS}
           />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {DEALS.map((deal) => (
@@ -425,16 +617,24 @@ const BookingLandingPage = () => {
         </section>
 
         <section>
-          <SectionHeader title="Popular Routes" linkLabel="Explore all" />
+          <SectionHeader
+            title="Popular Routes"
+            linkLabel="Explore all"
+            to={ROUTES.SEARCH_RESULTS}
+          />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {ROUTES.map((route) => (
+            {POPULAR_ROUTES.map((route) => (
               <RouteCard key={route.id} route={route} />
             ))}
           </div>
         </section>
 
         <section>
-          <SectionHeader title="Explore Destinations" linkLabel="View all" />
+          <SectionHeader
+            title="Explore Destinations"
+            linkLabel="View all"
+            to={ROUTES.EXPLORE}
+          />
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {DESTINATIONS.map((dest) => (
               <DestinationCard key={dest.id} destination={dest} />
