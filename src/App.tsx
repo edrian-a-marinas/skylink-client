@@ -10,7 +10,7 @@ import HomePage from "@/pages/HomePage/HomePage";
 import BookingLandingPage from "@/pages/MainPagesFolder/BookingLandingPage/BookingLandingPage";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
-import SearchResultsPage from "@/pages/SearchResultsPage";
+import SearchResultsPage from "@/pages/BookingResultPagesFolder/SearchResultsPage/SearchResultsPage";
 import BookingPage from "@/pages/BookingPage";
 import BookingDetailPage from "@/pages/BookingDetailPage";
 import MyBookingsPage from "@/pages/MyBookingsPage";
