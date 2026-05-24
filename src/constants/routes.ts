@@ -4,6 +4,7 @@ export const ROUTES = {
   BOOK: "/book",
   EXPLORE: "/explore",
   SEARCH_RESULTS: "/search",
+  FLIGHTS: "/flights/",
   FLIGHT_DETAIL: "/flights/:id",
   PNR_STATUS: "/pnr-status",
   MANAGE: "/manage",
