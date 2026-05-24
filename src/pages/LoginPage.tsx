@@ -5,8 +5,19 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ROUTES } from "@/constants/routes";
 import { useAuth } from "@/hooks/useAuth";
 import { loginSchema, registerSchema } from "@/validation/auth.schemas";
-import type { LoginFormValues, RegisterFormValues } from "@/validation/auth.schemas";
-import { Mail, Lock, Eye, EyeOff, User, Phone, CheckCircle2 } from "lucide-react";
+import type {
+  LoginFormValues,
+  RegisterFormValues,
+} from "@/validation/auth.schemas";
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  User,
+  Phone,
+  CheckCircle2,
+} from "lucide-react";
 
 type AuthTab = "login" | "register";
 
@@ -62,22 +73,31 @@ const LoginPage = ({ defaultTab = "login" }: LoginPageProps) => {
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { detail?: unknown } } };
       const detail = axiosErr?.response?.data?.detail;
-      setServerError(typeof detail === "string" ? detail : "Login failed. Please try again.");
+      setServerError(
+        typeof detail === "string" ? detail : "Login failed. Please try again.",
+      );
     }
   };
 
   const onRegisterSubmit = async (data: RegisterFormValues) => {
     setServerError(null);
     try {
-      const { confirmPassword: _, ...payload } = data;
+      const { confirmPassword, ...payload } = data;
+      void confirmPassword;
       await signUp(payload);
-      setSuccessMsg("Registration successful! Please check your email to verify your account.");
+      setSuccessMsg(
+        "Registration successful! Please check your email to verify your account.",
+      );
       setActiveTab("login");
       resetRegisterForm();
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { detail?: unknown } } };
       const detail = axiosErr?.response?.data?.detail;
-      setServerError(typeof detail === "string" ? detail : "Registration failed. Please try again.");
+      setServerError(
+        typeof detail === "string"
+          ? detail
+          : "Registration failed. Please try again.",
+      );
     }
   };
 
@@ -91,28 +111,35 @@ const LoginPage = ({ defaultTab = "login" }: LoginPageProps) => {
 
       <div className="relative z-10 w-full max-w-[500px]">
         <div className="bg-white rounded-[32px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] overflow-hidden border border-slate-100">
-          
           {/* Tab Switcher */}
           <div className="flex border-b border-slate-100 bg-slate-50/50">
             <button
               type="button"
               onClick={() => handleTabChange("login")}
               className={`flex-1 py-6 text-[15px] font-bold transition-all relative ${
-                activeTab === "login" ? "text-primary-60 bg-white" : "text-slate-400 hover:text-slate-600"
+                activeTab === "login"
+                  ? "text-primary-60 bg-white"
+                  : "text-slate-400 hover:text-slate-600"
               }`}
             >
               Sign In
-              {activeTab === "login" && <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-primary-60" />}
+              {activeTab === "login" && (
+                <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-primary-60" />
+              )}
             </button>
             <button
               type="button"
               onClick={() => handleTabChange("register")}
               className={`flex-1 py-6 text-[15px] font-bold transition-all relative ${
-                activeTab === "register" ? "text-primary-60 bg-white" : "text-slate-400 hover:text-slate-600"
+                activeTab === "register"
+                  ? "text-primary-60 bg-white"
+                  : "text-slate-400 hover:text-slate-600"
               }`}
             >
               Register
-              {activeTab === "register" && <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-primary-60" />}
+              {activeTab === "register" && (
+                <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-primary-60" />
+              )}
             </button>
           </div>
 
@@ -132,11 +159,19 @@ const LoginPage = ({ defaultTab = "login" }: LoginPageProps) => {
             )}
 
             {activeTab === "login" ? (
-              <form className="space-y-6" onSubmit={handleLoginSubmit(onLoginSubmit)} noValidate>
+              <form
+                className="space-y-6"
+                onSubmit={handleLoginSubmit(onLoginSubmit)}
+                noValidate
+              >
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <label className="text-[13px] font-bold text-slate-500 uppercase tracking-widest ml-1">Email</label>
-                    <div className={`flex items-center gap-3 rounded-2xl border bg-slate-50 px-4 h-14 transition-all focus-within:bg-white focus-within:ring-4 focus-within:ring-primary-60/5 ${loginErrors.email ? "border-danger-40" : "border-slate-200 focus-within:border-primary-60"}`}>
+                    <label className="text-[13px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                      Email
+                    </label>
+                    <div
+                      className={`flex items-center gap-3 rounded-2xl border bg-slate-50 px-4 h-14 transition-all focus-within:bg-white focus-within:ring-4 focus-within:ring-primary-60/5 ${loginErrors.email ? "border-danger-40" : "border-slate-200 focus-within:border-primary-60"}`}
+                    >
                       <Mail size={18} className="text-slate-400" />
                       <input
                         type="email"
@@ -145,12 +180,20 @@ const LoginPage = ({ defaultTab = "login" }: LoginPageProps) => {
                         className="w-full bg-transparent text-[15px] outline-none font-medium text-slate-700"
                       />
                     </div>
-                    {loginErrors.email && <p className="text-xs text-danger-60 font-bold ml-1">{loginErrors.email.message}</p>}
+                    {loginErrors.email && (
+                      <p className="text-xs text-danger-60 font-bold ml-1">
+                        {loginErrors.email.message}
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[13px] font-bold text-slate-500 uppercase tracking-widest ml-1">Password</label>
-                    <div className={`flex items-center gap-3 rounded-2xl border bg-slate-50 px-4 h-14 transition-all focus-within:bg-white focus-within:ring-4 focus-within:ring-primary-60/5 ${loginErrors.password ? "border-danger-40" : "border-slate-200 focus-within:border-primary-60"}`}>
+                    <label className="text-[13px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                      Password
+                    </label>
+                    <div
+                      className={`flex items-center gap-3 rounded-2xl border bg-slate-50 px-4 h-14 transition-all focus-within:bg-white focus-within:ring-4 focus-within:ring-primary-60/5 ${loginErrors.password ? "border-danger-40" : "border-slate-200 focus-within:border-primary-60"}`}
+                    >
                       <Lock size={18} className="text-slate-400" />
                       <input
                         type={showLoginPassword ? "text" : "password"}
@@ -158,11 +201,23 @@ const LoginPage = ({ defaultTab = "login" }: LoginPageProps) => {
                         {...loginRegister("password")}
                         className="w-full bg-transparent text-[15px] outline-none font-medium text-slate-700"
                       />
-                      <button type="button" onClick={() => setShowLoginPassword(!showLoginPassword)} className="text-slate-300 hover:text-slate-500">
-                        {showLoginPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      <button
+                        type="button"
+                        onClick={() => setShowLoginPassword(!showLoginPassword)}
+                        className="text-slate-300 hover:text-slate-500"
+                      >
+                        {showLoginPassword ? (
+                          <EyeOff size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
                       </button>
                     </div>
-                    {loginErrors.password && <p className="text-xs text-danger-60 font-bold ml-1">{loginErrors.password.message}</p>}
+                    {loginErrors.password && (
+                      <p className="text-xs text-danger-60 font-bold ml-1">
+                        {loginErrors.password.message}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -176,11 +231,19 @@ const LoginPage = ({ defaultTab = "login" }: LoginPageProps) => {
                         className="peer sr-only"
                       />
                       <div className="w-5 h-5 border-2 border-slate-200 rounded-md transition-all peer-checked:bg-primary-60 peer-checked:border-primary-60 group-hover:border-primary-60/50" />
-                      <CheckCircle2 size={12} className="absolute text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
+                      <CheckCircle2
+                        size={12}
+                        className="absolute text-white opacity-0 peer-checked:opacity-100 transition-opacity"
+                      />
                     </div>
-                    <span className="text-[13px] font-bold text-slate-500 group-hover:text-slate-700">Remember me</span>
+                    <span className="text-[13px] font-bold text-slate-500 group-hover:text-slate-700">
+                      Remember me
+                    </span>
                   </label>
-                  <Link to={ROUTES.FORGOT_PASSWORD} className="text-[13px] font-bold text-primary-60 hover:text-primary-80">
+                  <Link
+                    to={ROUTES.FORGOT_PASSWORD}
+                    className="text-[13px] font-bold text-primary-60 hover:text-primary-80"
+                  >
                     Forgot password?
                   </Link>
                 </div>
@@ -194,65 +257,167 @@ const LoginPage = ({ defaultTab = "login" }: LoginPageProps) => {
                 </button>
               </form>
             ) : (
-              <form className="space-y-5" onSubmit={handleRegisterSubmit(onRegisterSubmit)} noValidate>
+              <form
+                className="space-y-5"
+                onSubmit={handleRegisterSubmit(onRegisterSubmit)}
+                noValidate
+              >
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">First Name</label>
-                    <div className={`flex items-center gap-3 rounded-xl border bg-slate-50 px-4 h-12 transition-all focus-within:bg-white ${registerErrors.first_name ? "border-danger-40" : "border-slate-200 focus-within:border-primary-60"}`}>
+                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                      First Name
+                    </label>
+                    <div
+                      className={`flex items-center gap-3 rounded-xl border bg-slate-50 px-4 h-12 transition-all focus-within:bg-white ${registerErrors.first_name ? "border-danger-40" : "border-slate-200 focus-within:border-primary-60"}`}
+                    >
                       <User size={16} className="text-slate-400" />
-                      <input type="text" placeholder="John" {...registerRegister("first_name")} className="w-full bg-transparent text-[14px] outline-none font-medium" />
+                      <input
+                        type="text"
+                        placeholder="John"
+                        {...registerRegister("first_name")}
+                        className="w-full bg-transparent text-[14px] outline-none font-medium"
+                      />
                     </div>
-                    {registerErrors.first_name && <p className="text-[10px] text-danger-60 font-bold">{registerErrors.first_name.message}</p>}
+                    {registerErrors.first_name && (
+                      <p className="text-[10px] text-danger-60 font-bold">
+                        {registerErrors.first_name.message}
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Last Name</label>
-                    <div className={`flex items-center gap-3 rounded-xl border bg-slate-50 px-4 h-12 transition-all focus-within:bg-white ${registerErrors.last_name ? "border-danger-40" : "border-slate-200 focus-within:border-primary-60"}`}>
-                      <input type="text" placeholder="Doe" {...registerRegister("last_name")} className="w-full bg-transparent text-[14px] outline-none font-medium ml-2" />
+                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                      Last Name
+                    </label>
+                    <div
+                      className={`flex items-center gap-3 rounded-xl border bg-slate-50 px-4 h-12 transition-all focus-within:bg-white ${registerErrors.last_name ? "border-danger-40" : "border-slate-200 focus-within:border-primary-60"}`}
+                    >
+                      <input
+                        type="text"
+                        placeholder="Doe"
+                        {...registerRegister("last_name")}
+                        className="w-full bg-transparent text-[14px] outline-none font-medium ml-2"
+                      />
                     </div>
-                    {registerErrors.last_name && <p className="text-[10px] text-danger-60 font-bold">{registerErrors.last_name.message}</p>}
+                    {registerErrors.last_name && (
+                      <p className="text-[10px] text-danger-60 font-bold">
+                        {registerErrors.last_name.message}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
-                  <div className={`flex items-center gap-3 rounded-xl border bg-slate-50 px-4 h-12 transition-all focus-within:bg-white ${registerErrors.email ? "border-danger-40" : "border-slate-200 focus-within:border-primary-60"}`}>
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                    Email Address
+                  </label>
+                  <div
+                    className={`flex items-center gap-3 rounded-xl border bg-slate-50 px-4 h-12 transition-all focus-within:bg-white ${registerErrors.email ? "border-danger-40" : "border-slate-200 focus-within:border-primary-60"}`}
+                  >
                     <Mail size={16} className="text-slate-400" />
-                    <input type="email" placeholder="john@example.com" {...registerRegister("email")} className="w-full bg-transparent text-[14px] outline-none font-medium" />
+                    <input
+                      type="email"
+                      placeholder="john@example.com"
+                      {...registerRegister("email")}
+                      className="w-full bg-transparent text-[14px] outline-none font-medium"
+                    />
                   </div>
-                  {registerErrors.email && <p className="text-[10px] text-danger-60 font-bold">{registerErrors.email.message}</p>}
+                  {registerErrors.email && (
+                    <p className="text-[10px] text-danger-60 font-bold">
+                      {registerErrors.email.message}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone Number (Optional)</label>
-                  <div className={`flex items-center gap-3 rounded-xl border bg-slate-50 px-4 h-12 transition-all focus-within:bg-white ${registerErrors.phone_number ? "border-danger-40" : "border-slate-200 focus-within:border-primary-60"}`}>
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                    Phone Number (Optional)
+                  </label>
+                  <div
+                    className={`flex items-center gap-3 rounded-xl border bg-slate-50 px-4 h-12 transition-all focus-within:bg-white ${registerErrors.phone_number ? "border-danger-40" : "border-slate-200 focus-within:border-primary-60"}`}
+                  >
                     <Phone size={16} className="text-slate-400" />
-                    <input type="tel" placeholder="+1234567890" {...registerRegister("phone_number")} className="w-full bg-transparent text-[14px] outline-none font-medium" />
+                    <input
+                      type="tel"
+                      placeholder="+1234567890"
+                      {...registerRegister("phone_number")}
+                      className="w-full bg-transparent text-[14px] outline-none font-medium"
+                    />
                   </div>
-                  {registerErrors.phone_number && <p className="text-[10px] text-danger-60 font-bold">{registerErrors.phone_number.message}</p>}
+                  {registerErrors.phone_number && (
+                    <p className="text-[10px] text-danger-60 font-bold">
+                      {registerErrors.phone_number.message}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Password</label>
-                  <div className={`flex items-center gap-3 rounded-xl border bg-slate-50 px-4 h-12 transition-all focus-within:bg-white ${registerErrors.password ? "border-danger-40" : "border-slate-200 focus-within:border-primary-60"}`}>
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                    Password
+                  </label>
+                  <div
+                    className={`flex items-center gap-3 rounded-xl border bg-slate-50 px-4 h-12 transition-all focus-within:bg-white ${registerErrors.password ? "border-danger-40" : "border-slate-200 focus-within:border-primary-60"}`}
+                  >
                     <Lock size={16} className="text-slate-400" />
-                    <input type={showRegisterPassword ? "text" : "password"} placeholder="••••••••" {...registerRegister("password")} className="w-full bg-transparent text-[14px] outline-none font-medium" />
-                    <button type="button" onClick={() => setShowRegisterPassword(!showRegisterPassword)} className="text-slate-300 hover:text-slate-500">
-                      {showRegisterPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    <input
+                      type={showRegisterPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      {...registerRegister("password")}
+                      className="w-full bg-transparent text-[14px] outline-none font-medium"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowRegisterPassword(!showRegisterPassword)
+                      }
+                      className="text-slate-300 hover:text-slate-500"
+                    >
+                      {showRegisterPassword ? (
+                        <EyeOff size={16} />
+                      ) : (
+                        <Eye size={16} />
+                      )}
                     </button>
                   </div>
-                  {registerErrors.password && <p className="text-[10px] text-danger-60 font-bold leading-tight">{registerErrors.password.message}</p>}
+                  {registerErrors.password && (
+                    <p className="text-[10px] text-danger-60 font-bold leading-tight">
+                      {registerErrors.password.message}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Confirm Password</label>
-                  <div className={`flex items-center gap-3 rounded-xl border bg-slate-50 px-4 h-12 transition-all focus-within:bg-white ${registerErrors.confirmPassword ? "border-danger-40" : "border-slate-200 focus-within:border-primary-60"}`}>
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                    Confirm Password
+                  </label>
+                  <div
+                    className={`flex items-center gap-3 rounded-xl border bg-slate-50 px-4 h-12 transition-all focus-within:bg-white ${registerErrors.confirmPassword ? "border-danger-40" : "border-slate-200 focus-within:border-primary-60"}`}
+                  >
                     <Lock size={16} className="text-slate-400" />
-                    <input type={showConfirmPassword ? "text" : "password"} placeholder="••••••••" {...registerRegister("confirmPassword")} className="w-full bg-transparent text-[14px] outline-none font-medium" />
-                    <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="text-slate-300 hover:text-slate-500">
-                      {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      {...registerRegister("confirmPassword")}
+                      className="w-full bg-transparent text-[14px] outline-none font-medium"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                      className="text-slate-300 hover:text-slate-500"
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff size={16} />
+                      ) : (
+                        <Eye size={16} />
+                      )}
                     </button>
                   </div>
-                  {registerErrors.confirmPassword && <p className="text-[10px] text-danger-60 font-bold">{registerErrors.confirmPassword.message}</p>}
+                  {registerErrors.confirmPassword && (
+                    <p className="text-[10px] text-danger-60 font-bold">
+                      {registerErrors.confirmPassword.message}
+                    </p>
+                  )}
                 </div>
 
                 <button
@@ -263,7 +428,11 @@ const LoginPage = ({ defaultTab = "login" }: LoginPageProps) => {
                   {isRegistering ? "Creating account..." : "Create Account"}
                 </button>
                 <p className="text-center text-[12px] text-slate-400 font-medium">
-                  By registering, you agree to our <span className="text-primary-60 hover:underline cursor-pointer">Terms & Privacy Policy</span>.
+                  By registering, you agree to our{" "}
+                  <span className="text-primary-60 hover:underline cursor-pointer">
+                    Terms & Privacy Policy
+                  </span>
+                  .
                 </p>
               </form>
             )}
