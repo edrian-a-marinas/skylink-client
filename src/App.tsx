@@ -1,26 +1,31 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
-import ProtectedRoute from "@/components/layout/ProtectedRoute";
-import PublicOnlyRoute from "@/components/layout/PublicOnlyRoute";
-import AdminRoute from "@/components/layout/AdminRoute";
-import ScreenPlaceholder from "@/components/ui/ScreenPlaceholder";
+import Navbar from "@/pages/_shared/components/layout/Navbar";
+import Footer from "@/pages/_shared/components/layout/Footer";
+import ProtectedRoute from "@/pages/_shared/components/layout/ProtectedRoute";
+import PublicOnlyRoute from "@/pages/_shared/components/layout/PublicOnlyRoute";
+import AdminRoute from "@/pages/_shared/components/layout/AdminRoute";
+import ScreenPlaceholder from "@/pages/_shared/components/ui/ScreenPlaceholder";
 import HomePage from "@/pages/HomePage/HomePage";
-import BookingLandingPage from "@/pages/BookingLandingPage/BookingLandingPage";
+import BookingLandingPage from "@/pages/MainPagesFolder/BookingLandingPage/BookingLandingPage";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
-import SearchResultsPage from "@/pages/SearchResultsPage";
+import SearchResultsPage from "@/pages/BookingResultPagesFolder/SearchResultsPage/SearchResultsPage";
 import BookingPage from "@/pages/BookingPage";
 import BookingDetailPage from "@/pages/BookingDetailPage";
 import MyBookingsPage from "@/pages/MyBookingsPage";
 import PaymentPage from "@/pages/PaymentPage";
-import PNRStatusPage from "@/pages/ManagePage/ManagePage";
+import ResultsBookingPage from "@/pages/BookingResultPagesFolder/ResultsBookingPage/ResultsBookingPage";
+import FlightStatusPage from "@/pages/MainPagesFolder/FlightStatusPage/FlightStatusPage";
+import ManagePage from "@/pages/MainPagesFolder/ManagePage/ManagePage";
 import AdminDashboardPage from "@/pages/admin/AdminDashboardPage";
 import AdminFlightsPage from "@/pages/admin/AdminFlightsPage";
 import AdminUsersPage from "@/pages/admin/AdminUsersPage";
 import AdminReportsPage from "@/pages/admin/AdminReportsPage";
-import ExplorePage from "./pages/ExplorePage/ExplorePage";
+import ExplorePage from "@/pages/MainPagesFolder/ExplorePage/ExplorePage";
+import DestinationPage from "@/pages/ExplorePagesFolder/DestinationPage/DestinationPage";
+import PromosPage from "@/pages/ExplorePagesFolder/PromosPage/PromosPage";
+import DeaPage from "@/pages/ExplorePagesFolder/DeaPage/DeaPage";
 
 function screen(
   id: string,
@@ -50,15 +55,14 @@ function App() {
           <Route path={ROUTES.SEARCH_RESULTS} element={<SearchResultsPage />} />
           <Route path={ROUTES.EXPLORE} element={<ExplorePage />} />
           <Route
-            path={ROUTES.FLIGHT_DETAIL}
-            element={screen(
-              "S-03",
-              "Flight Detail",
-              "public",
-              "Flight detail with fare rules, baggage info, and book now action.",
-            )}
+            path={ROUTES.EXPLORE_DESTINATION}
+            element={<DestinationPage />}
           />
-          <Route path={ROUTES.PNR_STATUS} element={<PNRStatusPage />} />
+          <Route path={ROUTES.EXPLORE_PROMOS} element={<PromosPage />} />
+          <Route path={ROUTES.EXPLORE_PROMO_DETAIL} element={<DeaPage />} />
+          <Route path={ROUTES.FLIGHT_DETAIL} element={<ResultsBookingPage />} />
+          <Route path={ROUTES.PNR_STATUS} element={<FlightStatusPage />} />
+          <Route path={ROUTES.MANAGE} element={<ManagePage />} />
           <Route
             path={ROUTES.VERIFY_EMAIL_PENDING}
             element={screen(

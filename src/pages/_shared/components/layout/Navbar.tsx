@@ -14,8 +14,8 @@ const Navbar = () => {
   const navLinks = [
     { label: "Book", path: ROUTES.BOOK },
     { label: "Explore", path: ROUTES.EXPLORE },
-    { label: "Flight Status", path: "#" },
-    { label: "Manage", path: ROUTES.PNR_STATUS },
+    { label: "Flight Status", path: ROUTES.PNR_STATUS },
+    { label: "Manage", path: ROUTES.MANAGE },
   ];
 
   const isActive = (path: string) => {
@@ -31,7 +31,12 @@ const Navbar = () => {
         {/* Logo */}
         <Link to={ROUTES.HOME} className="flex items-center gap-0">
           <img src={logos1} alt="SkyLink logo" className="size-16" />
-          <span className="text-[24px] font-normal text-[#496B92] tracking-[0.01em]" style={{ fontFamily: "'Russo One', sans-serif" }}>SkyLink</span>
+          <span
+            className="text-[24px] font-normal text-[#496B92] tracking-[0.01em]"
+            style={{ fontFamily: "'Russo One', sans-serif" }}
+          >
+            SkyLink
+          </span>
         </Link>
 
         {/* Navigation Links */}
@@ -44,7 +49,7 @@ const Navbar = () => {
                 "text-[16px] font-medium transition-colors relative pb-1",
                 isActive(link.path)
                   ? "text-[#496B92] after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[3px] after:bg-[#496B92]"
-                  : "text-slate-500 hover:text-slate-800"
+                  : "text-slate-500 hover:text-slate-800",
               )}
             >
               {link.label}
@@ -54,7 +59,6 @@ const Navbar = () => {
 
         {/* Right side Actions */}
         <div className="flex items-center gap-6">
-
           <div className="flex items-center gap-3">
             {!isAuthenticated ? (
               <Link
