@@ -1,4 +1,4 @@
-import ScreenPlaceholder from "@/components/ui/ScreenPlaceholder";
+import ScreenPlaceholder from "@/pages/_shared/components/ui/ScreenPlaceholder";
 
 const AdminUsersPage = () => {
   return (
