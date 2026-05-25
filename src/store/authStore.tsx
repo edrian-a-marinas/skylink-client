@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { AuthContext, type AuthContextType, type User } from "./authContext";
 import { isTokenExpired } from "@/utils/token";
+import { getProfile } from "@/api/auth.api";
 
 export type { User, AuthContextType } from "./authContext";
 
@@ -21,6 +22,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   });
 
   const [user, setUserState] = useState<User | null>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
+
+  useEffect(() => {
+    const initAuth = async () => {
+      if (token) {
+        try {
+          const profile = await getProfile();
+          setUserState(profile);
+        } catch {
+          logout();
+        }
+      }
+      setIsInitializing(false);
+    };
+
+    initAuth();
+  }, []);
 
   useEffect(() => {
     try {
@@ -58,6 +76,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     logout,
     setUser,
   };
+
+  if (isInitializing) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <div className="size-12 animate-spin rounded-full border-4 border-primary-60 border-t-transparent" />
+      </div>
+    );
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
