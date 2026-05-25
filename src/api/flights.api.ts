@@ -12,11 +12,12 @@ const mapBackendFlight = (f: any): Flight => ({
   arrivalTime: f.arrival_time,
   status: f.status,
   // Use price from economy if available
-  price: f.seat_pricing?.find((p: any) => p.seat_class?.name === 'economy')?.price / 100 || f.price || 0,
+  price: f.seat_pricing?.find((p: any) => p.seat_class?.name === "economy")?.price / 100 || f.price || 0,
   seatsAvailable: f.seat_pricing?.reduce((acc: number, p: any) => acc + (p.available_seats || 0), 0) || f.seatsAvailable,
   totalSeats: f.seat_pricing?.reduce((acc: number, p: any) => acc + (p.total_seats || 0), 0) || f.totalSeats,
   airline: f.airline || "SkyLink",
   cabinClass: f.cabin_class || "economy",
+  imageUrl: f.image_url || "",
 });
 
 export async function searchFlights(
@@ -55,9 +56,9 @@ export async function createFlight(payload: Partial<Flight>): Promise<Flight> {
       arrival_time: payload.arrivalTime,
       status: payload.status,
       aircraft_id: 1, // Default aircraft for now
+      image_url: payload.imageUrl,
       seat_pricing: [
         { seat_class_id: 1, total_seats: payload.totalSeats || 153, available_seats: payload.seatsAvailable || 153, price: (payload.price || 0) * 100 },
-        // You can add logic here to handle multiple seat classes
       ]
     };
     const res = await axiosClient.post("/flights", backendPayload);

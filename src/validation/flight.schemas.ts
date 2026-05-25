@@ -47,6 +47,7 @@ export const flightSchema = z.object({
   cabinClass: z.enum(["economy", "premium_economy", "business", "first"]),
   baggageAllowanceKg: z.coerce.number().min(0).optional(),
   stops: z.coerce.number().int().min(0).default(0),
+  imageUrl: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
 });
 
 export type FlightFormValues = z.infer<typeof flightSchema>;

@@ -35,6 +35,7 @@ export interface Flight {
   cabinClass?: CabinClass;
   baggageAllowanceKg?: number;
   stops?: number;
+  imageUrl?: string;
 }
 
 export interface FlightSearchParams {

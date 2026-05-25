@@ -16,9 +16,36 @@ const AdminFlightsPage = () => {
   const navigate = useNavigate();
   const { data: flights, isLoading, refetch } = useFlights();
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [sortBy, setSortBy] = useState("");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [flightToDelete, setFlightToDelete] = useState<Flight | null>(null);
   const [isDeleting, setIsRegistering] = useState(false);
+
+  // Client-side filtering logic
+  const filteredFlights = (flights || []).filter((flight) => {
+    const query = searchQuery.toLowerCase();
+    const matchesSearch = 
+      flight.flightNumber?.toLowerCase().includes(query) ||
+      flight.airline?.toLowerCase().includes(query) ||
+      flight.origin?.toLowerCase().includes(query) ||
+      flight.destination?.toLowerCase().includes(query);
+    
+    const matchesStatus = statusFilter === "" || flight.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  }).sort((a, b) => {
+    if (sortBy === "departure") {
+      return new Date(a.departureTime).getTime() - new Date(b.departureTime).getTime();
+    }
+    if (sortBy === "price") {
+      return (a.price || 0) - (b.price || 0);
+    }
+    if (sortBy === "seats") {
+      return (b.seatsAvailable || 0) - (a.seatsAvailable || 0);
+    }
+    return 0;
+  });
 
   const handleOpenDeleteModal = (flight: Flight) => {
     setFlightToDelete(flight);
@@ -142,7 +169,7 @@ const AdminFlightsPage = () => {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-2xl font-bold text-slate-900">Flights</h2>
-            <p className="text-sm font-medium text-slate-500">{flights?.length || 0} flights found</p>
+            <p className="text-sm font-medium text-slate-500">{filteredFlights.length} flights found</p>
           </div>
           <Link
             to={ROUTES.ADMIN_ADD_FLIGHT}
@@ -166,15 +193,24 @@ const AdminFlightsPage = () => {
             />
           </div>
           <div className="flex gap-3">
-            <select className="h-11 px-4 rounded-xl bg-slate-50 text-sm font-medium border border-transparent focus:border-[#496B92]/20 outline-none min-w-[140px]">
+            <select 
+              className="h-11 px-4 rounded-xl bg-slate-50 text-sm font-medium border border-transparent focus:border-[#496B92]/20 outline-none min-w-[140px]"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
               <option value="">Status</option>
               <option value="scheduled">Scheduled</option>
               <option value="boarding">Boarding</option>
-              <option value="in_air">In Air</option>
-              <option value="landed">Landed</option>
+              <option value="on_time">On Time</option>
+              <option value="delayed">Delayed</option>
               <option value="cancelled">Cancelled</option>
+              <option value="landed">Landed</option>
             </select>
-            <select className="h-11 px-4 rounded-xl bg-slate-50 text-sm font-medium border border-transparent focus:border-[#496B92]/20 outline-none min-w-[140px]">
+            <select 
+              className="h-11 px-4 rounded-xl bg-slate-50 text-sm font-medium border border-transparent focus:border-[#496B92]/20 outline-none min-w-[140px]"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+            >
               <option value="">Sort By</option>
               <option value="departure">Departure</option>
               <option value="price">Price</option>
@@ -187,7 +223,7 @@ const AdminFlightsPage = () => {
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
           <DataTable
             columns={columns}
-            rows={flights || []}
+            rows={filteredFlights}
             rowKey={(row) => row.id}
             emptyState={
               <div className="py-20 text-center">
@@ -202,16 +238,17 @@ const AdminFlightsPage = () => {
 
           {/* Pagination */}
           <div className="flex items-center justify-between px-6 py-4 border-t border-slate-50 bg-slate-50/30">
-            <p className="text-sm font-medium text-slate-500">Showing 1-8 of 10</p>
+            <p className="text-sm font-medium text-slate-500">
+              Showing 1-{filteredFlights.length} of {filteredFlights.length}
+            </p>
             <div className="flex items-center gap-2">
-              <button className="p-2 rounded-lg border border-slate-200 text-slate-400 hover:bg-white transition-colors disabled:opacity-50">
+              <button className="p-2 rounded-lg border border-slate-200 text-slate-400 hover:bg-white transition-colors disabled:opacity-50" disabled>
                 <ChevronLeft size={18} />
               </button>
               <div className="flex items-center gap-1">
                 <button className="size-9 rounded-lg bg-[#496B92] text-white font-bold text-sm">1</button>
-                <button className="size-9 rounded-lg text-slate-600 font-bold text-sm hover:bg-white border border-transparent hover:border-slate-200 transition-colors">2</button>
               </div>
-              <button className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-white transition-colors">
+              <button className="p-2 rounded-lg border border-slate-200 text-slate-400 hover:bg-white transition-colors disabled:opacity-50" disabled>
                 <ChevronRight size={18} />
               </button>
             </div>

@@ -10,6 +10,7 @@ import Button from "@/pages/_shared/components/ui/Button";
 import { ChevronLeft, Save } from "lucide-react";
 import { flightSchema, type FlightFormValues } from "@/validation/flight.schemas";
 import type { Flight } from "@/types";
+import { cn } from "@/utils/cn";
 
 const AdminEditFlightPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,10 +22,14 @@ const AdminEditFlightPage = () => {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<FlightFormValues>({
     resolver: zodResolver(flightSchema) as any,
   });
+
+  const selectedCabinClass = watch("cabinClass");
+  const showBusinessFare = selectedCabinClass === "business" || selectedCabinClass === "first";
 
   useEffect(() => {
     const fetchFlight = async () => {
@@ -32,8 +37,8 @@ const AdminEditFlightPage = () => {
       try {
         const flight = await getFlightById(id);
         // Format dates for datetime-local input (YYYY-MM-DDTHH:mm)
-        const departureTime = new Date(flight.departureTime).toISOString().slice(0, 16);
-        const arrivalTime = new Date(flight.arrivalTime).toISOString().slice(0, 16);
+        const departureTime = flight.departureTime ? new Date(flight.departureTime).toISOString().slice(0, 16) : "";
+        const arrivalTime = flight.arrivalTime ? new Date(flight.arrivalTime).toISOString().slice(0, 16) : "";
         
         reset({
           ...flight,
@@ -149,6 +154,13 @@ const AdminEditFlightPage = () => {
                 {...register("arrivalTime")}
                 className="[&>input]:rounded-xl [&>input]:h-12"
               />
+              <Input
+                label="Flight Image URL"
+                placeholder="https://images.unsplash.com/photo-..."
+                error={errors.imageUrl?.message}
+                {...register("imageUrl")}
+                className="[&>input]:rounded-xl [&>input]:h-12 md:col-span-2"
+              />
             </div>
           </section>
 
@@ -206,8 +218,8 @@ const AdminEditFlightPage = () => {
                 label="Business Fare (₱)"
                 type="number"
                 placeholder="₱ 0"
-                className="[&>input]:rounded-xl [&>input]:h-12 opacity-50"
-                disabled
+                className={cn("[&>input]:rounded-xl [&>input]:h-12", !showBusinessFare && "opacity-50")}
+                disabled={!showBusinessFare}
               />
               <div className="space-y-2">
                 <label className="text-[13px] font-bold text-slate-500 uppercase tracking-widest ml-1">Status *</label>
