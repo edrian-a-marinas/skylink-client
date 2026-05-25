@@ -10,6 +10,7 @@ import Button from "@/pages/_shared/components/ui/Button";
 import { ChevronLeft, Save } from "lucide-react";
 import { flightSchema, type FlightFormValues } from "@/validation/flight.schemas";
 import type { Flight } from "@/types";
+import { cn } from "@/utils/cn";
 
 const AdminAddFlightPage = () => {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ const AdminAddFlightPage = () => {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<FlightFormValues>({
     resolver: zodResolver(flightSchema) as any,
@@ -28,6 +30,9 @@ const AdminAddFlightPage = () => {
       cabinClass: "economy",
     },
   });
+
+  const selectedCabinClass = watch("cabinClass");
+  const showBusinessFare = selectedCabinClass === "business" || selectedCabinClass === "first";
 
   const onSubmit = async (data: FlightFormValues) => {
     setServerError(null);
