@@ -19,7 +19,10 @@ function DataTable<T>({
   rowKey,
   emptyState,
 }: DataTableProps<T>) {
-  if (rows.length === 0) {
+  // Defensive check for non-array rows
+  const safeRows = Array.isArray(rows) ? rows : [];
+
+  if (safeRows.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">
         {emptyState ?? "No records to display."}
@@ -41,7 +44,7 @@ function DataTable<T>({
         </thead>
 
         <tbody>
-          {rows.map((row, index) => (
+          {safeRows.map((row, index) => (
             <tr key={rowKey(row, index)} className="border-t border-slate-100">
               {columns.map((column) => (
                 <td key={column.key} className="px-4 py-3 text-slate-700">
