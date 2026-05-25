@@ -30,6 +30,7 @@ export interface Flight {
   price: number;
   airline?: string;
   seatsAvailable?: number;
+  totalSeats?: number;
   status?: FlightStatus;
   cabinClass?: CabinClass;
   baggageAllowanceKg?: number;

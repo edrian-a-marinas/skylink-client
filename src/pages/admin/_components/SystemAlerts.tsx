@@ -1,5 +1,5 @@
 import { cn } from "@/utils/cn";
-import { AlertCircle, AlertTriangle, CreditCard, RefreshCcw } from "lucide-react";
+import { AlertTriangle, CreditCard, RefreshCcw } from "lucide-react";
 
 const SystemAlerts = () => {
   const alerts = [

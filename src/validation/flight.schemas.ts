@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { futureOrTodayDateSchema, requiredString } from "./common.schemas";
+import {
+  dateStringSchema,
+  futureOrTodayDateSchema,
+  requiredString,
+} from "./common.schemas";
 
 export const flightSearchSchema = z
   .object({
@@ -26,3 +30,23 @@ export const flightSearchSchema = z
   );
 
 export type FlightSearchFormValues = z.infer<typeof flightSearchSchema>;
+
+export const flightSchema = z.object({
+  flightNumber: requiredString("Flight Number"),
+  origin: requiredString("Origin"),
+  destination: requiredString("Destination"),
+  departureTime: dateStringSchema,
+  arrivalTime: dateStringSchema,
+  price: z.coerce.number().min(0, "Price must be positive"),
+  airline: requiredString("Airline"),
+  seatsAvailable: z.coerce.number().int().min(0, "Seats must be positive"),
+  totalSeats: z.coerce.number().int().min(1, "Total seats is required"),
+  status: z
+    .enum(["scheduled", "boarding", "on_time", "delayed", "cancelled", "landed"])
+    .default("scheduled"),
+  cabinClass: z.enum(["economy", "premium_economy", "business", "first"]),
+  baggageAllowanceKg: z.coerce.number().min(0).optional(),
+  stops: z.coerce.number().int().min(0).default(0),
+});
+
+export type FlightFormValues = z.infer<typeof flightSchema>;

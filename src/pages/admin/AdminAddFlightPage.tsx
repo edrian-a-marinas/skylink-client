@@ -132,6 +132,14 @@ const AdminAddFlightPage = () => {
                 label="Total Seats *"
                 type="number"
                 placeholder="e.g. 180"
+                error={errors.totalSeats?.message}
+                {...register("totalSeats")}
+                className="[&>input]:rounded-xl [&>input]:h-12"
+              />
+              <Input
+                label="Seats Available *"
+                type="number"
+                placeholder="e.g. 150"
                 error={errors.seatsAvailable?.message}
                 {...register("seatsAvailable")}
                 className="[&>input]:rounded-xl [&>input]:h-12"

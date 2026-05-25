@@ -7,7 +7,7 @@ import { ROUTES } from "@/constants/routes";
 import AdminLayout from "./_components/AdminLayout";
 import Input from "@/pages/_shared/components/ui/Input";
 import Button from "@/pages/_shared/components/ui/Button";
-import { ChevronLeft, Save, History } from "lucide-react";
+import { ChevronLeft, Save } from "lucide-react";
 import { flightSchema, type FlightFormValues } from "@/validation/flight.schemas";
 import type { Flight } from "@/types";
 
@@ -165,6 +165,14 @@ const AdminEditFlightPage = () => {
                 label="Total Seats *"
                 type="number"
                 placeholder="e.g. 180"
+                error={errors.totalSeats?.message}
+                {...register("totalSeats")}
+                className="[&>input]:rounded-xl [&>input]:h-12"
+              />
+              <Input
+                label="Seats Available *"
+                type="number"
+                placeholder="e.g. 150"
                 error={errors.seatsAvailable?.message}
                 {...register("seatsAvailable")}
                 className="[&>input]:rounded-xl [&>input]:h-12"
