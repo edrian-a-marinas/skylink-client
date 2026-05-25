@@ -11,10 +11,14 @@ import BookingLandingPage from "@/pages/MainPagesFolder/BookingLandingPage/Booki
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
 import SearchResultsPage from "@/pages/BookingResultPagesFolder/SearchResultsPage/SearchResultsPage";
-import BookingPage from "@/pages/BookingPage";
 import BookingDetailPage from "@/pages/BookingDetailPage";
 import MyBookingsPage from "@/pages/MyBookingsPage";
-import PaymentPage from "@/pages/PaymentPage";
+import PassengerDetailsPage from "@/pages/BookingPagesFolder/PassengerDetailsPage/PassengerDetailsPage";
+import SeatSelectionPage from "@/pages/BookingPagesFolder/SeatSelectionPage/SeatSelectionPage";
+import BookingSummaryPage from "@/pages/BookingPagesFolder/BookingSummaryPage/BookingSummaryPage";
+import PaymentPage from "@/pages/BookingPagesFolder/PaymentPage/PaymentPage";
+import PaymentProcessingPage from "@/pages/BookingPagesFolder/PaymentProcessingPage/PaymentProcessingPage";
+import BookingConfirmationPage from "@/pages/BookingPagesFolder/BookingConfirmationPage/BookingConfirmationPage";
 import ResultsBookingPage from "@/pages/BookingResultPagesFolder/ResultsBookingPage/ResultsBookingPage";
 import FlightStatusPage from "@/pages/MainPagesFolder/FlightStatusPage/FlightStatusPage";
 import ManagePage from "@/pages/MainPagesFolder/ManagePage/ManagePage";
@@ -170,16 +174,11 @@ function App() {
             />
             <Route
               path={ROUTES.BOOKING_PASSENGER_DETAILS}
-              element={<BookingPage />}
+              element={<PassengerDetailsPage />}
             />
             <Route
               path={ROUTES.BOOKING_SEAT_SELECTION}
-              element={screen(
-                "S-19",
-                "Seat Selection",
-                "user",
-                "Seat map selection with fallback for unavailable seats.",
-              )}
+              element={<SeatSelectionPage />}
             />
             <Route
               path={ROUTES.BOOKING_MEAL_PREFERENCE}
@@ -192,31 +191,16 @@ function App() {
             />
             <Route
               path={ROUTES.BOOKING_SUMMARY}
-              element={screen(
-                "S-21",
-                "Booking Summary",
-                "user",
-                "Review itinerary, passenger, and price breakdown before payment.",
-              )}
+              element={<BookingSummaryPage />}
             />
             <Route path={ROUTES.PAYMENT} element={<PaymentPage />} />
             <Route
               path={ROUTES.PAYMENT_OTP}
-              element={screen(
-                "S-23",
-                "3DS / OTP",
-                "user",
-                "Authentication challenge step for secured payment confirmation.",
-              )}
+              element={<PaymentProcessingPage />}
             />
             <Route
               path={ROUTES.BOOKING_CONFIRMATION}
-              element={screen(
-                "S-24",
-                "Booking Confirmation",
-                "user",
-                "Final confirmation with booking ID, PNR, and e-ticket notice.",
-              )}
+              element={<BookingConfirmationPage />}
             />
             <Route
               path={ROUTES.PAYMENT_FAILURE}
