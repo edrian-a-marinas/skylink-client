@@ -94,6 +94,7 @@ const FlightResultCard = ({ flight, queryString }: FlightResultCardProps) => {
           </div>
           <Link
             to={detailHref}
+            state={{ flight }}
             className="rounded-lg bg-[#5D7FA7] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#4E6B8D]"
           >
             Select

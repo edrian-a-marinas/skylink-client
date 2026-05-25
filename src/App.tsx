@@ -63,7 +63,7 @@ function App() {
           <Route path={ROUTES.EXPLORE_PROMOS} element={<PromosPage />} />
           <Route path={ROUTES.EXPLORE_PROMO_DETAIL} element={<DeaPage />} />
           <Route path={ROUTES.FLIGHT_DETAIL} element={<ResultsBookingPage />} />
-          <Route path={ROUTES.PNR_STATUS} element={<FlightStatusPage />} />
+          <Route path={ROUTES.PNRx_STATUS} element={<FlightStatusPage />} />
           <Route path={ROUTES.MANAGE} element={<ManagePage />} />
           <Route
             path={ROUTES.VERIFY_EMAIL_PENDING}

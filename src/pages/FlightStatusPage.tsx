@@ -1,5 +1,13 @@
-import { useState, useEffect } from "react";
-import { Search, Plane, MapPin, Monitor, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
+import { useState } from "react";
+import {
+  Search,
+  Plane,
+  MapPin,
+  Monitor,
+  CheckCircle,
+  AlertTriangle,
+  XCircle,
+} from "lucide-react";
 
 /* ================= TYPES ================= */
 
@@ -33,16 +41,26 @@ const MOCK_PNR: Record<string, FlightResult> = {
   ABC123: {
     status: "on-time",
     flightCode: "SK 7831",
-    departure: { code: "MNL", city: "Manila", scheduled: "06:45", actual: null },
-    arrival:   { code: "CEB", city: "Cebu",   scheduled: "08:00", actual: null },
+    departure: {
+      code: "MNL",
+      city: "Manila",
+      scheduled: "06:45",
+      actual: null,
+    },
+    arrival: { code: "CEB", city: "Cebu", scheduled: "08:00", actual: null },
     gate: "Gate 3",
     terminal: "Terminal 1",
   },
   XYZ789: {
     status: "cancelled",
     flightCode: "SK 4421",
-    departure: { code: "MNL", city: "Manila", scheduled: "10:00", actual: null },
-    arrival:   { code: "DVO", city: "Davao",  scheduled: "11:30", actual: null },
+    departure: {
+      code: "MNL",
+      city: "Manila",
+      scheduled: "10:00",
+      actual: null,
+    },
+    arrival: { code: "DVO", city: "Davao", scheduled: "11:30", actual: null },
     gate: "Gate 9",
     terminal: "Terminal 2",
   },
@@ -50,8 +68,18 @@ const MOCK_PNR: Record<string, FlightResult> = {
     status: "delayed",
     flightCode: "PR 101",
     newArrival: "14:50",
-    departure: { code: "MNL", city: "Manila",    scheduled: "09:00", actual: "09:30" },
-    arrival:   { code: "HKG", city: "Hong Kong", scheduled: "13:30", actual: "14:50" },
+    departure: {
+      code: "MNL",
+      city: "Manila",
+      scheduled: "09:00",
+      actual: "09:30",
+    },
+    arrival: {
+      code: "HKG",
+      city: "Hong Kong",
+      scheduled: "13:30",
+      actual: "14:50",
+    },
     gate: "Gate 12",
     terminal: "Terminal 1",
   },
@@ -62,8 +90,13 @@ const MOCK_FLIGHTS: Record<string, FlightResult> = {
   "5J213": {
     status: "on-time",
     flightCode: "5J 213",
-    departure: { code: "CEB", city: "Cebu",      scheduled: "15:00", actual: null },
-    arrival:   { code: "SIN", city: "Singapore", scheduled: "18:10", actual: null },
+    departure: { code: "CEB", city: "Cebu", scheduled: "15:00", actual: null },
+    arrival: {
+      code: "SIN",
+      city: "Singapore",
+      scheduled: "18:10",
+      actual: null,
+    },
     gate: "Gate 7",
     terminal: "Terminal 3",
   },
@@ -71,16 +104,36 @@ const MOCK_FLIGHTS: Record<string, FlightResult> = {
     status: "delayed",
     flightCode: "SK 4500",
     newArrival: "12:25",
-    departure: { code: "MNL", city: "Manila",    scheduled: "08:00", actual: "08:25" },
-    arrival:   { code: "SIN", city: "Singapore", scheduled: "12:00", actual: "12:25" },
+    departure: {
+      code: "MNL",
+      city: "Manila",
+      scheduled: "08:00",
+      actual: "08:25",
+    },
+    arrival: {
+      code: "SIN",
+      city: "Singapore",
+      scheduled: "12:00",
+      actual: "12:25",
+    },
     gate: "Gate 5",
     terminal: "Terminal 2",
   },
   PR101: {
     status: "on-time",
     flightCode: "PR 101",
-    departure: { code: "MNL", city: "Manila",    scheduled: "09:00", actual: null },
-    arrival:   { code: "HKG", city: "Hong Kong", scheduled: "13:30", actual: null },
+    departure: {
+      code: "MNL",
+      city: "Manila",
+      scheduled: "09:00",
+      actual: null,
+    },
+    arrival: {
+      code: "HKG",
+      city: "Hong Kong",
+      scheduled: "13:30",
+      actual: null,
+    },
     gate: "Gate 12",
     terminal: "Terminal 1",
   },
@@ -88,12 +141,15 @@ const MOCK_FLIGHTS: Record<string, FlightResult> = {
 
 /* ================= CONFIG ================= */
 
-const TAB_CONFIG: Record<TabType, {
-  label: string;
-  inputLabel: string;
-  placeholder: string;
-  examples: string[];
-}> = {
+const TAB_CONFIG: Record<
+  TabType,
+  {
+    label: string;
+    inputLabel: string;
+    placeholder: string;
+    examples: string[];
+  }
+> = {
   pnr: {
     label: "By PNR",
     inputLabel: "PNR / Booking Reference",
@@ -110,16 +166,37 @@ const TAB_CONFIG: Record<TabType, {
 
 /* ================= STATUS CONFIG ================= */
 
-const STATUS_CONFIG: Record<FlightStatus, {
-  bg: string;
-  border: string;
-  text: string;
-  icon: React.ReactNode;
-  label: string;
-}> = {
-  "on-time":  { bg: "bg-green-50",  border: "border-green-200",  text: "text-green-700",  icon: <CheckCircle className="w-4 h-4 text-green-600" />,  label: "On Time"   },
-  delayed:    { bg: "bg-yellow-50", border: "border-yellow-200", text: "text-yellow-700", icon: <AlertTriangle className="w-4 h-4 text-yellow-600" />, label: "Delayed"   },
-  cancelled:  { bg: "bg-red-50",    border: "border-red-200",    text: "text-red-700",    icon: <XCircle className="w-4 h-4 text-red-600" />,         label: "Cancelled" },
+const STATUS_CONFIG: Record<
+  FlightStatus,
+  {
+    bg: string;
+    border: string;
+    text: string;
+    icon: React.ReactNode;
+    label: string;
+  }
+> = {
+  "on-time": {
+    bg: "bg-green-50",
+    border: "border-green-200",
+    text: "text-green-700",
+    icon: <CheckCircle className="w-4 h-4 text-green-600" />,
+    label: "On Time",
+  },
+  delayed: {
+    bg: "bg-yellow-50",
+    border: "border-yellow-200",
+    text: "text-yellow-700",
+    icon: <AlertTriangle className="w-4 h-4 text-yellow-600" />,
+    label: "Delayed",
+  },
+  cancelled: {
+    bg: "bg-red-50",
+    border: "border-red-200",
+    text: "text-red-700",
+    icon: <XCircle className="w-4 h-4 text-red-600" />,
+    label: "Cancelled",
+  },
 };
 
 /* ================= COMPONENTS ================= */
@@ -156,21 +233,23 @@ const FlightResultCard = ({
   onCheckAnother: () => void;
 }) => {
   const s = STATUS_CONFIG[data.status];
-  const isDelayed   = data.status === "delayed";
+  const isDelayed = data.status === "delayed";
   const isCancelled = data.status === "cancelled";
 
   return (
     <div className="mt-5 rounded-2xl border border-slate-200 bg-white shadow-lg overflow-hidden">
       {/* Status Bar */}
-      <div className={`flex items-center justify-between px-4 py-2.5 ${s.bg} border-b ${s.border}`}>
+      <div
+        className={`flex items-center justify-between px-4 py-2.5 ${s.bg} border-b ${s.border}`}
+      >
         <div className="flex items-center gap-2">
           {s.icon}
           <span className={`text-xs font-semibold ${s.text}`}>
             {isDelayed
               ? `Delayed — New arrival: ${data.newArrival}`
               : isCancelled
-              ? "Cancelled"
-              : "On Time"}
+                ? "Cancelled"
+                : "On Time"}
           </span>
         </div>
         <span className={`text-xs font-bold tracking-widest ${s.text}`}>
@@ -189,7 +268,9 @@ const FlightResultCard = ({
             <h2 className="text-3xl font-bold text-[#1a2a4a] leading-none mt-0.5">
               {data.departure.code}
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">{data.departure.city}</p>
+            <p className="text-xs text-slate-500 mt-0.5">
+              {data.departure.city}
+            </p>
             <p className="text-sm font-medium text-slate-700 mt-1">
               {data.departure.scheduled}
             </p>
@@ -266,17 +347,20 @@ const FlightResultCard = ({
 
 const FlightStatusPage = () => {
   const [activeTab, setActiveTab] = useState<TabType>("pnr");
-  const [values, setValues]       = useState<Record<TabType, string>>({ pnr: "", flight: "" });
-  const [result, setResult]       = useState<FlightResult | null>(null);
-  const [error, setError]         = useState<string>("");
+  const [values, setValues] = useState<Record<TabType, string>>({
+    pnr: "",
+    flight: "",
+  });
+  const [result, setResult] = useState<FlightResult | null>(null);
+  const [error, setError] = useState<string>("");
 
   const config = TAB_CONFIG[activeTab];
 
-  // Clear result & error when switching tabs
-  useEffect(() => {
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
     setResult(null);
     setError("");
-  }, [activeTab]);
+  };
 
   const handleSubmit = () => {
     const val = values[activeTab].trim().toUpperCase().replace(/\s+/g, "");
@@ -323,7 +407,7 @@ const FlightStatusPage = () => {
       <div className="flex flex-1 flex-col items-center px-5 py-10">
         <div className="w-full max-w-[440px]">
           <div className="rounded-2xl bg-white p-6 shadow-xl">
-            <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
+            <Tabs activeTab={activeTab} setActiveTab={handleTabChange} />
 
             {/* Input */}
             <div className="mb-5">
@@ -373,7 +457,10 @@ const FlightStatusPage = () => {
           </div>
 
           {result && (
-            <FlightResultCard data={result} onCheckAnother={handleCheckAnother} />
+            <FlightResultCard
+              data={result}
+              onCheckAnother={handleCheckAnother}
+            />
           )}
         </div>
       </div>

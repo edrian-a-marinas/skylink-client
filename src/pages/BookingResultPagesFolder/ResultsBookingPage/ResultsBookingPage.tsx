@@ -8,7 +8,12 @@ import PriceSummaryCard from "./components/PriceSummaryCard";
 import FareRulesCard, { type FareRule } from "./components/FareRulesCard";
 import AuthGateModal from "./components/AuthGateModal";
 
-const FLIGHTS: FlightDetail[] = [
+type FlightSummary = FlightDetail & {
+  price: string;
+  seatsLeft?: number;
+};
+
+const FLIGHTS: FlightSummary[] = [
   {
     id: "pa-2191",
     airline: "Philippine Airlines",
@@ -23,6 +28,7 @@ const FLIGHTS: FlightDetail[] = [
     status: "On Time",
     baggage: "20kg",
     cabin: "Economy",
+    price: "PHP 1,890",
   },
   {
     id: "cp-2193",
@@ -38,6 +44,7 @@ const FLIGHTS: FlightDetail[] = [
     status: "On Time",
     baggage: "20kg",
     cabin: "Economy",
+    price: "PHP 2,350",
   },
   {
     id: "aa-2201",
@@ -53,6 +60,7 @@ const FLIGHTS: FlightDetail[] = [
     status: "On Time",
     baggage: "30kg",
     cabin: "Business",
+    price: "PHP 3,150",
   },
 ];
 
@@ -84,16 +92,40 @@ const FARE_RULES: FareRule[] = [
   },
 ];
 
+type LocationState = {
+  flight?: FlightSummary;
+};
+
+function parsePrice(value: string) {
+  return Number(value.replace(/[^0-9]/g, ""));
+}
+
+function formatCurrency(value: number) {
+  return `PHP ${value.toLocaleString("en-US")}`;
+}
+
 const ResultsBookingPage = () => {
   const { id } = useParams();
   const location = useLocation();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const searchSuffix = location.search ?? "";
   const searchResultsLink = `${ROUTES.SEARCH_RESULTS}${searchSuffix}`;
+  const locationState = location.state as LocationState | null;
+  const selectedFlight = locationState?.flight;
 
   const flight = useMemo(() => {
+    if (selectedFlight) {
+      return selectedFlight;
+    }
     return FLIGHTS.find((item) => item.id === id) ?? FLIGHTS[0];
-  }, [id]);
+  }, [id, selectedFlight]);
+
+  const totalValue = parsePrice(flight.price || "") || 1890;
+  const baseValue = Math.round(totalValue * 0.78);
+  const taxesValue = totalValue - baseValue;
+  const totalLabel = formatCurrency(totalValue);
+  const baseLabel = formatCurrency(baseValue);
+  const taxesLabel = formatCurrency(taxesValue);
 
   return (
     <main className="min-h-[calc(100vh-160px)] bg-[#F3F5F7]">
@@ -113,9 +145,9 @@ const ResultsBookingPage = () => {
           </div>
           <PriceSummaryCard
             cabin={flight.cabin}
-            baseFare="PHP 1,474"
-            taxes="PHP 416"
-            total="PHP 1,890"
+            baseFare={baseLabel}
+            taxes={taxesLabel}
+            total={totalLabel}
             onBook={() => setIsModalOpen(true)}
           />
         </div>
