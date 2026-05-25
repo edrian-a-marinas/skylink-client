@@ -11,7 +11,6 @@ const mapBackendFlight = (f: any): Flight => ({
   departureTime: f.departure_time,
   arrivalTime: f.arrival_time,
   status: f.status,
-  // Use price from economy if available
   price: f.seat_pricing?.find((p: any) => p.seat_class?.name === "economy")?.price / 100 || f.price || 0,
   seatsAvailable: f.seat_pricing?.reduce((acc: number, p: any) => acc + (p.available_seats || 0), 0) || f.seatsAvailable,
   totalSeats: f.seat_pricing?.reduce((acc: number, p: any) => acc + (p.total_seats || 0), 0) || f.totalSeats,
@@ -20,12 +19,34 @@ const mapBackendFlight = (f: any): Flight => ({
   imageUrl: f.image_url || "",
 });
 
+// Helper to map frontend data to backend payload
+const mapFrontendToBackend = (payload: Partial<Flight>) => {
+  const AIRPORT_MAP: Record<string, number> = { MNL: 1, CEB: 2, DVO: 3, ILO: 4, BCD: 5 };
+  
+  const mapped = {
+    flight_number: payload.flightNumber,
+    origin_airport_id: AIRPORT_MAP[payload.origin?.toUpperCase() || ""] || 1,
+    destination_airport_id: AIRPORT_MAP[payload.destination?.toUpperCase() || ""] || 2,
+    departure_time: payload.departureTime,
+    arrival_time: payload.arrivalTime,
+    status: payload.status,
+    aircraft_id: 1, // Default aircraft
+    image_url: payload.imageUrl, // The field you added to the database
+    imageUrl: payload.imageUrl,  // Sending camelCase too just in case
+    seat_pricing: [
+      { seat_class_id: 1, total_seats: payload.totalSeats || 153, available_seats: payload.seatsAvailable || 153, price: (payload.price || 0) * 100 },
+    ]
+  };
+
+  console.log("Sending to backend:", mapped);
+  return mapped;
+};
+
 export async function searchFlights(
   params: FlightSearchParams = {},
 ): Promise<Flight[]> {
   try {
     const res = await axiosClient.get("/flights", { params });
-    // Handle both direct array and paginated object { items: [] }
     const items = Array.isArray(res.data) ? res.data : (res.data?.items || []);
     return items.map(mapBackendFlight);
   } catch (err) {
@@ -44,23 +65,7 @@ export async function getFlightById(id: string): Promise<Flight> {
 
 export async function createFlight(payload: Partial<Flight>): Promise<Flight> {
   try {
-    // Temporary mapping for demo purposes
-    const AIRPORT_MAP: Record<string, number> = { MNL: 1, CEB: 2, DVO: 3, ILO: 4, BCD: 5 };
-    
-    // Map frontend camelCase to backend snake_case
-    const backendPayload = {
-      flight_number: payload.flightNumber,
-      origin_airport_id: AIRPORT_MAP[payload.origin?.toUpperCase() || ""] || 1,
-      destination_airport_id: AIRPORT_MAP[payload.destination?.toUpperCase() || ""] || 2,
-      departure_time: payload.departureTime,
-      arrival_time: payload.arrivalTime,
-      status: payload.status,
-      aircraft_id: 1, // Default aircraft for now
-      image_url: payload.imageUrl,
-      seat_pricing: [
-        { seat_class_id: 1, total_seats: payload.totalSeats || 153, available_seats: payload.seatsAvailable || 153, price: (payload.price || 0) * 100 },
-      ]
-    };
+    const backendPayload = mapFrontendToBackend(payload);
     const res = await axiosClient.post("/flights", backendPayload);
     return mapBackendFlight(res.data);
   } catch (err) {
@@ -73,7 +78,8 @@ export async function updateFlight(
   payload: Partial<Flight>,
 ): Promise<Flight> {
   try {
-    const res = await axiosClient.put(`/flights/${id}`, payload);
+    const backendPayload = mapFrontendToBackend(payload);
+    const res = await axiosClient.put(`/flights/${id}`, backendPayload);
     return mapBackendFlight(res.data);
   } catch (err) {
     handleApiError(err);
