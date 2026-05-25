@@ -24,6 +24,8 @@ import FlightStatusPage from "@/pages/MainPagesFolder/FlightStatusPage/FlightSta
 import ManagePage from "@/pages/MainPagesFolder/ManagePage/ManagePage";
 import AdminDashboardPage from "@/pages/admin/AdminDashboardPage";
 import AdminFlightsPage from "@/pages/admin/AdminFlightsPage";
+import AdminAddFlightPage from "@/pages/admin/AdminAddFlightPage";
+import AdminEditFlightPage from "@/pages/admin/AdminEditFlightPage";
 import AdminUsersPage from "@/pages/admin/AdminUsersPage";
 import AdminReportsPage from "@/pages/admin/AdminReportsPage";
 import ExplorePage from "@/pages/MainPagesFolder/ExplorePage/ExplorePage";
@@ -222,21 +224,11 @@ function App() {
             <Route path={ROUTES.ADMIN_FLIGHTS} element={<AdminFlightsPage />} />
             <Route
               path={ROUTES.ADMIN_ADD_FLIGHT}
-              element={screen(
-                "A-04",
-                "Add Flight",
-                "admin",
-                "Create and publish flight inventory with validation constraints.",
-              )}
+              element={<AdminAddFlightPage />}
             />
             <Route
               path={ROUTES.ADMIN_EDIT_FLIGHT}
-              element={screen(
-                "A-05",
-                "Edit Flight",
-                "admin",
-                "Edit existing flight with affected-booking warning banner.",
-              )}
+              element={<AdminEditFlightPage />}
             />
             <Route
               path={ROUTES.ADMIN_DELETE_FLIGHT}
