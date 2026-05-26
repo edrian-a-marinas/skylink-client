@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
 import { useFlights } from "@/hooks/useFlights";
@@ -22,30 +22,33 @@ const AdminFlightsPage = () => {
   const [flightToDelete, setFlightToDelete] = useState<Flight | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Client-side filtering logic
-  const filteredFlights = (flights || []).filter((flight) => {
-    const query = searchQuery.toLowerCase();
-    const matchesSearch = 
-      flight.flightNumber?.toLowerCase().includes(query) ||
-      flight.airline?.toLowerCase().includes(query) ||
-      flight.origin?.toLowerCase().includes(query) ||
-      flight.destination?.toLowerCase().includes(query);
-    
-    const matchesStatus = statusFilter === "" || flight.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  }).sort((a, b) => {
-    if (sortBy === "departure") {
-      return new Date(a.departureTime).getTime() - new Date(b.departureTime).getTime();
-    }
-    if (sortBy === "price") {
-      return (a.price || 0) - (b.price || 0);
-    }
-    if (sortBy === "seats") {
-      return (b.seatsAvailable || 0) - (a.seatsAvailable || 0);
-    }
-    return 0;
-  });
+  // Memoized filtering and sorting logic for performance
+  const filteredFlights = useMemo(() => {
+    const data = flights || [];
+    return data.filter((flight) => {
+      const query = searchQuery.toLowerCase();
+      const matchesSearch = 
+        flight.flightNumber?.toLowerCase().includes(query) ||
+        flight.airline?.toLowerCase().includes(query) ||
+        flight.origin?.toLowerCase().includes(query) ||
+        flight.destination?.toLowerCase().includes(query);
+      
+      const matchesStatus = statusFilter === "" || flight.status === statusFilter;
+      
+      return matchesSearch && matchesStatus;
+    }).sort((a, b) => {
+      if (sortBy === "departure") {
+        return new Date(a.departureTime).getTime() - new Date(b.departureTime).getTime();
+      }
+      if (sortBy === "price") {
+        return (a.price || 0) - (b.price || 0);
+      }
+      if (sortBy === "seats") {
+        return (b.seatsAvailable || 0) - (a.seatsAvailable || 0);
+      }
+      return 0;
+    });
+  }, [flights, searchQuery, statusFilter, sortBy]);
 
   const handleOpenDeleteModal = (flight: Flight) => {
     setFlightToDelete(flight);

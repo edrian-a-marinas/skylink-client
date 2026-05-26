@@ -4,7 +4,7 @@ import type { Flight, FlightSearchParams, APIError } from "@/types";
 
 export function useFlights(initialParams?: FlightSearchParams) {
   const [data, setData] = useState<Flight[] | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<APIError | null>(null);
   const [params, setParams] = useState<FlightSearchParams>(initialParams ?? {});
 
