@@ -25,6 +25,10 @@ export interface Flight {
   flightNumber: string;
   origin: string;
   destination: string;
+  originCity?: string | null;       
+  originCountry?: string | null;    
+  destinationCity?: string | null;  
+  destinationCountry?: string | null; 
   departureTime: string;
   arrivalTime: string;
   price: number;

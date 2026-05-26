@@ -8,10 +8,14 @@ const mapBackendFlight = (f: any): Flight => ({
   flightNumber: f.flight_number,
   origin: f.origin_airport?.iata_code || f.origin,
   destination: f.destination_airport?.iata_code || f.destination,
+  originCity: f.origin_airport?.city || f.origin_airport?.name || null,       
+  originCountry: f.origin_airport?.country || null,                           
+  destinationCity: f.destination_airport?.city || f.destination_airport?.name || null,  
+  destinationCountry: f.destination_airport?.country || null,                  
   departureTime: f.departure_time,
   arrivalTime: f.arrival_time,
   status: f.status,
-  price: f.seat_pricing?.find((p: any) => p.seat_class?.name === "economy")?.price / 100 || f.price || 0,
+  price: f.seat_pricing?.find((p: any) => p.seat_class?.name?.toLowerCase() === "economy")?.price / 100 || f.price || 0,
   seatsAvailable: f.seat_pricing?.reduce((acc: number, p: any) => acc + (p.available_seats || 0), 0) || f.seatsAvailable,
   totalSeats: f.seat_pricing?.reduce((acc: number, p: any) => acc + (p.total_seats || 0), 0) || f.totalSeats,
   airline: f.airline || "SkyLink",
@@ -51,45 +55,49 @@ export async function searchFlights(
     return items.map(mapBackendFlight);
   } catch (err) {
     handleApiError(err);
+    return []; 
   }
 }
 
-export async function getFlightById(id: string): Promise<Flight> {
+export async function getFlightById(id: string): Promise<Flight | null> { 
   try {
     const res = await axiosClient.get(`/flights/${id}`);
     return mapBackendFlight(res.data);
   } catch (err) {
     handleApiError(err);
+    return null;
   }
 }
 
-export async function createFlight(payload: Partial<Flight>): Promise<Flight> {
+export async function createFlight(payload: Partial<Flight>): Promise<Flight | null> { 
   try {
     const backendPayload = mapFrontendToBackend(payload);
     const res = await axiosClient.post("/flights", backendPayload);
     return mapBackendFlight(res.data);
   } catch (err) {
     handleApiError(err);
+    return null;
   }
 }
 
 export async function updateFlight(
   id: string,
   payload: Partial<Flight>,
-): Promise<Flight> {
+): Promise<Flight | null> { 
   try {
     const backendPayload = mapFrontendToBackend(payload);
     const res = await axiosClient.put(`/flights/${id}`, backendPayload);
     return mapBackendFlight(res.data);
   } catch (err) {
     handleApiError(err);
+    return null;
   }
 }
 
 export async function deleteFlight(id: string): Promise<void> {
   try {
     await axiosClient.delete(`/flights/${id}`);
-  } catch (err) {
+  } catch (err) { 
     handleApiError(err);
   }
 }
