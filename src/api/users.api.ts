@@ -4,17 +4,20 @@ import type { User } from "@/types";
 
 export interface UserDetail extends User {
   total_bookings: number;
-  // Add other detail fields if needed
 }
 
 export interface UserListItem extends User {
   bookings_count: number;
 }
 
+/**
+ * Admin: Get all users
+ * GET /api/v1/users
+ */
 export async function getUsers(): Promise<UserListItem[]> {
   try {
-    const res = await axiosClient.get("/admin/users");
-    // Handle potential pagination if backend follows the items: [] pattern
+    const res = await axiosClient.get("/users");
+    // Backend returns PaginatedResponse[UserRead]
     const items = Array.isArray(res.data) ? res.data : (res.data?.items || []);
     return items;
   } catch (err) {
@@ -22,28 +25,40 @@ export async function getUsers(): Promise<UserListItem[]> {
   }
 }
 
+/**
+ * Admin: Get specific user
+ * GET /api/v1/users/{user_id}
+ */
 export async function getUserById(id: string): Promise<UserDetail> {
   try {
-    const res = await axiosClient.get(`/admin/users/${id}`);
+    const res = await axiosClient.get(`/users/${id}`);
     return res.data;
   } catch (err) {
     handleApiError(err);
   }
 }
 
+/**
+ * Admin: Update User Status (Suspend/Activate)
+ * PUT /api/v1/users/{user_id}/status
+ * Expects: UserStatusUpdate schema (usually { is_active: boolean })
+ */
 export async function toggleUserStatus(id: string, active: boolean): Promise<User> {
   try {
-    const res = await axiosClient.patch(`/admin/users/${id}/status`, { is_active: active });
+    const res = await axiosClient.put(`/users/${id}/status`, { is_active: active });
     return res.data;
   } catch (err) {
     handleApiError(err);
   }
 }
 
-export async function resetUserPassword(id: string): Promise<{ message: string }> {
+/**
+ * Admin: Delete User
+ * DELETE /api/v1/users/{user_id}
+ */
+export async function deleteUser(id: string): Promise<void> {
   try {
-    const res = await axiosClient.post(`/admin/users/${id}/reset-password`);
-    return res.data;
+    await axiosClient.delete(`/users/${id}`);
   } catch (err) {
     handleApiError(err);
   }
