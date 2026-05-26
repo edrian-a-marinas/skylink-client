@@ -41,6 +41,9 @@ const AdminUsersPage = () => {
 
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
+      // Exclude administrators (role_id: 1) from the management list
+      if (user.role_id === 1) return false;
+
       const full_name = `${user.first_name} ${user.last_name}`.toLowerCase();
       const query = searchQuery.toLowerCase();
       return (
