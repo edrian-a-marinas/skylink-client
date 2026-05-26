@@ -8,7 +8,7 @@ const AdminRoute = () => {
 
   if (!isAuthenticated) {
     return (
-      <Navigate to={ROUTES.ADMIN_LOGIN} state={{ from: location }} replace />
+      <Navigate to={ROUTES.HOME} replace />
     );
   }
 
