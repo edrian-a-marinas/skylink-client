@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { X, AlertTriangle } from "lucide-react";
 
 import { ROUTES } from "@/constants/routes";
@@ -15,15 +15,22 @@ const ManageBookingCancelPage = () => {
 
   const booking = getManageBookingById(id);
 
-  const refundAmount = Math.max(
-    booking.total - booking.cancellationFee,
-    0,
-  );
+  if (!booking) {
+    return <Navigate to={ROUTES.MANAGE} replace />;
+  }
 
-  const detailHref = ROUTES.MANAGE_BOOKING_DETAIL.replace(
-    ":id",
-    booking.id,
-  );
+  if (booking.status !== "upcoming") {
+    return (
+      <Navigate
+        to={ROUTES.MANAGE_BOOKING_DETAIL.replace(":id", booking.id)}
+        replace
+      />
+    );
+  }
+
+  const refundAmount = Math.max(booking.total - booking.cancellationFee, 0);
+
+  const detailHref = ROUTES.MANAGE_BOOKING_DETAIL.replace(":id", booking.id);
 
   const canceledHref = ROUTES.MANAGE_BOOKING_CANCELED.replace(
     ":id",
@@ -32,14 +39,10 @@ const ManageBookingCancelPage = () => {
 
   return (
     <main className="min-h-[calc(100vh-160px)] bg-[#F3F5F7] px-6 py-8">
-
       {/* BACKGROUND CONTENT */}
       <section className="mx-auto w-full max-w-7xl">
         <div className="pointer-events-none opacity-80">
-          <ManageBookingDetailsLayout
-            booking={booking}
-            actionsDisabled
-          />
+          <ManageBookingDetailsLayout booking={booking} actionsDisabled />
         </div>
       </section>
 
@@ -48,24 +51,18 @@ const ManageBookingCancelPage = () => {
 
       {/* MODAL */}
       <div className="fixed inset-0 z-50 flex items-center justify-center px-6">
-
         <div
           className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
           role="dialog"
           aria-modal="true"
         >
-
           {/* HEADER */}
           <div className="flex items-start justify-between gap-4">
-
             {/* LEFT */}
             <div>
-
               {/* ICON + TITLE */}
               <div className="flex items-center gap-3">
-
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-rose-100 text-rose-500">
-
                   <AlertTriangle className="h-5 w-5" />
                 </span>
 
@@ -77,11 +74,9 @@ const ManageBookingCancelPage = () => {
               {/* DESCRIPTION */}
               <p className="mt-3 text-xs text-slate-500">
                 Are you sure you want to cancel flight{" "}
-
                 <span className="font-semibold text-slate-700">
                   {booking.flightCode}
                 </span>{" "}
-
                 ({booking.fromCode} {"->"} {booking.toCode})?
               </p>
             </div>
@@ -98,34 +93,23 @@ const ManageBookingCancelPage = () => {
 
           {/* REFUND BOX */}
           <div className="mt-4 rounded-xl bg-[#FBF6EF] p-4 text-xs text-slate-600">
-
-            <p className="font-bold text-amber-700">
-              Refund Estimate
-            </p>
+            <p className="font-bold text-amber-700">Refund Estimate</p>
 
             <div className="mt-3 space-y-2">
-
               <div className="flex items-center justify-between">
                 <span>Total paid</span>
 
-                <span>
-                  {formatPeso(booking.total)}
-                </span>
+                <span>{formatPeso(booking.total)}</span>
               </div>
 
               <div className="flex items-center justify-between">
                 <span>Cancellation fee</span>
 
-                <span>
-                  -{formatPeso(booking.cancellationFee)}
-                </span>
+                <span>-{formatPeso(booking.cancellationFee)}</span>
               </div>
 
               <div className="mt-3 flex items-center justify-between border-t border-amber-100 pt-3">
-
-                <span className="font-bold text-black">
-                  Refund amount
-                </span>
+                <span className="font-bold text-black">Refund amount</span>
 
                 <span className="font-bold text-emerald-600">
                   {formatPeso(refundAmount)}
@@ -136,7 +120,6 @@ const ManageBookingCancelPage = () => {
 
           {/* ACTION BUTTONS */}
           <div className="mt-5 flex flex-wrap items-center gap-3">
-
             <Link
               to={detailHref}
               className="flex-1 rounded-lg bg-[#5D7FA7] px-4 py-2 text-center text-xs font-bold text-white transition hover:bg-[#4E6B8D]"

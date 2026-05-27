@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { CheckCircle2 } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
 import {
@@ -9,6 +9,10 @@ import {
 const ManageBookingCanceledPage = () => {
   const { id } = useParams();
   const booking = getManageBookingById(id);
+
+  if (!booking) {
+    return <Navigate to={ROUTES.MANAGE} replace />;
+  }
   const refundAmount = Math.max(booking.total - booking.cancellationFee, 0);
 
   return (

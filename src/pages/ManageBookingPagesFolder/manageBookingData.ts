@@ -142,4 +142,4 @@ export const getManageBookingsByStatus = (status: ManageBookingStatus) =>
   MANAGE_BOOKINGS.filter((booking) => booking.status === status);
 
 export const getManageBookingById = (id?: string) =>
-  MANAGE_BOOKINGS.find((booking) => booking.id === id) ?? MANAGE_BOOKINGS[0];
+  MANAGE_BOOKINGS.find((booking) => booking.id === id);

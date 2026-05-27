@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
 import ManageBookingDetailsLayout from "@/pages/ManageBookingPagesFolder/components/ManageBookingDetailsLayout";
@@ -8,15 +8,16 @@ const ManageBookingDetailsPage = () => {
   const { id } = useParams();
   const booking = getManageBookingById(id);
 
+  if (!booking) {
+    return <Navigate to={ROUTES.MANAGE} replace />;
+  }
+
   return (
     <main className="min-h-[calc(100vh-160px)] bg-[#F3F5F7]">
-
       {/* HEADER */}
       <section className="border-b border-slate-200 bg-white">
         <div className="mx-auto w-full max-w-7xl px-6 py-4">
-
           <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-
             <Link
               to={ROUTES.MANAGE}
               className="inline-flex items-center gap-1 text-xs font-semibold text-[#5D7FA7] transition hover:text-[#4E6B8D]"
@@ -27,9 +28,7 @@ const ManageBookingDetailsPage = () => {
 
             <span className="text-slate-300">/</span>
 
-            <span className="font-medium text-slate-400">
-              {booking.pnr}
-            </span>
+            <span className="font-medium text-slate-400">{booking.pnr}</span>
           </div>
         </div>
       </section>

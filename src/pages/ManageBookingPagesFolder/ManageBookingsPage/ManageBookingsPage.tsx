@@ -12,8 +12,7 @@ import {
 } from "@/pages/ManageBookingPagesFolder/manageBookingData";
 
 const ManageBookingsPage = () => {
-  const [activeTab, setActiveTab] =
-    useState<ManageBookingStatus>("upcoming");
+  const [activeTab, setActiveTab] = useState<ManageBookingStatus>("upcoming");
 
   const counts = useMemo(() => {
     return MANAGE_BOOKINGS.reduce(
@@ -38,57 +37,56 @@ const ManageBookingsPage = () => {
 
   return (
     <main className="min-h-[calc(100vh-160px)] bg-[#F3F5F7]">
-
       {/* HEADER SECTION */}
-      <section className="border-b border-slate-200 bg-white px-4 py-6 md:px-8">
-        <div>
-          <div className="flex items-center gap-2">
-            <BookOpen className="h-4 w-4 text-[#5D7FA7]" />
+      <section className="border-b border-slate-200 bg-white">
+        <div className="mx-auto w-full max-w-5xl px-4 py-6 md:px-8">
+          <div>
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4 text-[#5D7FA7]" />
 
-            <h1 className="text-lg font-bold text-slate-800">
-              My Bookings
-            </h1>
+              <h1 className="text-lg font-bold text-slate-800">My Bookings</h1>
+            </div>
+
+            <p className="mt-1 pb-3 text-xs text-slate-400">
+              Manage your upcoming, past, and cancelled flights.
+            </p>
           </div>
 
-          <p className="mt-1 pb-3 text-xs text-slate-400">
-            Manage your upcoming, past, and cancelled flights.
-          </p>
-        </div>
+          <div className="mt-4 flex flex-wrap items-center gap-6 text-sm">
+            {tabs.map((tab) => {
+              const isActive = activeTab === tab.id;
 
-        <div className="mt-4 flex flex-wrap items-center gap-6 text-sm">
-          {tabs.map((tab) => {
-            const isActive = activeTab === tab.id;
-
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={`-mb-px inline-flex items-center gap-2 border-b-2 pb-3 text-sm font-semibold transition ${
-                  isActive
-                    ? "border-[#5D7FA7] text-[#5D7FA7]"
-                    : "border-transparent text-slate-400 hover:text-slate-600"
-                }`}
-              >
-                {tab.label}
-
-                <span
-                  className={`rounded-full px-2 py-0.5 text-[11px] ${
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`-mb-px inline-flex items-center gap-2 border-b-2 pb-3 text-sm font-semibold transition ${
                     isActive
-                      ? "bg-[#EAF0F7] text-[#5D7FA7]"
-                      : "bg-slate-100 text-slate-500"
+                      ? "border-[#5D7FA7] text-[#5D7FA7]"
+                      : "border-transparent text-slate-400 hover:text-slate-600"
                   }`}
                 >
-                  {counts[tab.id]}
-                </span>
-              </button>
-            );
-          })}
+                  {tab.label}
+
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[11px] ${
+                      isActive
+                        ? "bg-[#EAF0F7] text-[#5D7FA7]"
+                        : "bg-slate-100 text-slate-500"
+                    }`}
+                  >
+                    {counts[tab.id]}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </section>
 
       {/* BOOKINGS SECTION */}
-      <section className="w-full px-4 py-6 md:px-8">
+      <section className="mx-auto w-full max-w-5xl px-4 py-6 md:px-8">
         <div className="space-y-4">
           {bookings.map((booking) => {
             const statusLabel = getStatusLabel(booking.status);
@@ -101,14 +99,9 @@ const ManageBookingsPage = () => {
             return (
               <Link
                 key={booking.id}
-                to={ROUTES.MANAGE_BOOKING_DETAIL.replace(
-                  ":id",
-                  booking.id,
-                )}
-                className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md"
+                to={ROUTES.MANAGE_BOOKING_DETAIL.replace(":id", booking.id)}
+                className="flex w-full flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md sm:flex-row sm:items-center sm:justify-between"
               >
-
-                {/* LEFT SIDE */}
                 <div className="flex items-center gap-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#EAF0F7] text-[#5D7FA7]">
                     <Plane className="h-5 w-5" />
@@ -133,44 +126,44 @@ const ManageBookingsPage = () => {
                   </div>
                 </div>
 
-                {/* RIGHT SIDE */}
-                <div className="ml-auto flex items-center gap-10">
+                <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:gap-8">
+                  <div className="grid w-full grid-cols-2 gap-4 text-xs text-slate-500 sm:ml-auto sm:w-auto sm:flex sm:items-center sm:gap-10 sm:text-right">
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                        Date
+                      </p>
 
-                  <div className="text-right">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
-                      Date
-                    </p>
+                      <p className="mt-1 text-sm font-semibold text-slate-700">
+                        {booking.date}
+                      </p>
 
-                    <p className="mt-1 text-sm font-semibold text-slate-700">
-                      {booking.date}
-                    </p>
+                      <p className="text-[11px] text-slate-400">
+                        {booking.departTime} - {booking.cabin}
+                      </p>
+                    </div>
 
-                    <p className="text-[11px] text-slate-400">
-                      {booking.departTime} - {booking.cabin}
-                    </p>
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                        PNR
+                      </p>
+
+                      <p className="mt-1 text-sm font-semibold text-[#5D7FA7]">
+                        {booking.pnr}
+                      </p>
+                    </div>
+
+                    <div className="col-span-2 sm:col-span-1">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                        Total
+                      </p>
+
+                      <p className="mt-1 text-sm font-semibold text-slate-800">
+                        {formatPeso(booking.total)}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="text-right">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
-                      PNR
-                    </p>
-
-                    <p className="mt-1 text-sm font-semibold text-[#5D7FA7]">
-                      {booking.pnr}
-                    </p>
-                  </div>
-
-                  <div className="text-right">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
-                      Total
-                    </p>
-
-                    <p className="mt-1 text-sm font-semibold text-slate-800">
-                      {formatPeso(booking.total)}
-                    </p>
-                  </div>
-
-                  <ChevronRight className="h-5 w-5 text-slate-300" />
+                  <ChevronRight className="hidden h-5 w-5 text-slate-300 sm:block" />
                 </div>
               </Link>
             );

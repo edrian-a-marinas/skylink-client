@@ -2,14 +2,10 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, CheckCircle2, Copy, Download } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
-import {
-  BOOKING_DATA,
-  formatCurrency,
-} from "@/pages/BookingPagesFolder/bookingData";
+import { BOOKING_DATA } from "@/pages/BookingPagesFolder/bookingData";
 
 const BookingConfirmationPage = () => {
   const [copied, setCopied] = useState(false);
-  const total = formatCurrency(BOOKING_DATA.total);
   const meal = BOOKING_DATA.meal ?? "Standard Meal";
 
   const handleCopy = async () => {
@@ -27,7 +23,7 @@ const BookingConfirmationPage = () => {
   };
 
   return (
-    <main className="min-h-[calc(100vh-160px)] bg-[#F3F5F7] px-6 py-12">
+    <main className="min-h-[calc(100vh-160px)] bg-[#F3F5F7] px-4 py-12 sm:px-6">
       <section className="mx-auto w-full max-w-3xl text-center">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600">
           <CheckCircle2 className="h-7 w-7" />
@@ -43,12 +39,12 @@ const BookingConfirmationPage = () => {
           Fully refundable if canceled within 24 hours of booking;
           non-refundable thereafter.
         </p>
-       
+
         <div className="mx-auto mt-6 w-full rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
             Booking Reference (PNR)
           </p>
-          <p className="mt-3 text-3xl font-semibold tracking-[0.3em] text-[#5D7FA7]">
+          <p className="mt-3 text-2xl font-semibold tracking-[0.2em] text-[#5D7FA7] sm:text-3xl sm:tracking-[0.3em]">
             {BOOKING_DATA.pnr}
           </p>
           <button
@@ -66,7 +62,7 @@ const BookingConfirmationPage = () => {
             <p className="text-sm font-semibold text-slate-700">
               Flight Details
             </p>
-            <div className="mt-4 grid items-center gap-4 md:grid-cols-[1fr_auto_1fr]">
+            <div className="mt-4 grid items-center gap-4 sm:grid-cols-[1fr_auto_1fr]">
               <div>
                 <p className="text-2xl font-semibold text-slate-800">
                   {BOOKING_DATA.fromCode}
@@ -80,7 +76,7 @@ const BookingConfirmationPage = () => {
                 <div className="mx-auto mt-1 h-0.5 w-12 rounded-full bg-slate-200" />
                 <p className="mt-1 text-[11px] text-emerald-600">Non-stop</p>
               </div>
-              <div className="text-right">
+              <div className="text-left sm:text-right">
                 <p className="text-2xl font-semibold text-slate-800">
                   {BOOKING_DATA.toCode}
                 </p>
@@ -131,17 +127,17 @@ const BookingConfirmationPage = () => {
           </div>
         </div>
 
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+        <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <button
             type="button"
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#5D7FA7] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#4E6B8D]"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#5D7FA7] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#4E6B8D] sm:w-auto"
           >
             <Download className="h-4 w-4" />
             Download E-ticket
           </button>
           <Link
             to={ROUTES.MANAGE}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#AFC2DD] px-6 py-2.5 text-sm font-semibold text-[#5D7FA7] hover:border-[#8EA7CB]"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#AFC2DD] px-6 py-2.5 text-sm font-semibold text-[#5D7FA7] hover:border-[#8EA7CB] sm:w-auto"
           >
             View My Booking
             <ArrowRight className="h-4 w-4" />

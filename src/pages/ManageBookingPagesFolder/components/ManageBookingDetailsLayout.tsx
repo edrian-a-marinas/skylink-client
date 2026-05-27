@@ -32,6 +32,7 @@ const ManageBookingDetailsLayout = ({
 
   const badgeClass = getStatusBadgeClass(booking.status);
   const statusLabel = getStatusLabel(booking.status);
+  const isUpcoming = booking.status === "upcoming";
 
   const actionBaseClass =
     "inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-xs font-bold transition";
@@ -39,6 +40,8 @@ const ManageBookingDetailsLayout = ({
   const actionDisabledClass = actionsDisabled
     ? "pointer-events-none opacity-60"
     : "";
+  const modifyDisabledClass =
+    actionsDisabled || !isUpcoming ? "pointer-events-none opacity-60" : "";
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_320px]">
@@ -194,7 +197,7 @@ const ManageBookingDetailsLayout = ({
 
             <button
               type="button"
-              className={`${actionBaseClass} border-2 border-[#AFC2DD] bg-white text-[#5D7FA7] hover:border-[#8EA7CB] ${actionDisabledClass}`}
+              className={`${actionBaseClass} border-2 border-[#AFC2DD] bg-white text-[#5D7FA7] hover:border-[#8EA7CB] ${modifyDisabledClass}`}
             >
               <RotateCw className="h-4 w-4" />
               Reschedule Flight
@@ -202,7 +205,8 @@ const ManageBookingDetailsLayout = ({
 
             <Link
               to={cancelHref}
-              className={`${actionBaseClass} border-2 border-rose-300 bg-rose-50 text-rose-600 hover:border-rose-400 ${actionDisabledClass}`}
+              aria-disabled={actionsDisabled || !isUpcoming}
+              className={`${actionBaseClass} border-2 border-rose-300 bg-rose-50 text-rose-600 hover:border-rose-400 ${modifyDisabledClass}`}
             >
               Cancel Booking
             </Link>
