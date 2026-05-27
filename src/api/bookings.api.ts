@@ -3,8 +3,6 @@ import { handleApiError } from "./api.helpers";
 import type {
   Booking,
   BookingDetail,
-  CancellationRequest,
-  RefundDetail,
   RescheduleRequest,
 } from "@/types";
 
@@ -59,7 +57,7 @@ export async function getAllBookingsAdmin(): Promise<Booking[]> {
  * User/Admin: Get specific booking
  * GET /api/v1/bookings/{booking_id}
  */
-export async function getBookingById(id: string): Promise<BookingDetail> {
+export async function getBookingDetail(id: string): Promise<BookingDetail> {
   try {
     const res = await axiosClient.get(`/bookings/${id}`);
     return res.data as BookingDetail;
@@ -95,5 +93,19 @@ export async function rescheduleBooking(
     return res.data as Booking;
   } catch (err) {
     handleApiError(err);
+  }
+}
+
+/**
+ * Admin: Preview Cancellation (Stub if not in OAS)
+ */
+export async function previewCancellation(id: string): Promise<any> {
+  try {
+    // If backend doesn't have this, we return a mock or handle it in UI
+    const res = await axiosClient.get(`/bookings/${id}/cancel-preview`);
+    return res.data;
+  } catch (err) {
+    // Fallback if endpoint doesn't exist
+    return { refund_amount: 0 };
   }
 }

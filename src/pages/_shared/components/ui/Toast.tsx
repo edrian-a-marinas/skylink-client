@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { CheckCircle2, X } from "lucide-react";
 import { cn } from "@/utils/cn";
 
@@ -20,10 +20,8 @@ const Toast = ({ message, isOpen, onClose, type = "success" }: ToastProps) => {
       }, 3000);
       return () => clearTimeout(timer);
     } else {
-      const timer = setTimeout(() => {
-        const timeout = setTimeout(() => setShouldRender(false), 300);
-        return () => clearTimeout(timeout);
-      }, 0);
+      const timeout = setTimeout(() => setShouldRender(false), 300);
+      return () => clearTimeout(timeout);
     }
   }, [isOpen, onClose]);
 
@@ -42,7 +40,7 @@ const Toast = ({ message, isOpen, onClose, type = "success" }: ToastProps) => {
       )}>
         {type === "success" ? <CheckCircle2 size={24} /> : <X size={24} />}
       </div>
-      <div className="pr-4">
+      <div className="pr-4 text-left">
         <p className="text-sm font-bold text-slate-900">{message}</p>
         <p className="text-xs font-medium text-slate-500">Action completed successfully.</p>
       </div>

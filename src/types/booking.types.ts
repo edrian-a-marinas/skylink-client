@@ -51,6 +51,15 @@ export interface Booking {
   totalPrice: number;
   createdAt: string;
   updatedAt?: string;
+  // Nested flight object for UI display
+  flight?: {
+    flightNumber: string;
+    origin: string;
+    destination: string;
+    departureTime: string;
+    arrivalTime: string;
+    airline?: string;
+  };
 }
 
 export interface BookingModification {

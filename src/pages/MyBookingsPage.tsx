@@ -18,7 +18,7 @@ const MyBookingsPage = () => {
     {
       key: "pnr",
       header: "PNR",
-      cell: (row) => <span className="font-bold text-blue-600 uppercase">{row.pnr}</span>,
+      cell: (row) => <span className="font-bold text-blue-600 uppercase">{row.pnr || "—"}</span>,
     },
     {
       key: "flight",
@@ -55,7 +55,7 @@ const MyBookingsPage = () => {
       cell: (row) => (
         <div className="flex items-center gap-1 font-bold text-slate-900">
           <CreditCard size={14} className="text-slate-400" />
-          ₱{(row.total_price || 3150).toLocaleString()}
+          ₱{(row.totalPrice || 3150).toLocaleString()}
         </div>
       ),
     },
