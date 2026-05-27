@@ -1,10 +1,9 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
 import { useAuthStore } from "@/store/useAuthStore";
 
 const AdminRoute = () => {
   const { isAuthenticated, user } = useAuthStore();
-  const location = useLocation();
 
   if (!isAuthenticated) {
     return (

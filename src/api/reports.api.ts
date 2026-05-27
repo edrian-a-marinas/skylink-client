@@ -1,14 +1,14 @@
 import axiosClient from "./axiosClient";
 import { handleApiError } from "./api.helpers";
-import type { ExportRequest, ReportResult } from "@/types";
+import type { ExportRequest, ReportResult, ReportQuery } from "@/types";
 
 /**
  * Admin: Get Booking Report
  * GET /api/v1/admin/reports
  */
-export async function generateReport(): Promise<ReportResult> {
+export async function generateReport(query?: ReportQuery): Promise<ReportResult> {
   try {
-    const res = await axiosClient.get("/admin/reports");
+    const res = await axiosClient.get("/admin/reports", { params: query });
     return res.data as ReportResult;
   } catch (err) {
     handleApiError(err);

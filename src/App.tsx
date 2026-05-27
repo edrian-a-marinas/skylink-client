@@ -130,12 +130,7 @@ const AppContent = () => {
           <Route element={<ProtectedRoute />}>
             <Route
               path={ROUTES.USER_DASHBOARD}
-              element={screen(
-                "S-11",
-                "User Dashboard",
-                "user",
-                "User home dashboard with personalized booking shortcuts.",
-              )}
+              element={<HomePage />}
             />
             <Route path={ROUTES.MY_BOOKINGS} element={<MyBookingsPage />} />
             <Route

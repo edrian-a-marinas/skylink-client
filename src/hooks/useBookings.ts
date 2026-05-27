@@ -12,15 +12,13 @@ import type {
   APIError,
   Booking,
   BookingDetail,
-  CancellationRequest,
-  RefundDetail,
   RescheduleRequest,
 } from "@/types";
 
 export function useMyBookings() {
   const { user } = useAuthStore();
   const [data, setData] = useState<Booking[] | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<APIError | null>(null);
 
   const fetchMyBookings = useCallback(async () => {
@@ -120,11 +118,11 @@ export function useBookingActions() {
   }, []);
 
   const cancel = useCallback(
-    async (bookingId: string, payload: CancellationRequest) => {
+    async (bookingId: string) => {
       setIsLoading(true);
       setError(null);
       try {
-        return await cancelBooking(bookingId, payload);
+        return await cancelBooking(bookingId);
       } catch (err) {
         setError(err as APIError);
         return null;
@@ -160,5 +158,3 @@ export function useBookingActions() {
     reschedule,
   };
 }
-
-export type CancellationPreview = RefundDetail;
