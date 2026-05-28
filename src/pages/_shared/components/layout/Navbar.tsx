@@ -3,7 +3,13 @@ import { ROUTES } from "@/constants/routes";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/utils/cn";
-import { LogOut, Settings, BookOpen, ChevronDown, LayoutDashboard } from "lucide-react";
+import {
+  LogOut,
+  Settings,
+  BookOpen,
+  ChevronDown,
+  LayoutDashboard,
+} from "lucide-react";
 import logos1 from "@/assets/logos/Logos-1.png";
 import { colors, typography } from "@/constants/theme";
 import { useState, useRef, useEffect } from "react";
@@ -46,7 +52,10 @@ const Navbar = () => {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsMenuOpen(false);
       }
     };
@@ -58,10 +67,10 @@ const Navbar = () => {
 
   return (
     <header className="bg-white border-b border-slate-100 sticky top-0 z-50">
-      <Toast 
-        message="Logout Successful" 
-        isOpen={showLogoutToast} 
-        onClose={() => setShowLogoutToast(false)} 
+      <Toast
+        message="Logout Successful"
+        isOpen={showLogoutToast}
+        onClose={() => setShowLogoutToast(false)}
       />
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         {/* Logo */}
@@ -115,7 +124,12 @@ const Navbar = () => {
                   <span className="text-sm font-bold text-slate-700">
                     {user?.first_name || "Account"}
                   </span>
-                  <ChevronDown className={cn("size-4 text-slate-400 transition-transform", isMenuOpen && "rotate-180")} />
+                  <ChevronDown
+                    className={cn(
+                      "size-4 text-slate-400 transition-transform",
+                      isMenuOpen && "rotate-180",
+                    )}
+                  />
                 </div>
               </button>
 
@@ -123,12 +137,16 @@ const Navbar = () => {
               {isMenuOpen && (
                 <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-white border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] py-2 z-50 overflow-hidden transform origin-top-right transition-all animate-in fade-in zoom-in duration-200">
                   <div className="px-4 py-3 border-b border-slate-50 mb-1">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Signed in as</p>
-                    <p className="text-sm font-bold text-slate-900 truncate">{user?.email}</p>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                      Signed in as
+                    </p>
+                    <p className="text-sm font-bold text-slate-900 truncate">
+                      {user?.email}
+                    </p>
                   </div>
-                  
+
                   {isAdmin && (
-                    <Link 
+                    <Link
                       to={ROUTES.ADMIN_DASHBOARD}
                       className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-primary-60 transition-colors"
                       onClick={() => setIsMenuOpen(false)}
@@ -138,7 +156,7 @@ const Navbar = () => {
                     </Link>
                   )}
 
-                  <Link 
+                  <Link
                     to={ROUTES.PROFILE_SETTINGS}
                     className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-primary-60 transition-colors"
                     onClick={() => setIsMenuOpen(false)}
@@ -147,8 +165,8 @@ const Navbar = () => {
                     Account Settings
                   </Link>
 
-                  <Link 
-                    to={ROUTES.MY_BOOKINGS}
+                  <Link
+                    to={ROUTES.MANAGE}
                     className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-primary-60 transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
@@ -157,7 +175,7 @@ const Navbar = () => {
                   </Link>
 
                   <div className="h-px bg-slate-50 my-1" />
-                  
+
                   <button
                     onClick={handleLogout}
                     className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-bold text-rose-600 hover:bg-rose-50 transition-colors"

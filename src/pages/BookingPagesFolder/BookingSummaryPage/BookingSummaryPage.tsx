@@ -4,8 +4,10 @@ import { ROUTES } from "@/constants/routes";
 import BookingStepper from "@/pages/BookingPagesFolder/components/BookingStepper";
 import {
   BOOKING_DATA,
+  loadBookingData,
   formatCurrency,
 } from "@/pages/BookingPagesFolder/bookingData";
+import useAsyncValue from "@/hooks/useAsyncValue";
 
 type LocationState = {
   seat?: string;
@@ -16,10 +18,12 @@ const BookingSummaryPage = () => {
   const searchSuffix = location.search ?? "";
   const backHref = `${ROUTES.BOOKING_SEAT_SELECTION}${searchSuffix}`;
   const locationState = location.state as LocationState | null;
-  const seatLabel = locationState?.seat ?? BOOKING_DATA.seat;
-  const baseFare = formatCurrency(BOOKING_DATA.baseFare);
-  const taxes = formatCurrency(BOOKING_DATA.taxes);
-  const total = formatCurrency(BOOKING_DATA.total);
+  const { data: bookingData } = useAsyncValue(loadBookingData);
+  const booking = bookingData ?? BOOKING_DATA;
+  const seatLabel = locationState?.seat ?? booking.seat;
+  const baseFare = formatCurrency(booking.baseFare);
+  const taxes = formatCurrency(booking.taxes);
+  const total = formatCurrency(booking.total);
 
   return (
     <main className="min-h-[calc(100vh-160px)] bg-[#F3F5F7]">
@@ -45,16 +49,16 @@ const BookingSummaryPage = () => {
                     Flight
                   </p>
                   <h2 className="mt-1 text-sm font-semibold text-slate-800">
-                    {BOOKING_DATA.fromCode} {"->"} {BOOKING_DATA.toCode}
+                    {booking.fromCode} {"->"} {booking.toCode}
                   </h2>
                   <p className="mt-1 text-xs text-slate-500">
-                    {BOOKING_DATA.flightCode} {" - "}
-                    {BOOKING_DATA.departTime} {"->"} {BOOKING_DATA.arriveTime}
+                    {booking.flightCode} {" - "}
+                    {booking.departTime} {"->"} {booking.arriveTime}
                     {" - "}
-                    {BOOKING_DATA.duration}
+                    {booking.duration}
                   </p>
                   <p className="text-xs text-slate-500">
-                    {BOOKING_DATA.cabin} {" - "} {BOOKING_DATA.baggage}
+                    {booking.cabin} {" - "} {booking.baggage}
                   </p>
                 </div>
                 <Link

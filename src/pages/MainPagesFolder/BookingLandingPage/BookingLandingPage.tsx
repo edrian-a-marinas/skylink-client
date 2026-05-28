@@ -15,6 +15,7 @@ import PassengerSelector, {
 type Deal = {
   id: string;
   title: string;
+  description: string;
   price: string;
   originalPrice: string;
   discount: string;
@@ -36,6 +37,7 @@ type Route = {
 
 type Destination = {
   id: string;
+  code: string;
   city: string;
   startingFrom: string;
   bgClass: string;
@@ -53,32 +55,41 @@ const DEALS: Deal[] = [
   {
     id: "1",
     title: "Flash Sale: Manila–Cebu",
+    description:
+      "Limited seats at unbeatable prices. Book now and save big on your next getaway!",
     price: "₱1,490",
     originalPrice: "₱3,500",
     discount: "-57%",
     badge: "Flash",
     badgeClass: "bg-warning-60",
     validUntil: "Until April 30",
+    image: "/Images/BookPage/Flash Sale Manila-Cebu.png",
   },
   {
     id: "2",
     title: "Weekend Escape: Manila–Palawan",
+    description:
+      "Discover Palawan's pristine beaches with our special weekend rates.",
     price: "₱2,199",
     originalPrice: "₱4,200",
     discount: "-48%",
     badge: "Weekend",
     badgeClass: "bg-success-60",
     validUntil: "Until May 15",
+    image: "/Images/BookPage/Weekend Escape Manila - Palawan.png",
   },
   {
     id: "3",
     title: "Fly to Singapore from ₱7,500",
+    description:
+      "Experience the Lion City at amazing prices. Perfect for a long weekend getaway.",
     price: "₱7,500",
     originalPrice: "₱12,500",
     discount: "-40%",
     badge: "International",
     badgeClass: "bg-success-60",
     validUntil: "Until May 31",
+    image: "/Images/BookPage/Fly to Singapore P7500.png",
   },
 ];
 
@@ -142,27 +153,35 @@ const POPULAR_ROUTES: Route[] = [
 const DESTINATIONS: Destination[] = [
   {
     id: "1",
+    code: "CEB",
     city: "Cebu",
     startingFrom: "From ₱1,890",
     bgClass: "bg-primary-60",
+    image: "/Images/BookPage/Cebu.png",
   },
   {
     id: "2",
+    code: "PPS",
     city: "Puerto Princesa",
     startingFrom: "From ₱2,499",
     bgClass: "bg-success-70",
+    image: "/Images/BookPage/Puerto Princesa.png",
   },
   {
     id: "3",
+    code: "KLO",
     city: "Kalibo (Boracay)",
     startingFrom: "From ₱1,650",
     bgClass: "bg-info-50",
+    image: "/Images/BookPage/Kalibo Boracay.png",
   },
   {
     id: "4",
+    code: "DVO",
     city: "Davao",
     startingFrom: "From ₱1,750",
     bgClass: "bg-primary-80",
+    image: "/Images/BookPage/Davao.png",
   },
 ];
 
@@ -244,9 +263,22 @@ function DealCard({ deal }: { deal: Deal }) {
   return (
     <Link
       to={ROUTES.EXPLORE_PROMO_DETAIL}
+      state={{
+        deal: {
+          id: deal.id,
+          title: deal.title,
+          description: deal.description,
+          price: deal.price,
+          oldPrice: deal.originalPrice,
+          discount: deal.discount,
+          validUntil: deal.validUntil,
+          image: deal.image ?? "",
+          badge: deal.badge,
+        },
+      }}
       className="bg-bg-page border border-tertiary-30 rounded-[14px] overflow-hidden shadow-[0px_2px_8px_rgba(0,0,0,0.04)] text-left w-full hover:shadow-md transition-shadow"
     >
-      <div className="relative h-[140px] bg-tertiary-20">
+      <div className="relative h-35 bg-tertiary-20">
         {deal.image ? (
           <img
             src={deal.image}
@@ -316,7 +348,7 @@ function RouteCard({ route }: { route: Route }) {
           </p>
         </div>
         <svg
-          className={`w-[15px] h-[15px] shrink-0 ${colors.text.tertiary}`}
+          className={`h-3.75 w-3.75 shrink-0 ${colors.text.tertiary}`}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -357,7 +389,38 @@ function DestinationCard({ destination }: { destination: Destination }) {
   return (
     <Link
       to={ROUTES.EXPLORE_DESTINATION}
-      className="relative h-[200px] rounded-[14px] overflow-hidden shadow-[0px_2px_8px_rgba(0,0,0,0.06)] w-full text-left hover:shadow-md transition-shadow"
+      state={{
+        destination: {
+          id: destination.id,
+          code: destination.code,
+          name: destination.city,
+          location:
+            destination.code === "SIN"
+              ? "Singapore"
+              : destination.code === "HKG"
+                ? "Hong Kong"
+                : destination.code === "DPS"
+                  ? "Indonesia"
+                  : "Philippines",
+          duration:
+            destination.code === "CEB"
+              ? "1h 20m"
+              : destination.code === "PPS"
+                ? "1h 20m"
+                : destination.code === "KLO"
+                  ? "1h 10m"
+                  : destination.code === "DVO"
+                    ? "1h 45m"
+                    : destination.code === "SIN"
+                      ? "4h 00m"
+                      : destination.code === "HKG"
+                        ? "2h 30m"
+                        : "3h 10m",
+          price: destination.startingFrom,
+          image: destination.image ?? "",
+        },
+      }}
+      className="relative h-50 rounded-[14px] overflow-hidden shadow-[0px_2px_8px_rgba(0,0,0,0.06)] w-full text-left hover:shadow-md transition-shadow"
     >
       {destination.image ? (
         <img
@@ -368,7 +431,7 @@ function DestinationCard({ destination }: { destination: Destination }) {
       ) : (
         <div className={`absolute inset-0 ${destination.bgClass}`} />
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-primary-100/75 to-transparent" />
+      <div className="absolute inset-0 bg-linear-to-t from-primary-100/75 to-transparent" />
       <div className="absolute bottom-3 left-3">
         <p className={`${typography.label.md.bold} text-text-static-light`}>
           {destination.city}
@@ -483,7 +546,12 @@ const BookingLandingPage = () => {
       {/* Hero */}
       <section className="relative pb-5">
         <div className="absolute inset-0 bg-primary-90" />
-        <div className="absolute inset-0 bg-gradient-to-b from-primary-100/65 via-primary-100/50 to-primary-100/30" />
+        <img
+          src="/Images/BookPage/WhereDoYouWantToFLySection.png"
+          alt="SkyLink booking hero"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-linear-to-b from-primary-100/70 via-primary-100/55 to-primary-100/30" />
 
         <div className="relative z-10 flex flex-col items-center gap-2 pt-8 px-4">
           <h1
@@ -499,7 +567,7 @@ const BookingLandingPage = () => {
         </div>
 
         {/* Search card */}
-        <div className="relative z-10 mx-auto mb-16 mt-8 w-full max-w-[800px] px-4">
+        <div className="relative z-10 mx-auto mb-16 mt-8 w-full max-w-200 px-4">
           <div className="bg-bg-page rounded-2xl shadow-[0px_4px_12px_rgba(0,0,0,0.08)] p-6 flex flex-col gap-4">
             {/* Trip type pills */}
             <div className="flex gap-2">
@@ -633,7 +701,7 @@ const BookingLandingPage = () => {
       </section>
 
       {/* Content sections */}
-      <div className="max-w-[1131px] mx-auto px-6 py-10 flex flex-col gap-12">
+      <div className="mx-auto flex max-w-282.75 flex-col gap-12 px-6 py-10">
         <section>
           <SectionHeader
             title="Best Deals Right Now"

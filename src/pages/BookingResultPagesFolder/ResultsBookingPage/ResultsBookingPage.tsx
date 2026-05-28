@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
 import FlightDetailCard, {
@@ -7,6 +7,9 @@ import FlightDetailCard, {
 import PriceSummaryCard from "./components/PriceSummaryCard";
 import FareRulesCard, { type FareRule } from "./components/FareRulesCard";
 import AuthGateModal from "./components/AuthGateModal";
+import { searchFlights } from "@/api/flights.api";
+import type { Flight } from "@/types";
+import useAsyncValue from "@/hooks/useAsyncValue";
 
 type FlightSummary = FlightDetail & {
   price: string;
@@ -96,6 +99,57 @@ type LocationState = {
   flight?: FlightSummary;
 };
 
+function mapFlightToSummary(flight: Flight): FlightSummary {
+  const departure = new Date(flight.departureTime);
+  const arrival = new Date(flight.arrivalTime);
+  const totalMinutes =
+    Number.isNaN(departure.getTime()) || Number.isNaN(arrival.getTime())
+      ? 80
+      : Math.max(
+          Math.round((arrival.getTime() - departure.getTime()) / 60000),
+          60,
+        );
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  const summary: FlightSummary = {
+    id: flight.id,
+    airline: flight.airline ?? "SkyLink",
+    airlineCode: (flight.airline ?? "SK").slice(0, 2).toUpperCase(),
+    flightNo: flight.flightNumber,
+    aircraft: flight.cabinClass === "business" ? "Airbus A321" : "Airbus A320",
+    fromCode: flight.origin,
+    toCode: flight.destination,
+    departTime: departure.toISOString().slice(11, 16),
+    arriveTime: arrival.toISOString().slice(11, 16),
+    duration: `${hours}h ${minutes.toString().padStart(2, "0")}m`,
+    status:
+      flight.status === "on_time"
+        ? "On Time"
+        : flight.status === "boarding"
+          ? "Boarding"
+          : flight.status === "delayed"
+            ? "Delayed"
+            : flight.status === "cancelled"
+              ? "Cancelled"
+              : "Scheduled",
+    baggage: `${flight.baggageAllowanceKg ?? 20}kg`,
+    cabin:
+      flight.cabinClass === "business"
+        ? "Business"
+        : flight.cabinClass === "first"
+          ? "First"
+          : "Economy",
+    price: `PHP ${Math.round(flight.price).toLocaleString("en-US")}`,
+  };
+
+  if (typeof flight.seatsAvailable === "number") {
+    summary.seatsLeft = flight.seatsAvailable;
+  }
+
+  return summary;
+}
+
 function parsePrice(value: string) {
   return Number(value.replace(/[^0-9]/g, ""));
 }
@@ -113,12 +167,22 @@ const ResultsBookingPage = () => {
   const locationState = location.state as LocationState | null;
   const selectedFlight = locationState?.flight;
 
+  const loader = useCallback(async () => {
+    const response = await searchFlights();
+    return response.length > 0 ? response.map(mapFlightToSummary) : FLIGHTS;
+  }, []);
+
+  const { data: loadedFlights } = useAsyncValue(loader);
+  const flightPool = loadedFlights ?? FLIGHTS;
+
   const flight = useMemo(() => {
     if (selectedFlight) {
       return selectedFlight;
     }
-    return FLIGHTS.find((item) => item.id === id) ?? FLIGHTS[0];
-  }, [id, selectedFlight]);
+    return (
+      flightPool.find((item) => item.id === id) ?? flightPool[0] ?? FLIGHTS[0]
+    );
+  }, [flightPool, id, selectedFlight]);
 
   const totalValue = parsePrice(flight.price || "") || 1890;
   const baseValue = Math.round(totalValue * 0.78);

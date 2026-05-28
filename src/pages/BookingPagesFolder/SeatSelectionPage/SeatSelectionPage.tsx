@@ -3,13 +3,19 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Check, ChevronLeft, Plane } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
 import BookingStepper from "@/pages/BookingPagesFolder/components/BookingStepper";
-import { BOOKING_DATA } from "@/pages/BookingPagesFolder/bookingData";
+import {
+  BOOKING_DATA,
+  loadBookingData,
+} from "@/pages/BookingPagesFolder/bookingData";
+import useAsyncValue from "@/hooks/useAsyncValue";
 
 const SeatSelectionPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const searchSuffix = location.search ?? "";
   const backHref = `${ROUTES.BOOKING_PASSENGER_DETAILS}${searchSuffix}`;
+  const { data: bookingData } = useAsyncValue(loadBookingData);
+  const booking = bookingData ?? BOOKING_DATA;
   const [selectedSeat, setSelectedSeat] = useState<string | null>(null);
 
   const rows = useMemo(() => Array.from({ length: 11 }, (_, i) => i + 1), []);
@@ -55,7 +61,7 @@ const SeatSelectionPage = () => {
                   Select Your Seat
                 </h2>
                 <p className="text-xs text-slate-500">
-                  Airbus A320 - {BOOKING_DATA.flightCode}
+                  Airbus A320 - {booking.flightCode}
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
@@ -84,78 +90,80 @@ const SeatSelectionPage = () => {
                 Front of aircraft
               </div>
 
-              <div className="mt-4 space-y-2">
-                {rows.map((row) => (
-                  <div
-                    key={row}
-                    className="grid grid-cols-[24px_repeat(3,32px)_24px_repeat(3,32px)] items-center gap-2"
-                  >
-                    <div className="text-[11px] text-slate-400">{row}</div>
-                    {columns.slice(0, 3).map((col) => {
-                      const seatId = `${row}${col}`;
-                      const isPremium = row <= 2;
-                      const isOccupied = occupiedSeats.has(seatId);
-                      const isSelected = selectedSeat === seatId;
-                      const baseClass =
-                        "flex h-8 w-8 items-center justify-center rounded border text-[10px] font-semibold transition";
-                      const stateClass = isOccupied
-                        ? "border-slate-200 bg-slate-200 text-slate-400 cursor-not-allowed"
-                        : isSelected
-                          ? "border-[#5D7FA7] bg-[#5D7FA7] text-white"
-                          : isPremium
-                            ? "border-amber-200 bg-amber-50 text-amber-600 hover:border-amber-300"
-                            : "border-slate-200 bg-white text-slate-500 hover:border-slate-300";
-                      return (
-                        <button
-                          key={seatId}
-                          type="button"
-                          className={`${baseClass} ${stateClass}`}
-                          disabled={isOccupied}
-                          onClick={() =>
-                            setSelectedSeat((current) =>
-                              current === seatId ? null : seatId,
-                            )
-                          }
-                          aria-label={`Seat ${seatId}`}
-                        >
-                          {isSelected ? <Check className="h-3 w-3" /> : col}
-                        </button>
-                      );
-                    })}
-                    <div />
-                    {columns.slice(3).map((col) => {
-                      const seatId = `${row}${col}`;
-                      const isPremium = row <= 2;
-                      const isOccupied = occupiedSeats.has(seatId);
-                      const isSelected = selectedSeat === seatId;
-                      const baseClass =
-                        "flex h-8 w-8 items-center justify-center rounded border text-[10px] font-semibold transition";
-                      const stateClass = isOccupied
-                        ? "border-slate-200 bg-slate-200 text-slate-400 cursor-not-allowed"
-                        : isSelected
-                          ? "border-[#5D7FA7] bg-[#5D7FA7] text-white"
-                          : isPremium
-                            ? "border-amber-200 bg-amber-50 text-amber-600 hover:border-amber-300"
-                            : "border-slate-200 bg-white text-slate-500 hover:border-slate-300";
-                      return (
-                        <button
-                          key={seatId}
-                          type="button"
-                          className={`${baseClass} ${stateClass}`}
-                          disabled={isOccupied}
-                          onClick={() =>
-                            setSelectedSeat((current) =>
-                              current === seatId ? null : seatId,
-                            )
-                          }
-                          aria-label={`Seat ${seatId}`}
-                        >
-                          {isSelected ? <Check className="h-3 w-3" /> : col}
-                        </button>
-                      );
-                    })}
-                  </div>
-                ))}
+              <div className="mt-4 flex justify-center">
+                <div className="space-y-2">
+                  {rows.map((row) => (
+                    <div
+                      key={row}
+                      className="grid grid-cols-[24px_repeat(3,32px)_24px_repeat(3,32px)] items-center gap-2"
+                    >
+                      <div className="text-[11px] text-slate-400">{row}</div>
+                      {columns.slice(0, 3).map((col) => {
+                        const seatId = `${row}${col}`;
+                        const isPremium = row <= 2;
+                        const isOccupied = occupiedSeats.has(seatId);
+                        const isSelected = selectedSeat === seatId;
+                        const baseClass =
+                          "flex h-8 w-8 items-center justify-center rounded border text-[10px] font-semibold transition";
+                        const stateClass = isOccupied
+                          ? "border-slate-200 bg-slate-200 text-slate-400 cursor-not-allowed"
+                          : isSelected
+                            ? "border-[#5D7FA7] bg-[#5D7FA7] text-white"
+                            : isPremium
+                              ? "border-amber-200 bg-amber-50 text-amber-600 hover:border-amber-300"
+                              : "border-slate-200 bg-white text-slate-500 hover:border-slate-300";
+                        return (
+                          <button
+                            key={seatId}
+                            type="button"
+                            className={`${baseClass} ${stateClass}`}
+                            disabled={isOccupied}
+                            onClick={() =>
+                              setSelectedSeat((current) =>
+                                current === seatId ? null : seatId,
+                              )
+                            }
+                            aria-label={`Seat ${seatId}`}
+                          >
+                            {isSelected ? <Check className="h-3 w-3" /> : col}
+                          </button>
+                        );
+                      })}
+                      <div />
+                      {columns.slice(3).map((col) => {
+                        const seatId = `${row}${col}`;
+                        const isPremium = row <= 2;
+                        const isOccupied = occupiedSeats.has(seatId);
+                        const isSelected = selectedSeat === seatId;
+                        const baseClass =
+                          "flex h-8 w-8 items-center justify-center rounded border text-[10px] font-semibold transition";
+                        const stateClass = isOccupied
+                          ? "border-slate-200 bg-slate-200 text-slate-400 cursor-not-allowed"
+                          : isSelected
+                            ? "border-[#5D7FA7] bg-[#5D7FA7] text-white"
+                            : isPremium
+                              ? "border-amber-200 bg-amber-50 text-amber-600 hover:border-amber-300"
+                              : "border-slate-200 bg-white text-slate-500 hover:border-slate-300";
+                        return (
+                          <button
+                            key={seatId}
+                            type="button"
+                            className={`${baseClass} ${stateClass}`}
+                            disabled={isOccupied}
+                            onClick={() =>
+                              setSelectedSeat((current) =>
+                                current === seatId ? null : seatId,
+                              )
+                            }
+                            aria-label={`Seat ${seatId}`}
+                          >
+                            {isSelected ? <Check className="h-3 w-3" /> : col}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

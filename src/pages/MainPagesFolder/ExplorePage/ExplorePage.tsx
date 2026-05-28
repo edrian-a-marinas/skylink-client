@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { colors, typography } from "@/constants/theme";
 import { ROUTES } from "@/constants/routes";
@@ -7,13 +7,12 @@ import { CiClock2 } from "react-icons/ci";
 import { FiMapPin } from "react-icons/fi";
 import { RiPriceTagLine } from "react-icons/ri";
 import { HiChevronRight } from "react-icons/hi2";
-import { useFlights } from "@/hooks/useFlights";
-import type { Flight } from "@/types";
 
 // ─── Derived types ────────────────────────────────────────────────────────────
 
 type Destination = {
   id: string;
+  code: string;
   name: string;
   location: string;
   duration: string;
@@ -25,6 +24,7 @@ type Destination = {
 type Deal = {
   id: string;
   title: string;
+  description: string;
   price: string;
   originalPrice: string;
   discount: string;
@@ -34,77 +34,167 @@ type Deal = {
   image?: string;
 };
 
-// ─── BG fallback palette (used when no imageUrl) ─────────────────────────────
-
-const BG_CLASSES = [
-  "bg-primary-60",
-  "bg-success-70",
-  "bg-info-50",
-  "bg-primary-80",
-  "bg-primary-70",
-  "bg-secondary-60",
-  "bg-secondary-70",
-  "bg-success-60",
+const FEATURED_DESTINATIONS: Destination[] = [
+  {
+    id: "ceb",
+    code: "CEB",
+    name: "Cebu",
+    location: "Philippines",
+    duration: "1h 20m",
+    price: "From ₱1,890",
+    bgClass: "bg-primary-60",
+    image: "/Images/BookPage/Cebu.png",
+  },
+  {
+    id: "pps",
+    code: "PPS",
+    name: "Puerto Princesa",
+    location: "Philippines",
+    duration: "1h 20m",
+    price: "From ₱2,499",
+    bgClass: "bg-success-70",
+    image: "/Images/BookPage/Puerto Princesa.png",
+  },
+  {
+    id: "klo",
+    code: "KLO",
+    name: "Kalibo (Boracay)",
+    location: "Philippines",
+    duration: "1h 10m",
+    price: "From ₱1,650",
+    bgClass: "bg-info-50",
+    image: "/Images/BookPage/Kalibo Boracay.png",
+  },
+  {
+    id: "dvo",
+    code: "DVO",
+    name: "Davao",
+    location: "Philippines",
+    duration: "1h 45m",
+    price: "From ₱1,750",
+    bgClass: "bg-primary-80",
+    image: "/Images/BookPage/Davao.png",
+  },
+  {
+    id: "sin",
+    code: "SIN",
+    name: "Singapore",
+    location: "Singapore",
+    duration: "4h 00m",
+    price: "From ₱7,500",
+    bgClass: "bg-primary-70",
+    image: "/Images/BookPage/Singapore.png",
+  },
+  {
+    id: "tyo",
+    code: "TYO",
+    name: "Tokyo",
+    location: "Japan",
+    duration: "4h 15m",
+    price: "From ₱18,500",
+    bgClass: "bg-secondary-60",
+    image: "/Images/BookPage/Tokyo.png",
+  },
+  {
+    id: "hkg",
+    code: "HKG",
+    name: "Hong Kong",
+    location: "Hong Kong",
+    duration: "2h 30m",
+    price: "From ₱11,200",
+    bgClass: "bg-secondary-70",
+    image: "/Images/BookPage/HongKong.png",
+  },
+  {
+    id: "bal",
+    code: "DPS",
+    name: "Bali",
+    location: "Indonesia",
+    duration: "3h 10m",
+    price: "From ₱6,200",
+    bgClass: "bg-success-60",
+    image: "/Images/BookPage/Bali.png",
+  },
 ];
 
-// ─── Mappers: Flight → Destination / Deal ────────────────────────────────────
-
-function flightToDestination(flight: Flight, index: number): Destination {
-  const duration = (() => {
-    try {
-      const dep = new Date(flight.departureTime);
-      const arr = new Date(flight.arrivalTime);
-      const mins = Math.round((arr.getTime() - dep.getTime()) / 60000);
-      const h = Math.floor(mins / 60);
-      const m = mins % 60;
-      return `${h}h ${String(m).padStart(2, "0")}m`;
-    } catch {
-      return "—";
-    }
-  })();
-
-  return {
-    id: flight.id,
-    name: flight.destinationCity ?? flight.destination,
-    location: flight.destinationCountry ?? "Unknown",
-    duration,
-    price: `From ₱${flight.price.toLocaleString()}`,
-    bgClass: BG_CLASSES[index % BG_CLASSES.length],
-    ...(flight.imageUrl ? { image: flight.imageUrl } : {}),
-  };
-}
-
-function flightToDeal(flight: Flight): Deal {
-  const hash = flight.id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const discountPct = 40 + (hash % 20);
-  const originalPrice = Math.round(flight.price / (1 - discountPct / 100));
-  const isIntl = flight.originCountry !== flight.destinationCountry;
-
-  const badge = isIntl ? "International" : flight.price < 2000 ? "Flash" : "Weekend";
-  const badgeClass = isIntl
-    ? "bg-success-60"
-    : flight.price < 2000
-      ? "bg-warning-60"
-      : "bg-success-60";
-
-  const valid = new Date();
-  valid.setDate(valid.getDate() + 30);
-  const validUntil = `Valid until ${valid.toLocaleDateString("en-PH", { month: "short", day: "numeric" })}`;
-
-  const destName = flight.destinationCity ?? flight.destination;
-
-  return {
-    id: flight.id,
-    title: `${badge === "Flash" ? "Flash Sale: " : badge === "Weekend" ? "Weekend Escape: " : "Fly to "}${destName}${isIntl ? ` from ₱${flight.price.toLocaleString()}` : ""}`,
-    price: `₱${flight.price.toLocaleString()}`,
-    originalPrice: `₱${originalPrice.toLocaleString()}`,
-    discount: `-${discountPct}% OFF`,
-    badge,
-    badgeClass,
-    validUntil,
-    ...(flight.imageUrl ? { image: flight.imageUrl } : {}),
-  };
-}
+const FEATURED_DEALS: Deal[] = [
+  {
+    id: "deal-ceb",
+    title: "Flash Sale: Manila–Cebu",
+    description:
+      "Limited seats at unbeatable prices. Book now and save big on your next getaway!",
+    price: "₱1,490",
+    originalPrice: "₱3,500",
+    discount: "-57% OFF",
+    badge: "Flash",
+    badgeClass: "bg-warning-60",
+    validUntil: "Valid until April 30",
+    image: "/Images/BookPage/Cebu.png",
+  },
+  {
+    id: "deal-pps",
+    title: "Weekend Escape: Manila–Palawan",
+    description:
+      "Discover Palawan's pristine beaches with our special weekend rates.",
+    price: "₱2,199",
+    originalPrice: "₱4,200",
+    discount: "-48% OFF",
+    badge: "Weekend",
+    badgeClass: "bg-success-60",
+    validUntil: "Valid until May 15",
+    image: "/Images/BookPage/Weekend Escape Manila - Palawan.png",
+  },
+  {
+    id: "deal-sin",
+    title: "Fly to Singapore from ₱7,500",
+    description:
+      "Experience the Lion City at amazing prices. Perfect for a long weekend getaway.",
+    price: "₱7,500",
+    originalPrice: "₱12,500",
+    discount: "-40% OFF",
+    badge: "International",
+    badgeClass: "bg-success-60",
+    validUntil: "Valid until May 31",
+    image: "/Images/BookPage/Fly to Singapore P7500.png",
+  },
+  {
+    id: "deal-tyo",
+    title: "Business Class Upgrade: Manila–Tokyo",
+    description:
+      "Upgrade your Tokyo experience with our premium Business Class deal.",
+    price: "₱28,900",
+    originalPrice: "₱45,000",
+    discount: "-36% OFF",
+    badge: "Business",
+    badgeClass: "bg-secondary-60",
+    validUntil: "Valid until Jun 30",
+    image: "/Images/BookPage/Tokyo.png",
+  },
+  {
+    id: "deal-boracay",
+    title: "Boracay Summer Sale",
+    description: "White beaches, crystal waters - now at summer sale prices.",
+    price: "₱1,650",
+    originalPrice: "₱3,200",
+    discount: "-48% OFF",
+    badge: "Flash",
+    badgeClass: "bg-warning-60",
+    validUntil: "Valid until Apr 25",
+    image: "/Images/BookPage/Kalibo Boracay.png",
+  },
+  {
+    id: "deal-bali",
+    title: "Discover Bali from ₱6,200",
+    description: "The Island of the Gods awaits - book early and save!",
+    price: "₱6,200",
+    originalPrice: "₱9,800",
+    discount: "-36% OFF",
+    badge: "Leisure",
+    badgeClass: "bg-success-60",
+    validUntil: "Valid until Jul 15",
+    image: "/Images/BookPage/Discover Bali from 6200.png",
+  },
+];
 
 // ─── Cards ────────────────────────────────────────────────────────────────────
 
@@ -112,7 +202,8 @@ function DestinationCard({ dest }: { dest: Destination }) {
   return (
     <Link
       to={ROUTES.EXPLORE_DESTINATION}
-      className="relative h-[220px] rounded-[14px] overflow-hidden shadow-[0px_2px_8px_rgba(0,0,0,0.06)] w-full text-left hover:shadow-md transition-shadow"
+      state={{ destination: dest }}
+      className="relative h-55 rounded-[14px] overflow-hidden shadow-[0px_2px_8px_rgba(0,0,0,0.06)] w-full text-left hover:shadow-md transition-shadow"
     >
       {dest.image ? (
         <img
@@ -123,7 +214,7 @@ function DestinationCard({ dest }: { dest: Destination }) {
       ) : (
         <div className={`absolute inset-0 ${dest.bgClass}`} />
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-primary-100/75 to-transparent" />
+      <div className="absolute inset-0 bg-linear-to-t from-primary-100/75 to-transparent" />
       <div className="absolute bottom-3 left-3">
         <p className={`${typography.label.md.bold} text-white`}>{dest.name}</p>
         <p className={`${typography.paragraph.xs.medium} text-white/75 mt-0.5`}>
@@ -141,9 +232,10 @@ function DealCard({ deal }: { deal: Deal }) {
   return (
     <Link
       to={ROUTES.EXPLORE_PROMO_DETAIL}
+      state={{ deal }}
       className="bg-bg-page border border-tertiary-30 rounded-[14px] overflow-hidden shadow-[0px_2px_8px_rgba(0,0,0,0.04)] text-left w-full hover:shadow-md transition-shadow"
     >
-      <div className="relative h-[130px] bg-tertiary-20">
+      <div className="relative h-32.5 bg-tertiary-20">
         {deal.image && (
           <img
             src={deal.image}
@@ -167,86 +259,75 @@ function DealCard({ deal }: { deal: Deal }) {
           {deal.title}
         </p>
         <div className="flex items-baseline gap-2 mt-2">
-          <span className={`${typography.heading.h3.bold} font-extrabold text-primary-60`}>
+          <span
+            className={`${typography.heading.h3.bold} font-extrabold text-primary-60`}
+          >
             {deal.price}
           </span>
-          <span className={`${typography.paragraph.sm.medium} ${colors.text.secondary} line-through`}>
+          <span
+            className={`${typography.paragraph.sm.medium} ${colors.text.secondary} line-through`}
+          >
             {deal.originalPrice}
           </span>
         </div>
-        <div className={`flex items-center gap-1.5 mt-2 ${colors.text.secondary}`}>
+        <div
+          className={`flex items-center gap-1.5 mt-2 ${colors.text.secondary}`}
+        >
           <CiClock2 size={11} className="shrink-0" />
-          <span className={typography.paragraph.xs.medium}>{deal.validUntil}</span>
+          <span className={typography.paragraph.xs.medium}>
+            {deal.validUntil}
+          </span>
         </div>
       </div>
     </Link>
   );
 }
 
-// ─── Skeleton loaders ─────────────────────────────────────────────────────────
-
-function DestinationSkeleton() {
-  return <div className="h-[220px] rounded-[14px] bg-tertiary-20 animate-pulse" />;
-}
-
-function DealSkeleton() {
-  return <div className="rounded-[14px] bg-tertiary-20 animate-pulse h-[230px]" />;
-}
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 const ExplorePage = () => {
   const [search, setSearch] = useState("");
-  const { data, isLoading: loading, error: hookError } = useFlights();
-  const flights = data ?? [];
-  const error = hookError ? "Couldn't load flights. Please try again." : null;
-
-  const filteredFlights = useMemo(() => {
-    if (!search.trim()) return flights;
-    const q = search.toLowerCase();
-    return flights.filter((f) =>
-      f.destination.toLowerCase().includes(q) ||
-      f.origin.toLowerCase().includes(q) ||
-      f.destinationCity?.toLowerCase().includes(q) ||
-      f.destinationCountry?.toLowerCase().includes(q) ||
-      f.originCity?.toLowerCase().includes(q)
+  const destinations = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return FEATURED_DESTINATIONS;
+    return FEATURED_DESTINATIONS.filter((destination) =>
+      `${destination.name} ${destination.location} ${destination.price}`
+        .toLowerCase()
+        .includes(query),
     );
-  }, [flights, search]);
+  }, [search]);
 
-  // One card per destination — keep lowest price per city
- const destinations = useMemo<Destination[]>(() => {
-  const seen = new Map<string, Flight>();
-  for (const f of filteredFlights) {
-    const existing = seen.get(f.destination);
-    if (!existing || f.price < existing.price) seen.set(f.destination, f);
-  }
-  const deduped = Array.from(seen.values()).map((f, i) => flightToDestination(f, i));
-
-  // If deduped gives us 8+, cap at 8. If less, show all
-  return deduped.slice(0, 8);
-}, [filteredFlights]);
-  // Up to 6 deals, sorted cheapest first
-  const deals = useMemo<Deal[]>(() => {
-    return [...filteredFlights]
-      .sort((a, b) => a.price - b.price)
-      .slice(0, 6)
-      .map(flightToDeal);
-  }, [filteredFlights]);
+  const deals = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return FEATURED_DEALS;
+    return FEATURED_DEALS.filter((deal) =>
+      `${deal.title} ${deal.price} ${deal.originalPrice} ${deal.badge}`
+        .toLowerCase()
+        .includes(query),
+    );
+  }, [search]);
 
   return (
     <div className="bg-bg-surface min-h-screen">
       {/* Hero */}
       <section
         className="flex flex-col items-center gap-4 px-4 py-16"
-        style={{ background: "linear-gradient(167deg, #16202c 0%, #3a516d 100%)" }}
+        style={{
+          background: "linear-gradient(167deg, #16202c 0%, #3a516d 100%)",
+        }}
       >
-        <h1 className={`${typography.heading.h1.bold} md:text-display-3 text-text-static-light text-center`}>
+        <h1
+          className={`${typography.heading.h1.bold} md:text-display-3 text-text-static-light text-center`}
+        >
           Explore the World with SkyLink
         </h1>
-        <p className={`${typography.paragraph.md.normal} text-white/70 text-center`}>
-          Discover popular destinations, exclusive deals, and flexible fare options.
+        <p
+          className={`${typography.paragraph.md.normal} text-white/70 text-center`}
+        >
+          Discover popular destinations, exclusive deals, and flexible fare
+          options.
         </p>
-        <div className="bg-white flex items-center gap-2 px-4 rounded-[14px] h-12 w-full max-w-[500px] mt-2">
+        <div className="bg-white flex items-center gap-2 px-4 rounded-[14px] h-12 w-full max-w-125 mt-2">
           <CiSearch size={18} className="text-text-tertiary shrink-0" />
           <input
             type="text"
@@ -259,31 +340,33 @@ const ExplorePage = () => {
       </section>
 
       {/* Content */}
- <div className="max-w-[1131px] mx-auto px-6 py-10 flex flex-col gap-12">
-        {error && (
-          <div className="rounded-[10px] bg-danger-10 border border-danger-30 px-4 py-3 text-danger-70 text-sm">
-            {error}
-          </div>
-        )}
-
+      <div className="mx-auto flex max-w-282.75 flex-col gap-12 px-6 py-10">
         {/* Popular Destinations */}
         <section>
           <div className="flex items-center gap-2 mb-5">
-            <FiMapPin size={20} strokeWidth={2} className="shrink-0 text-primary-60" />
-            <h2 className={`${typography.heading.h3.bold} ${colors.text.primary}`}>
+            <FiMapPin
+              size={20}
+              strokeWidth={2}
+              className="shrink-0 text-primary-60"
+            />
+            <h2
+              className={`${typography.heading.h3.bold} ${colors.text.primary}`}
+            >
               Popular Destinations
             </h2>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {loading
-              ? Array.from({ length: 8 }).map((_, i) => <DestinationSkeleton key={i} />)
-              : destinations.length > 0
-                ? destinations.map((dest) => <DestinationCard key={dest.id} dest={dest} />)
-                : !error && (
-                    <p className={`col-span-4 ${typography.paragraph.md.normal} ${colors.text.secondary}`}>
-                      No destinations found.
-                    </p>
-                  )}
+            {destinations.length > 0 ? (
+              destinations.map((dest) => (
+                <DestinationCard key={dest.id} dest={dest} />
+              ))
+            ) : (
+              <p
+                className={`col-span-4 ${typography.paragraph.md.normal} ${colors.text.secondary}`}
+              >
+                No destinations found.
+              </p>
+            )}
           </div>
         </section>
 
@@ -291,8 +374,14 @@ const ExplorePage = () => {
         <section>
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
-              <RiPriceTagLine size={20} strokeWidth={0.5} className="shrink-0 text-primary-60" />
-              <h2 className={`${typography.heading.h3.bold} ${colors.text.primary}`}>
+              <RiPriceTagLine
+                size={20}
+                strokeWidth={0.5}
+                className="shrink-0 text-primary-60"
+              />
+              <h2
+                className={`${typography.heading.h3.bold} ${colors.text.primary}`}
+              >
                 Best Deals
               </h2>
             </div>
@@ -301,19 +390,23 @@ const ExplorePage = () => {
               className={`${typography.label.sm.semiBold} ${colors.text.link} flex items-center gap-1`}
             >
               See all{" "}
-              <HiChevronRight size={16} strokeWidth={1} className="shrink-0 text-primary-60" />
+              <HiChevronRight
+                size={16}
+                strokeWidth={1}
+                className="shrink-0 text-primary-60"
+              />
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {loading
-              ? Array.from({ length: 6 }).map((_, i) => <DealSkeleton key={i} />)
-              : deals.length > 0
-                ? deals.map((deal) => <DealCard key={deal.id} deal={deal} />)
-                : !error && (
-                    <p className={`col-span-3 ${typography.paragraph.md.normal} ${colors.text.secondary}`}>
-                      No deals available.
-                    </p>
-                  )}
+            {deals.length > 0 ? (
+              deals.map((deal) => <DealCard key={deal.id} deal={deal} />)
+            ) : (
+              <p
+                className={`col-span-3 ${typography.paragraph.md.normal} ${colors.text.secondary}`}
+              >
+                No deals available.
+              </p>
+            )}
           </div>
         </section>
       </div>

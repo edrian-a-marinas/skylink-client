@@ -1,15 +1,18 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { CheckCircle2, Copy, Download } from "lucide-react";
+import { ArrowRight, CheckCircle2, Copy, Download } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
 import {
   BOOKING_DATA,
-  formatCurrency,
+  loadBookingData,
 } from "@/pages/BookingPagesFolder/bookingData";
+import useAsyncValue from "@/hooks/useAsyncValue";
 
 const BookingConfirmationPage = () => {
   const [copied, setCopied] = useState(false);
-  const total = formatCurrency(BOOKING_DATA.total);
+  const { data: bookingData } = useAsyncValue(loadBookingData);
+  const booking = bookingData ?? BOOKING_DATA;
+  const meal = booking.meal ?? "Standard Meal";
 
   const handleCopy = async () => {
     if (!navigator.clipboard?.writeText) {
@@ -17,7 +20,7 @@ const BookingConfirmationPage = () => {
     }
 
     try {
-      await navigator.clipboard.writeText(BOOKING_DATA.pnr);
+      await navigator.clipboard.writeText(booking.pnr);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1500);
     } catch {
@@ -26,7 +29,7 @@ const BookingConfirmationPage = () => {
   };
 
   return (
-    <main className="min-h-[calc(100vh-160px)] bg-[#F3F5F7] px-6 py-14">
+    <main className="min-h-[calc(100vh-160px)] bg-[#F3F5F7] px-4 py-12 sm:px-6">
       <section className="mx-auto w-full max-w-3xl text-center">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600">
           <CheckCircle2 className="h-7 w-7" />
@@ -38,18 +41,22 @@ const BookingConfirmationPage = () => {
           Your booking is confirmed. A confirmation email has been sent to your
           inbox.
         </p>
+        <p className="mt-3 text-xs font-semibold text-rose-500">
+          Fully refundable if canceled within 24 hours of booking;
+          non-refundable thereafter.
+        </p>
 
-        <div className="mx-auto mt-6 w-full max-w-md rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mx-auto mt-6 w-full rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
             Booking Reference (PNR)
           </p>
-          <p className="mt-2 text-2xl font-semibold text-[#5D7FA7]">
-            {BOOKING_DATA.pnr}
+          <p className="mt-3 text-2xl font-semibold tracking-[0.2em] text-[#5D7FA7] sm:text-3xl sm:tracking-[0.3em]">
+            {booking.pnr}
           </p>
           <button
             type="button"
             onClick={handleCopy}
-            className="mt-3 inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 hover:border-slate-300"
+            className="mt-3 inline-flex items-center gap-2 rounded-full bg-[#EDF2F8] px-3 py-1 text-xs font-semibold text-[#5D7FA7] hover:bg-[#E1E8F2]"
           >
             <Copy className="h-3.5 w-3.5" />
             {copied ? "Copied" : "Copy PNR"}
@@ -58,51 +65,62 @@ const BookingConfirmationPage = () => {
 
         <div className="mt-6 space-y-3">
           <div className="rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm">
-            <p className="text-xs font-semibold text-slate-400">
+            <p className="text-sm font-semibold text-slate-700">
               Flight Details
             </p>
-            <div className="mt-2 flex items-center justify-between text-sm font-semibold text-slate-800">
-              <span>{BOOKING_DATA.fromCode}</span>
-              <span className="text-xs font-medium text-slate-400">
-                {BOOKING_DATA.duration}
-              </span>
-              <span>{BOOKING_DATA.toCode}</span>
+            <div className="mt-4 grid items-center gap-4 sm:grid-cols-[1fr_auto_1fr]">
+              <div>
+                <p className="text-2xl font-semibold text-slate-800">
+                  {booking.fromCode}
+                </p>
+                <p className="text-sm font-semibold text-[#5D7FA7]">
+                  {booking.departTime}
+                </p>
+              </div>
+              <div className="text-center text-xs text-slate-400">
+                <p>{booking.duration}</p>
+                <div className="mx-auto mt-1 h-0.5 w-12 rounded-full bg-slate-200" />
+                <p className="mt-1 text-[11px] text-emerald-600">Non-stop</p>
+              </div>
+              <div className="text-left sm:text-right">
+                <p className="text-2xl font-semibold text-slate-800">
+                  {booking.toCode}
+                </p>
+                <p className="text-sm font-semibold text-[#5D7FA7]">
+                  {booking.arriveTime}
+                </p>
+              </div>
             </div>
-            <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
-              <span>{BOOKING_DATA.departTime}</span>
-              <span>Non-stop</span>
-              <span>{BOOKING_DATA.arriveTime}</span>
-            </div>
-            <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-500">
+            <div className="mt-5 grid grid-cols-2 gap-4 border-t border-slate-100 pt-4 text-xs text-slate-500 sm:grid-cols-4">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
                   Flight
                 </p>
-                <p className="font-semibold text-slate-700">
-                  {BOOKING_DATA.flightCode}
+                <p className="mt-1 font-semibold text-slate-700">
+                  {booking.flightCode}
                 </p>
               </div>
               <div>
                 <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
                   Class
                 </p>
-                <p className="font-semibold text-slate-700">
-                  {BOOKING_DATA.cabin}
+                <p className="mt-1 font-semibold text-slate-700">
+                  {booking.cabin}
                 </p>
               </div>
               <div>
                 <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
                   Seat
                 </p>
-                <p className="font-semibold text-slate-700">
-                  {BOOKING_DATA.seat}
+                <p className="mt-1 font-semibold text-slate-700">
+                  {booking.seat}
                 </p>
               </div>
               <div>
                 <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
-                  Total Paid
+                  Meal
                 </p>
-                <p className="font-semibold text-slate-700">{total}</p>
+                <p className="mt-1 font-semibold text-slate-700">{meal}</p>
               </div>
             </div>
           </div>
@@ -110,33 +128,27 @@ const BookingConfirmationPage = () => {
           <div className="rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm">
             <p className="text-xs font-semibold text-slate-400">Passenger</p>
             <p className="mt-1 text-sm font-semibold text-slate-800">
-              {BOOKING_DATA.passengerName}
+              {booking.passengerName}
             </p>
           </div>
         </div>
 
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+        <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <button
             type="button"
-            className="inline-flex items-center gap-2 rounded-lg bg-[#5D7FA7] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#4E6B8D]"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#5D7FA7] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#4E6B8D] sm:w-auto"
           >
             <Download className="h-4 w-4" />
             Download E-ticket
           </button>
           <Link
-            to={ROUTES.MY_BOOKINGS}
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-600 hover:border-slate-300"
+            to={ROUTES.MANAGE}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#AFC2DD] px-6 py-2.5 text-sm font-semibold text-[#5D7FA7] hover:border-[#8EA7CB] sm:w-auto"
           >
             View My Booking
+            <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
-
-        <Link
-          to={ROUTES.HOME}
-          className="mt-4 inline-flex text-xs font-semibold text-slate-500 hover:text-slate-700"
-        >
-          Go to Homepage
-        </Link>
       </section>
     </main>
   );

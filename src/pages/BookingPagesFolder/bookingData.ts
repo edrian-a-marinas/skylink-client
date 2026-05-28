@@ -7,6 +7,7 @@ export const BOOKING_DATA = {
   duration: "1h 20m",
   cabin: "Economy",
   baggage: "20kg",
+  meal: "Standard Meal",
   passengerName: "Marco Gonzales",
   passengerNationality: "Filipino",
   passengerId: "1234567890",
@@ -16,6 +17,10 @@ export const BOOKING_DATA = {
   taxes: 416,
   total: 1890,
 };
+
+export type BookingData = typeof BOOKING_DATA;
+
+export const loadBookingData = async (): Promise<BookingData> => BOOKING_DATA;
 
 export const formatCurrency = (value: number) =>
   `PHP ${value.toLocaleString("en-US")}`;

@@ -1,10 +1,13 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
 import FiltersPanel from "./components/FiltersPanel";
 import FlightResultCard, {
   type FlightResult,
 } from "./components/FlightResultCard";
+import { searchFlights } from "@/api/flights.api";
+import type { CabinClass, Flight, FlightSearchParams } from "@/types";
+import useAsyncValue from "@/hooks/useAsyncValue";
 
 const FLIGHTS: FlightResult[] = [
   {
@@ -64,6 +67,55 @@ const FLIGHTS: FlightResult[] = [
 const MIN_PRICE = 1000;
 const MAX_PRICE = 50000;
 
+function mapFlightToResult(flight: Flight): FlightResult {
+  const departure = new Date(flight.departureTime);
+  const arrival = new Date(flight.arrivalTime);
+  const totalMinutes =
+    Number.isNaN(departure.getTime()) || Number.isNaN(arrival.getTime())
+      ? 80
+      : Math.max(
+          Math.round((arrival.getTime() - departure.getTime()) / 60000),
+          60,
+        );
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  return {
+    id: flight.id,
+    airline: flight.airline ?? "SkyLink",
+    airlineCode: (flight.airline ?? "SK").slice(0, 2).toUpperCase(),
+    flightNo: flight.flightNumber,
+    aircraft: flight.cabinClass === "business" ? "Airbus A321" : "Airbus A320",
+    departTime: departure.toISOString().slice(11, 16),
+    arriveTime: arrival.toISOString().slice(11, 16),
+    duration: `${hours}h ${minutes.toString().padStart(2, "0")}m`,
+    fromCode: flight.origin,
+    toCode: flight.destination,
+    stops:
+      flight.stops === 0 || flight.stops === undefined
+        ? "Non-stop"
+        : `${flight.stops} stop${flight.stops > 1 ? "s" : ""}`,
+    baggage: `${flight.baggageAllowanceKg ?? 20}kg`,
+    status:
+      flight.status === "on_time"
+        ? "On time"
+        : flight.status === "boarding"
+          ? "Boarding"
+          : flight.status === "delayed"
+            ? "Delayed"
+            : flight.status === "cancelled"
+              ? "Cancelled"
+              : "Scheduled",
+    price: `PHP ${Math.round(flight.price).toLocaleString("en-US")}`,
+    cabin:
+      flight.cabinClass === "business"
+        ? "Business"
+        : flight.cabinClass === "first"
+          ? "First"
+          : "Economy",
+  };
+}
+
 function parsePrice(value: string) {
   return Number(value.replace(/[^0-9]/g, ""));
 }
@@ -77,6 +129,24 @@ function getTimeBucket(time: string) {
 
 function cleanLocation(value: string) {
   return value.replace(/\s*\([A-Z]{3}\)\s*/, "").trim();
+}
+
+function getCode(value: string) {
+  const match = value.match(/\(([A-Z]{3})\)/);
+  return match ? match[1] : "";
+}
+
+function toCabinClass(value: string): CabinClass | undefined {
+  const normalized = value.toLowerCase();
+  if (normalized === "premium economy") return "premium_economy";
+  if (
+    normalized === "economy" ||
+    normalized === "business" ||
+    normalized === "first"
+  ) {
+    return normalized;
+  }
+  return undefined;
 }
 
 const SearchResultsPage = () => {
@@ -94,9 +164,26 @@ const SearchResultsPage = () => {
   const toLabel = cleanLocation(toParam) || "Cebu";
   const dateLabel = dateParam || "Any date";
   const queryString = searchParams.toString();
+  const loader = useCallback(async () => {
+    const cabinClass = toCabinClass(cabinParam);
+    const params = {
+      origin: getCode(fromParam) || fromLabel,
+      destination: getCode(toParam) || toLabel,
+      passengers: Number(paxParam) || 1,
+      ...(dateParam ? { date: dateParam } : {}),
+      ...(cabinClass ? { cabinClass } : {}),
+    } satisfies FlightSearchParams;
+
+    const response = await searchFlights(params);
+
+    return response.length > 0 ? response.map(mapFlightToResult) : FLIGHTS;
+  }, [cabinParam, dateParam, fromLabel, fromParam, paxParam, toLabel, toParam]);
+
+  const { data: fetchedFlights, isLoading } = useAsyncValue(loader);
+  const baseFlights = fetchedFlights ?? FLIGHTS;
 
   const filteredFlights = useMemo(() => {
-    return FLIGHTS.filter((flight) => {
+    return baseFlights.filter((flight) => {
       if (parsePrice(flight.price) > maxPrice) {
         return false;
       }
@@ -111,7 +198,7 @@ const SearchResultsPage = () => {
       }
       return true;
     });
-  }, [directOnly, maxPrice, timeFilters]);
+  }, [baseFlights, directOnly, maxPrice, timeFilters]);
 
   const toggleTimeFilter = (timeId: string) => {
     setTimeFilters((prev) =>
@@ -164,7 +251,9 @@ const SearchResultsPage = () => {
 
           <div className="space-y-4">
             <p className="text-xs text-slate-500">
-              {filteredFlights.length} flights found
+              {isLoading
+                ? "Loading flights..."
+                : `${filteredFlights.length} flights found`}
             </p>
             {filteredFlights.map((flight) => (
               <FlightResultCard

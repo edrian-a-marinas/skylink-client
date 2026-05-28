@@ -2,12 +2,18 @@ import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Plane } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
-import { BOOKING_DATA } from "@/pages/BookingPagesFolder/bookingData";
+import {
+  BOOKING_DATA,
+  loadBookingData,
+} from "@/pages/BookingPagesFolder/bookingData";
+import useAsyncValue from "@/hooks/useAsyncValue";
 
 const PaymentProcessingPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const searchSuffix = location.search ?? "";
+  const { data: bookingData } = useAsyncValue(loadBookingData);
+  const booking = bookingData ?? BOOKING_DATA;
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -42,9 +48,9 @@ const PaymentProcessingPage = () => {
             Booking
           </p>
           <p className="mt-2 text-sm font-semibold text-slate-800">
-            {BOOKING_DATA.fromCode} {"->"} {BOOKING_DATA.toCode}
+            {booking.fromCode} {"->"} {booking.toCode}
           </p>
-          <p className="text-xs text-slate-500">{BOOKING_DATA.flightCode}</p>
+          <p className="text-xs text-slate-500">{booking.flightCode}</p>
         </div>
       </div>
     </main>

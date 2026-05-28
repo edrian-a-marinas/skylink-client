@@ -1,46 +1,374 @@
-import { Link } from "react-router-dom";
+import { useCallback, useMemo } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { ArrowLeft, Clock, MapPin, Plane } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
+import { searchFlights } from "@/api/flights.api";
+import type { Flight } from "@/types";
+import useAsyncValue from "@/hooks/useAsyncValue";
 
-const HIGHLIGHTS = [
-  "Magellan's Cross",
-  "Oslo's Whale Sharks",
-  "Kawasan Falls",
-  "Sinulog Festival",
-];
+type FlightCard = {
+  id: string;
+  time: string;
+  duration: string;
+  price: string;
+  cabin: string;
+};
 
-const FLIGHTS = [
-  {
-    id: "SK 2191",
-    time: "06:00 - 07:20",
-    duration: "1h 20m",
-    price: "PHP 1,890",
-    cabin: "Economy",
+type DestinationState = {
+  destination?: {
+    id: string;
+    code: string;
+    name: string;
+    location: string;
+    duration: string;
+    price: string;
+    image: string;
+  };
+};
+
+type DestinationProfile = {
+  about: string;
+  highlights: string[];
+  bestTime: string;
+  airport: string;
+  lowestFare: string;
+  flights: FlightCard[];
+};
+
+function mapFlightToCard(flight: Flight) {
+  return {
+    id: flight.id,
+    time: `${new Date(flight.departureTime).toISOString().slice(11, 16)} - ${new Date(flight.arrivalTime).toISOString().slice(11, 16)}`,
+    duration:
+      flight.stops === 0 || flight.stops === undefined
+        ? "Non-stop"
+        : `${flight.stops} stop${flight.stops > 1 ? "s" : ""}`,
+    price: `PHP ${Math.round(flight.price).toLocaleString("en-US")}`,
+    cabin: flight.cabinClass === "business" ? "Business" : "Economy",
+  };
+}
+
+const DEFAULT_DESTINATION = {
+  id: "ceb",
+  code: "CEB",
+  name: "Cebu",
+  location: "Philippines",
+  duration: "1h 20m",
+  price: "PHP 1,890",
+  image: "/Images/BookPage/Cebu.png",
+};
+
+const DESTINATION_PROFILES: Record<string, DestinationProfile> = {
+  CEB: {
+    about:
+      "Known as the Queen City of the South, Cebu blends beaches, heritage landmarks, and a lively food scene in one easy island escape.",
+    highlights: [
+      "Magellan's Cross",
+      "Osmeña Peak",
+      "Kawasan Falls",
+      "Sinulog Festival",
+    ],
+    bestTime: "November to May",
+    airport: "CEB - Cebu",
+    lowestFare: "PHP 1,890",
+    flights: [
+      {
+        id: "SK 2191",
+        time: "06:00 - 07:20",
+        duration: "Non-stop",
+        price: "PHP 1,890",
+        cabin: "Economy",
+      },
+      {
+        id: "SK 2193",
+        time: "09:15 - 10:35",
+        duration: "Non-stop",
+        price: "PHP 2,350",
+        cabin: "Economy",
+      },
+      {
+        id: "SK 2201",
+        time: "14:30 - 15:55",
+        duration: "Non-stop",
+        price: "PHP 3,150",
+        cabin: "Business",
+      },
+    ],
   },
-  {
-    id: "SK 2193",
-    time: "09:15 - 10:35",
-    duration: "1h 20m",
-    price: "PHP 2,350",
-    cabin: "Economy",
+  PPS: {
+    about:
+      "Puerto Princesa is the gateway to Palawan's lagoons, limestone cliffs, and calm island-hopping days.",
+    highlights: ["Underground River", "Honda Bay", "Baywalk", "Island hopping"],
+    bestTime: "November to May",
+    airport: "PPS - Puerto Princesa",
+    lowestFare: "PHP 2,499",
+    flights: [
+      {
+        id: "SK 3301",
+        time: "07:05 - 08:25",
+        duration: "Non-stop",
+        price: "PHP 2,499",
+        cabin: "Economy",
+      },
+      {
+        id: "SK 3305",
+        time: "10:40 - 12:00",
+        duration: "Non-stop",
+        price: "PHP 2,950",
+        cabin: "Economy",
+      },
+      {
+        id: "SK 3309",
+        time: "15:20 - 16:45",
+        duration: "Non-stop",
+        price: "PHP 3,450",
+        cabin: "Business",
+      },
+    ],
   },
-  {
-    id: "SK 2201",
-    time: "14:30 - 15:55",
-    duration: "1h 25m",
-    price: "PHP 3,150",
-    cabin: "Business",
+  KLO: {
+    about:
+      "Kalibo opens the door to Boracay's powdery beaches and sunset trips across the islands of Aklan.",
+    highlights: [
+      "White Beach",
+      "Puka Shell Beach",
+      "Sunset sailings",
+      "Island hopping",
+    ],
+    bestTime: "December to May",
+    airport: "KLO - Kalibo",
+    lowestFare: "PHP 1,650",
+    flights: [
+      {
+        id: "SK 4411",
+        time: "06:20 - 07:30",
+        duration: "Non-stop",
+        price: "PHP 1,650",
+        cabin: "Economy",
+      },
+      {
+        id: "SK 4415",
+        time: "11:00 - 12:10",
+        duration: "Non-stop",
+        price: "PHP 2,050",
+        cabin: "Economy",
+      },
+      {
+        id: "SK 4419",
+        time: "17:10 - 18:20",
+        duration: "Non-stop",
+        price: "PHP 2,680",
+        cabin: "Business",
+      },
+    ],
   },
-];
+  DVO: {
+    about:
+      "Davao offers mountain views, city comforts, and quick access to nature attractions across Mindanao.",
+    highlights: [
+      "Mount Apo",
+      "Philippine Eagle Center",
+      "People's Park",
+      "Davao Crocodile Park",
+    ],
+    bestTime: "December to May",
+    airport: "DVO - Davao",
+    lowestFare: "PHP 1,750",
+    flights: [
+      {
+        id: "SK 5201",
+        time: "06:40 - 08:25",
+        duration: "Non-stop",
+        price: "PHP 1,750",
+        cabin: "Economy",
+      },
+      {
+        id: "SK 5205",
+        time: "12:10 - 13:55",
+        duration: "Non-stop",
+        price: "PHP 2,250",
+        cabin: "Economy",
+      },
+      {
+        id: "SK 5209",
+        time: "18:05 - 19:50",
+        duration: "Non-stop",
+        price: "PHP 3,300",
+        cabin: "Business",
+      },
+    ],
+  },
+  SIN: {
+    about:
+      "Singapore mixes skyline views, food hubs, and world-class attractions into a compact city break.",
+    highlights: [
+      "Marina Bay Sands",
+      "Gardens by the Bay",
+      "Sentosa",
+      "Chinatown",
+    ],
+    bestTime: "February to April",
+    airport: "SIN - Singapore",
+    lowestFare: "PHP 7,500",
+    flights: [
+      {
+        id: "SK 6101",
+        time: "08:00 - 12:00",
+        duration: "Non-stop",
+        price: "PHP 7,500",
+        cabin: "Economy",
+      },
+      {
+        id: "SK 6105",
+        time: "13:25 - 17:25",
+        duration: "Non-stop",
+        price: "PHP 8,450",
+        cabin: "Economy",
+      },
+      {
+        id: "SK 6109",
+        time: "20:10 - 00:10",
+        duration: "Non-stop",
+        price: "PHP 12,900",
+        cabin: "Business",
+      },
+    ],
+  },
+  TYO: {
+    about:
+      "Tokyo combines neon nights, historic shrines, and a polished food scene that rewards longer stays.",
+    highlights: [
+      "Shibuya Crossing",
+      "Asakusa",
+      "Tsukiji Market",
+      "Mt. Fuji day trips",
+    ],
+    bestTime: "March to May or September to November",
+    airport: "TYO - Tokyo",
+    lowestFare: "PHP 18,500",
+    flights: [
+      {
+        id: "SK 7201",
+        time: "00:15 - 04:30",
+        duration: "Non-stop",
+        price: "PHP 18,500",
+        cabin: "Economy",
+      },
+      {
+        id: "SK 7205",
+        time: "09:20 - 13:35",
+        duration: "Non-stop",
+        price: "PHP 21,600",
+        cabin: "Economy",
+      },
+      {
+        id: "SK 7209",
+        time: "18:30 - 22:45",
+        duration: "Non-stop",
+        price: "PHP 28,900",
+        cabin: "Business",
+      },
+    ],
+  },
+  HKG: {
+    about:
+      "Hong Kong is built for skyline views, harbor ferries, and quick city breaks with plenty of food stops.",
+    highlights: ["Victoria Peak", "Star Ferry", "Tsim Sha Tsui", "Disneyland"],
+    bestTime: "October to December",
+    airport: "HKG - Hong Kong",
+    lowestFare: "PHP 11,200",
+    flights: [
+      {
+        id: "SK 8301",
+        time: "09:10 - 11:40",
+        duration: "Non-stop",
+        price: "PHP 11,200",
+        cabin: "Economy",
+      },
+      {
+        id: "SK 8305",
+        time: "14:15 - 16:45",
+        duration: "Non-stop",
+        price: "PHP 13,400",
+        cabin: "Economy",
+      },
+      {
+        id: "SK 8309",
+        time: "20:00 - 22:30",
+        duration: "Non-stop",
+        price: "PHP 17,800",
+        cabin: "Business",
+      },
+    ],
+  },
+  DPS: {
+    about:
+      "Bali balances beaches, rice terraces, and temple stops with an easygoing holiday rhythm.",
+    highlights: ["Uluwatu Temple", "Ubud", "Nusa Dua", "Kuta Beach"],
+    bestTime: "April to October",
+    airport: "DPS - Denpasar",
+    lowestFare: "PHP 6,200",
+    flights: [
+      {
+        id: "SK 9401",
+        time: "07:15 - 10:25",
+        duration: "Non-stop",
+        price: "PHP 6,200",
+        cabin: "Economy",
+      },
+      {
+        id: "SK 9405",
+        time: "12:30 - 15:40",
+        duration: "Non-stop",
+        price: "PHP 7,450",
+        cabin: "Economy",
+      },
+      {
+        id: "SK 9409",
+        time: "18:40 - 21:50",
+        duration: "Non-stop",
+        price: "PHP 10,900",
+        cabin: "Business",
+      },
+    ],
+  },
+};
 
 const DestinationPage = () => {
+  const location = useLocation();
+  const selectedDestination =
+    (location.state as DestinationState | null)?.destination ??
+    DEFAULT_DESTINATION;
+  const destinationProfile =
+    DESTINATION_PROFILES[selectedDestination.code] ?? DESTINATION_PROFILES.CEB;
+
+  const loader = useCallback(async () => {
+    const flights = await searchFlights({
+      destination: selectedDestination.code,
+    });
+    return flights.length > 0
+      ? flights.map(mapFlightToCard)
+      : destinationProfile.flights;
+  }, [destinationProfile.flights, selectedDestination.code]);
+
+  const { data: flightData } = useAsyncValue(loader);
+
+  const availableFlights = useMemo(
+    () => flightData ?? destinationProfile.flights,
+    [destinationProfile.flights, flightData],
+  );
+
   return (
     <main className="min-h-[calc(100vh-160px)] bg-[#F3F5F7]">
       <section className="relative overflow-hidden bg-[#29384C]">
-        <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/30 to-black/20" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.12),_transparent_55%)]" />
+        <img
+          src={selectedDestination.image}
+          alt={selectedDestination.name}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black/55" />
 
-        <div className="relative mx-auto flex h-[220px] max-w-6xl flex-col justify-end px-6 pb-6 text-white">
+        <div className="relative mx-auto flex h-56 max-w-6xl flex-col justify-end px-6 pb-6 text-white">
           <Link
             to={ROUTES.EXPLORE}
             className="absolute left-6 top-5 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white/90 transition hover:bg-white/25"
@@ -51,15 +379,17 @@ const DestinationPage = () => {
 
           <div className="flex items-center gap-2 text-xs text-white/70">
             <MapPin size={14} />
-            Philippines
+            {selectedDestination.location}
           </div>
-          <h1 className="mt-1 text-3xl font-semibold">Cebu</h1>
+          <h1 className="mt-1 text-3xl font-semibold">
+            {selectedDestination.name}
+          </h1>
           <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-white/70">
             <span className="flex items-center gap-2">
               <Plane size={14} />
-              1h 20m from Manila
+              {selectedDestination.duration} from Manila
             </span>
-            <span>From PHP 1,890</span>
+            <span>{selectedDestination.price}</span>
           </div>
         </div>
       </section>
@@ -69,12 +399,10 @@ const DestinationPage = () => {
           <div className="space-y-6">
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
               <h2 className="text-sm font-semibold text-slate-900">
-                About Cebu
+                About {selectedDestination.name}
               </h2>
               <p className="mt-2 text-sm text-slate-600">
-                Known as the "Queen City of the South," Cebu is a vibrant island
-                paradise with pristine white-sand beaches, world-class diving,
-                and rich cultural heritage.
+                {destinationProfile.about}
               </p>
             </div>
 
@@ -83,7 +411,7 @@ const DestinationPage = () => {
                 Top Highlights
               </h2>
               <ul className="mt-3 grid gap-2 text-sm text-slate-600 md:grid-cols-2">
-                {HIGHLIGHTS.map((item) => (
+                {destinationProfile.highlights.map((item) => (
                   <li key={item} className="flex items-center gap-2">
                     <span className="h-1.5 w-1.5 rounded-full bg-[#5D7FA7]" />
                     {item}
@@ -106,7 +434,7 @@ const DestinationPage = () => {
               </div>
 
               <div className="mt-4 space-y-3">
-                {FLIGHTS.map((flight) => (
+                {availableFlights.map((flight) => (
                   <div
                     key={flight.id}
                     className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
@@ -148,7 +476,7 @@ const DestinationPage = () => {
                     <p className="font-semibold text-slate-700">
                       Flight Duration
                     </p>
-                    <p>1h 20m from Manila</p>
+                    <p>{selectedDestination.duration} from Manila</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -157,14 +485,14 @@ const DestinationPage = () => {
                     <p className="font-semibold text-slate-700">
                       Best Time to Visit
                     </p>
-                    <p>November to May</p>
+                    <p>{destinationProfile.bestTime}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <Plane size={14} className="text-[#5D7FA7]" />
                   <div>
                     <p className="font-semibold text-slate-700">Airport</p>
-                    <p>CEB - Cebu</p>
+                    <p>{destinationProfile.airport}</p>
                   </div>
                 </div>
               </div>
@@ -175,7 +503,7 @@ const DestinationPage = () => {
                 Lowest fare from Manila
               </p>
               <p className="mt-2 text-2xl font-semibold text-[#5D7FA7]">
-                PHP 1,890
+                {destinationProfile.lowestFare}
               </p>
               <p className="mt-1 text-xs text-slate-500">One-way - Economy</p>
               <Link

@@ -21,7 +21,10 @@ import PaymentProcessingPage from "@/pages/BookingPagesFolder/PaymentProcessingP
 import BookingConfirmationPage from "@/pages/BookingPagesFolder/BookingConfirmationPage/BookingConfirmationPage";
 import ResultsBookingPage from "@/pages/BookingResultPagesFolder/ResultsBookingPage/ResultsBookingPage";
 import FlightStatusPage from "@/pages/MainPagesFolder/FlightStatusPage/FlightStatusPage";
-import ManagePage from "@/pages/MainPagesFolder/ManagePage/ManagePage";
+import ManageBookingsPage from "@/pages/ManageBookingPagesFolder/ManageBookingsPage/ManageBookingsPage";
+import ManageBookingDetailsPage from "@/pages/ManageBookingPagesFolder/ManageBookingDetailsPage/ManageBookingDetailsPage";
+import ManageBookingCancelPage from "@/pages/ManageBookingPagesFolder/ManageBookingCancelPage/ManageBookingCancelPage";
+import ManageBookingCanceledPage from "@/pages/ManageBookingPagesFolder/ManageBookingCanceledPage/ManageBookingCanceledPage";
 import AdminDashboardPage from "@/pages/admin/AdminDashboardPage";
 import AdminFlightsPage from "@/pages/admin/AdminFlightsPage";
 import AdminAddFlightPage from "@/pages/admin/AdminAddFlightPage";
@@ -72,8 +75,41 @@ const AppContent = () => {
           <Route path={ROUTES.EXPLORE_PROMOS} element={<PromosPage />} />
           <Route path={ROUTES.EXPLORE_PROMO_DETAIL} element={<DeaPage />} />
           <Route path={ROUTES.FLIGHT_DETAIL} element={<ResultsBookingPage />} />
+          <Route
+            path={ROUTES.BOOKING_PASSENGER_DETAILS}
+            element={<PassengerDetailsPage />}
+          />
+          <Route
+            path={ROUTES.BOOKING_SEAT_SELECTION}
+            element={<SeatSelectionPage />}
+          />
+          <Route
+            path={ROUTES.BOOKING_SUMMARY}
+            element={<BookingSummaryPage />}
+          />
+          <Route path={ROUTES.PAYMENT} element={<PaymentPage />} />
+          <Route
+            path={ROUTES.PAYMENT_OTP}
+            element={<PaymentProcessingPage />}
+          />
+          <Route
+            path={ROUTES.BOOKING_CONFIRMATION}
+            element={<BookingConfirmationPage />}
+          />
           <Route path={ROUTES.PNR_STATUS} element={<FlightStatusPage />} />
-          <Route path={ROUTES.MANAGE} element={<ManagePage />} />
+          <Route path={ROUTES.MANAGE} element={<ManageBookingsPage />} />
+          <Route
+            path={ROUTES.MANAGE_BOOKING_DETAIL}
+            element={<ManageBookingDetailsPage />}
+          />
+          <Route
+            path={ROUTES.MANAGE_BOOKING_CANCEL}
+            element={<ManageBookingCancelPage />}
+          />
+          <Route
+            path={ROUTES.MANAGE_BOOKING_CANCELED}
+            element={<ManageBookingCanceledPage />}
+          />
           <Route
             path={ROUTES.VERIFY_EMAIL_PENDING}
             element={screen(
@@ -128,10 +164,7 @@ const AppContent = () => {
 
           {/* User Routes (Login required) */}
           <Route element={<ProtectedRoute />}>
-            <Route
-              path={ROUTES.USER_DASHBOARD}
-              element={<HomePage />}
-            />
+            <Route path={ROUTES.USER_DASHBOARD} element={<HomePage />} />
             <Route path={ROUTES.MY_BOOKINGS} element={<MyBookingsPage />} />
             <Route
               path={ROUTES.BOOKING_DETAIL}
@@ -174,14 +207,6 @@ const AppContent = () => {
               )}
             />
             <Route
-              path={ROUTES.BOOKING_PASSENGER_DETAILS}
-              element={<PassengerDetailsPage />}
-            />
-            <Route
-              path={ROUTES.BOOKING_SEAT_SELECTION}
-              element={<SeatSelectionPage />}
-            />
-            <Route
               path={ROUTES.BOOKING_MEAL_PREFERENCE}
               element={screen(
                 "S-20",
@@ -189,19 +214,6 @@ const AppContent = () => {
                 "user",
                 "Meal selection per passenger with standard defaults.",
               )}
-            />
-            <Route
-              path={ROUTES.BOOKING_SUMMARY}
-              element={<BookingSummaryPage />}
-            />
-            <Route path={ROUTES.PAYMENT} element={<PaymentPage />} />
-            <Route
-              path={ROUTES.PAYMENT_OTP}
-              element={<PaymentProcessingPage />}
-            />
-            <Route
-              path={ROUTES.BOOKING_CONFIRMATION}
-              element={<BookingConfirmationPage />}
             />
             <Route
               path={ROUTES.PAYMENT_FAILURE}
