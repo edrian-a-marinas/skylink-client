@@ -4,29 +4,32 @@ import { Plane, ChevronRight, BookOpen } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
 import {
   MANAGE_BOOKINGS,
+  loadManageBookings,
   formatPeso,
-  getManageBookingsByStatus,
   getStatusBadgeClass,
   getStatusLabel,
   type ManageBookingStatus,
 } from "@/pages/ManageBookingPagesFolder/manageBookingData";
+import useAsyncValue from "@/hooks/useAsyncValue";
 
 const ManageBookingsPage = () => {
   const [activeTab, setActiveTab] = useState<ManageBookingStatus>("upcoming");
+  const { data: loadedBookings } = useAsyncValue(loadManageBookings);
+  const bookingsData = loadedBookings ?? MANAGE_BOOKINGS;
 
   const counts = useMemo(() => {
-    return MANAGE_BOOKINGS.reduce(
+    return bookingsData.reduce(
       (acc, booking) => {
         acc[booking.status] += 1;
         return acc;
       },
       { upcoming: 0, past: 0, cancelled: 0 },
     );
-  }, []);
+  }, [bookingsData]);
 
   const bookings = useMemo(
-    () => getManageBookingsByStatus(activeTab),
-    [activeTab],
+    () => bookingsData.filter((booking) => booking.status === activeTab),
+    [activeTab, bookingsData],
   );
 
   const tabs: { id: ManageBookingStatus; label: string }[] = [

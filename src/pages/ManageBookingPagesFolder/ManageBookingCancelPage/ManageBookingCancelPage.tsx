@@ -7,13 +7,24 @@ import ManageBookingDetailsLayout from "@/pages/ManageBookingPagesFolder/compone
 
 import {
   formatPeso,
-  getManageBookingById,
+  loadManageBookingById,
 } from "@/pages/ManageBookingPagesFolder/manageBookingData";
+import useAsyncValue from "@/hooks/useAsyncValue";
 
 const ManageBookingCancelPage = () => {
   const { id } = useParams();
 
-  const booking = getManageBookingById(id);
+  const { data: booking, isLoading } = useAsyncValue(() =>
+    loadManageBookingById(id),
+  );
+
+  if (isLoading && !booking) {
+    return (
+      <main className="flex min-h-[calc(100vh-160px)] items-center justify-center bg-[#F3F5F7]">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#496B92] border-t-transparent" />
+      </main>
+    );
+  }
 
   if (!booking) {
     return <Navigate to={ROUTES.MANAGE} replace />;

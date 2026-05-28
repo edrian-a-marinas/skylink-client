@@ -1,6 +1,8 @@
+import { useCallback } from "react";
 import { ArrowLeft, Calendar, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
+import useAsyncValue from "@/hooks/useAsyncValue";
 
 const ROUTES_DATA = [
   {
@@ -24,6 +26,10 @@ const TERMS = [
 ];
 
 const DeaPage = () => {
+  const loader = useCallback(async () => ROUTES_DATA, []);
+  const { data: routesData } = useAsyncValue(loader);
+  const availableRoutes = routesData ?? ROUTES_DATA;
+
   return (
     <main className="min-h-[calc(100vh-160px)] bg-[#F3F5F7]">
       <section className="relative overflow-hidden bg-[#243247]">
@@ -32,9 +38,9 @@ const DeaPage = () => {
           alt="Bali promo"
           className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/40 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-r from-black/65 via-black/40 to-transparent" />
 
-        <div className="relative mx-auto flex h-[220px] max-w-6xl flex-col justify-end px-6 pb-6 text-white">
+        <div className="relative mx-auto flex h-55 max-w-6xl flex-col justify-end px-6 pb-6 text-white">
           <Link
             to={ROUTES.EXPLORE_PROMOS}
             className="absolute left-6 top-5 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white/90 transition hover:bg-white/25"
@@ -75,7 +81,7 @@ const DeaPage = () => {
               Available Routes
             </h2>
             <div className="mt-4 space-y-3">
-              {ROUTES_DATA.map((entry) => (
+              {availableRoutes.map((entry) => (
                 <div
                   key={entry.id}
                   className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"

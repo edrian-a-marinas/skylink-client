@@ -2,11 +2,17 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, CheckCircle2, Copy, Download } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
-import { BOOKING_DATA } from "@/pages/BookingPagesFolder/bookingData";
+import {
+  BOOKING_DATA,
+  loadBookingData,
+} from "@/pages/BookingPagesFolder/bookingData";
+import useAsyncValue from "@/hooks/useAsyncValue";
 
 const BookingConfirmationPage = () => {
   const [copied, setCopied] = useState(false);
-  const meal = BOOKING_DATA.meal ?? "Standard Meal";
+  const { data: bookingData } = useAsyncValue(loadBookingData);
+  const booking = bookingData ?? BOOKING_DATA;
+  const meal = booking.meal ?? "Standard Meal";
 
   const handleCopy = async () => {
     if (!navigator.clipboard?.writeText) {
@@ -14,7 +20,7 @@ const BookingConfirmationPage = () => {
     }
 
     try {
-      await navigator.clipboard.writeText(BOOKING_DATA.pnr);
+      await navigator.clipboard.writeText(booking.pnr);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1500);
     } catch {
@@ -45,7 +51,7 @@ const BookingConfirmationPage = () => {
             Booking Reference (PNR)
           </p>
           <p className="mt-3 text-2xl font-semibold tracking-[0.2em] text-[#5D7FA7] sm:text-3xl sm:tracking-[0.3em]">
-            {BOOKING_DATA.pnr}
+            {booking.pnr}
           </p>
           <button
             type="button"
@@ -65,23 +71,23 @@ const BookingConfirmationPage = () => {
             <div className="mt-4 grid items-center gap-4 sm:grid-cols-[1fr_auto_1fr]">
               <div>
                 <p className="text-2xl font-semibold text-slate-800">
-                  {BOOKING_DATA.fromCode}
+                  {booking.fromCode}
                 </p>
                 <p className="text-sm font-semibold text-[#5D7FA7]">
-                  {BOOKING_DATA.departTime}
+                  {booking.departTime}
                 </p>
               </div>
               <div className="text-center text-xs text-slate-400">
-                <p>{BOOKING_DATA.duration}</p>
+                <p>{booking.duration}</p>
                 <div className="mx-auto mt-1 h-0.5 w-12 rounded-full bg-slate-200" />
                 <p className="mt-1 text-[11px] text-emerald-600">Non-stop</p>
               </div>
               <div className="text-left sm:text-right">
                 <p className="text-2xl font-semibold text-slate-800">
-                  {BOOKING_DATA.toCode}
+                  {booking.toCode}
                 </p>
                 <p className="text-sm font-semibold text-[#5D7FA7]">
-                  {BOOKING_DATA.arriveTime}
+                  {booking.arriveTime}
                 </p>
               </div>
             </div>
@@ -91,7 +97,7 @@ const BookingConfirmationPage = () => {
                   Flight
                 </p>
                 <p className="mt-1 font-semibold text-slate-700">
-                  {BOOKING_DATA.flightCode}
+                  {booking.flightCode}
                 </p>
               </div>
               <div>
@@ -99,7 +105,7 @@ const BookingConfirmationPage = () => {
                   Class
                 </p>
                 <p className="mt-1 font-semibold text-slate-700">
-                  {BOOKING_DATA.cabin}
+                  {booking.cabin}
                 </p>
               </div>
               <div>
@@ -107,7 +113,7 @@ const BookingConfirmationPage = () => {
                   Seat
                 </p>
                 <p className="mt-1 font-semibold text-slate-700">
-                  {BOOKING_DATA.seat}
+                  {booking.seat}
                 </p>
               </div>
               <div>
@@ -122,7 +128,7 @@ const BookingConfirmationPage = () => {
           <div className="rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm">
             <p className="text-xs font-semibold text-slate-400">Passenger</p>
             <p className="mt-1 text-sm font-semibold text-slate-800">
-              {BOOKING_DATA.passengerName}
+              {booking.passengerName}
             </p>
           </div>
         </div>

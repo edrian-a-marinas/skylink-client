@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Clock, Tag } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
+import useAsyncValue from "@/hooks/useAsyncValue";
 
 type PromoTag = "Flash" | "Weekend" | "International" | "Domestic" | "Business";
 
@@ -116,13 +117,16 @@ const TAG_STYLES: Record<PromoTag, string> = {
 const PromosPage = () => {
   const [activeFilter, setActiveFilter] =
     useState<(typeof FILTERS)[number]>("All");
+  const loader = useCallback(async () => PROMOS, []);
+  const { data: promoData } = useAsyncValue(loader);
 
   const filteredPromos = useMemo(() => {
+    const promos = promoData ?? PROMOS;
     if (activeFilter === "All") {
-      return PROMOS;
+      return promos;
     }
-    return PROMOS.filter((promo) => promo.tag === activeFilter);
-  }, [activeFilter]);
+    return promos.filter((promo) => promo.tag === activeFilter);
+  }, [activeFilter, promoData]);
 
   return (
     <main className="min-h-[calc(100vh-160px)] bg-[#F3F5F7]">

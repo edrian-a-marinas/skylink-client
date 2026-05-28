@@ -1,4 +1,6 @@
+import { getBookingDetail, getBookingsForUser } from "@/api/bookings.api";
 import { BOOKING_DATA } from "@/pages/BookingPagesFolder/bookingData";
+import type { Booking, BookingDetail } from "@/types";
 
 export type ManageBookingStatus = "upcoming" | "past" | "cancelled";
 
@@ -143,3 +145,138 @@ export const getManageBookingsByStatus = (status: ManageBookingStatus) =>
 
 export const getManageBookingById = (id?: string) =>
   MANAGE_BOOKINGS.find((booking) => booking.id === id);
+
+const toManageBookingStatus = (
+  status?: Booking["status"],
+  departureTime?: string,
+): ManageBookingStatus => {
+  if (status === "cancelled" || status === "refunded") {
+    return "cancelled";
+  }
+
+  if (departureTime) {
+    const departureDate = new Date(departureTime);
+    if (!Number.isNaN(departureDate.getTime()) && departureDate < new Date()) {
+      return "past";
+    }
+  }
+
+  return "upcoming";
+};
+
+const toTimeLabel = (isoValue?: string) => {
+  if (!isoValue) {
+    return "--:--";
+  }
+
+  const date = new Date(isoValue);
+  if (Number.isNaN(date.getTime())) {
+    return isoValue.slice(11, 16) || isoValue;
+  }
+
+  return date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const toDuration = (departureTime?: string, arrivalTime?: string) => {
+  if (!departureTime || !arrivalTime) {
+    return "--";
+  }
+
+  const departure = new Date(departureTime).getTime();
+  const arrival = new Date(arrivalTime).getTime();
+  if (
+    Number.isNaN(departure) ||
+    Number.isNaN(arrival) ||
+    arrival <= departure
+  ) {
+    return "--";
+  }
+
+  const totalMinutes = Math.round((arrival - departure) / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  return `${hours}h ${minutes.toString().padStart(2, "0")}m`;
+};
+
+const passengerLabel = (booking: Booking | BookingDetail) => {
+  const count = booking.passengers.length;
+  if (count <= 0) {
+    return "1 Adult";
+  }
+
+  return `${count} Adult${count === 1 ? "" : "s"}`;
+};
+
+const mealLabel = (booking: Booking | BookingDetail) =>
+  booking.passengers[0]?.mealPreference
+    ? booking.passengers[0].mealPreference.charAt(0).toUpperCase() +
+      booking.passengers[0].mealPreference.slice(1)
+    : "Standard";
+
+const toManageBooking = (booking: Booking | BookingDetail): ManageBooking => {
+  const flight = booking.flight;
+  const origin = flight?.origin ?? BOOKING_DATA.fromCode;
+  const destination = flight?.destination ?? BOOKING_DATA.toCode;
+  const departureTime = flight?.departureTime ?? booking.createdAt;
+  const arrivalTime =
+    flight?.arrivalTime ?? booking.updatedAt ?? booking.createdAt;
+  const bookingDate = booking.createdAt?.split("T")[0] ?? "2026-04-10";
+  const tripDate = departureTime?.split("T")[0] ?? bookingDate;
+  const total = booking.totalPrice || BOOKING_DATA.total;
+
+  return {
+    id: booking.id,
+    status: toManageBookingStatus(booking.status, flight?.departureTime),
+    pnr: booking.pnr ?? booking.id.toUpperCase(),
+    flightCode: flight?.flightNumber ?? BOOKING_DATA.flightCode,
+    fromCode: origin,
+    toCode: destination,
+    fromCity: origin,
+    toCity: destination,
+    departTime: toTimeLabel(departureTime),
+    arriveTime: toTimeLabel(arrivalTime),
+    date: tripDate,
+    duration: toDuration(departureTime, arrivalTime),
+    cabin: flight?.airline ? "Economy" : BOOKING_DATA.cabin,
+    seat: booking.passengers[0]?.seatNumber ?? BOOKING_DATA.seat,
+    passengers: passengerLabel(booking),
+    meal: mealLabel(booking),
+    bookingDate,
+    total,
+    cancellationFee: Math.round(total * 0.18),
+  };
+};
+
+export const loadManageBookings = async (): Promise<ManageBooking[]> => {
+  try {
+    const bookings = await getBookingsForUser();
+    if (bookings.length > 0) {
+      return bookings.map(toManageBooking);
+    }
+  } catch {
+    // Fall back to the bundled demo bookings below.
+  }
+
+  return MANAGE_BOOKINGS;
+};
+
+export const loadManageBookingById = async (
+  id?: string,
+): Promise<ManageBooking | null> => {
+  if (!id) {
+    return null;
+  }
+
+  try {
+    const booking = await getBookingDetail(id);
+    return booking
+      ? toManageBooking(booking)
+      : (getManageBookingById(id) ?? null);
+  } catch {
+    return getManageBookingById(id) ?? null;
+  }
+};

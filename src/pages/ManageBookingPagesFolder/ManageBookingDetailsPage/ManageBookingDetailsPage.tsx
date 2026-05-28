@@ -2,11 +2,22 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
 import ManageBookingDetailsLayout from "@/pages/ManageBookingPagesFolder/components/ManageBookingDetailsLayout";
-import { getManageBookingById } from "@/pages/ManageBookingPagesFolder/manageBookingData";
+import { loadManageBookingById } from "@/pages/ManageBookingPagesFolder/manageBookingData";
+import useAsyncValue from "@/hooks/useAsyncValue";
 
 const ManageBookingDetailsPage = () => {
   const { id } = useParams();
-  const booking = getManageBookingById(id);
+  const { data: booking, isLoading } = useAsyncValue(() =>
+    loadManageBookingById(id),
+  );
+
+  if (isLoading && !booking) {
+    return (
+      <main className="flex min-h-[calc(100vh-160px)] items-center justify-center bg-[#F3F5F7]">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#496B92] border-t-transparent" />
+      </main>
+    );
+  }
 
   if (!booking) {
     return <Navigate to={ROUTES.MANAGE} replace />;

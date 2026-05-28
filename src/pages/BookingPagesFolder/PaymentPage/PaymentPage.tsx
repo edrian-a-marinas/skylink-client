@@ -5,8 +5,10 @@ import { ROUTES } from "@/constants/routes";
 import BookingStepper from "@/pages/BookingPagesFolder/components/BookingStepper";
 import {
   BOOKING_DATA,
+  loadBookingData,
   formatCurrency,
 } from "@/pages/BookingPagesFolder/bookingData";
+import useAsyncValue from "@/hooks/useAsyncValue";
 
 type PaymentMethod = "card" | "gcash" | "paypal" | "bank";
 
@@ -16,7 +18,9 @@ const PaymentPage = () => {
   const searchSuffix = location.search ?? "";
   const backHref = `${ROUTES.BOOKING_SUMMARY}${searchSuffix}`;
   const [method, setMethod] = useState<PaymentMethod>("card");
-  const total = formatCurrency(BOOKING_DATA.total);
+  const { data: bookingData } = useAsyncValue(loadBookingData);
+  const booking = bookingData ?? BOOKING_DATA;
+  const total = formatCurrency(booking.total);
 
   const handlePay = () => {
     navigate(`${ROUTES.PAYMENT_OTP}${searchSuffix}`, {
@@ -119,7 +123,7 @@ const PaymentPage = () => {
               Order Total
             </h3>
             <p className="mt-2 text-xs text-slate-500">
-              {BOOKING_DATA.flightCode} fare
+              {booking.flightCode} fare
             </p>
             <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
               <span className="text-sm font-semibold text-slate-800">

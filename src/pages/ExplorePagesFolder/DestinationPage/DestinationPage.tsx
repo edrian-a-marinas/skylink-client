@@ -1,6 +1,10 @@
+import { useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Clock, MapPin, Plane } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
+import { searchFlights } from "@/api/flights.api";
+import type { Flight } from "@/types";
+import useAsyncValue from "@/hooks/useAsyncValue";
 
 const HIGHLIGHTS = [
   "Magellan's Cross",
@@ -33,14 +37,35 @@ const FLIGHTS = [
   },
 ];
 
+function mapFlightToCard(flight: Flight) {
+  return {
+    id: flight.id,
+    time: `${new Date(flight.departureTime).toISOString().slice(11, 16)} - ${new Date(flight.arrivalTime).toISOString().slice(11, 16)}`,
+    duration:
+      flight.stops === 0 || flight.stops === undefined
+        ? "Non-stop"
+        : `${flight.stops} stop${flight.stops > 1 ? "s" : ""}`,
+    price: `PHP ${Math.round(flight.price).toLocaleString("en-US")}`,
+    cabin: flight.cabinClass === "business" ? "Business" : "Economy",
+  };
+}
+
 const DestinationPage = () => {
+  const loader = useCallback(async () => {
+    const flights = await searchFlights({ destination: "CEB" });
+    return flights.length > 0 ? flights.map(mapFlightToCard) : FLIGHTS;
+  }, []);
+
+  const { data: flightData } = useAsyncValue(loader);
+
+  const availableFlights = useMemo(() => flightData ?? FLIGHTS, [flightData]);
+
   return (
     <main className="min-h-[calc(100vh-160px)] bg-[#F3F5F7]">
       <section className="relative overflow-hidden bg-[#29384C]">
-        <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/30 to-black/20" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.12),_transparent_55%)]" />
+        <div className="absolute inset-0 bg-black/55" />
 
-        <div className="relative mx-auto flex h-[220px] max-w-6xl flex-col justify-end px-6 pb-6 text-white">
+        <div className="relative mx-auto flex h-56 max-w-6xl flex-col justify-end px-6 pb-6 text-white">
           <Link
             to={ROUTES.EXPLORE}
             className="absolute left-6 top-5 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white/90 transition hover:bg-white/25"
@@ -106,7 +131,7 @@ const DestinationPage = () => {
               </div>
 
               <div className="mt-4 space-y-3">
-                {FLIGHTS.map((flight) => (
+                {availableFlights.map((flight) => (
                   <div
                     key={flight.id}
                     className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"

@@ -3,13 +3,19 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Check, ChevronLeft, Plane } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
 import BookingStepper from "@/pages/BookingPagesFolder/components/BookingStepper";
-import { BOOKING_DATA } from "@/pages/BookingPagesFolder/bookingData";
+import {
+  BOOKING_DATA,
+  loadBookingData,
+} from "@/pages/BookingPagesFolder/bookingData";
+import useAsyncValue from "@/hooks/useAsyncValue";
 
 const SeatSelectionPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const searchSuffix = location.search ?? "";
   const backHref = `${ROUTES.BOOKING_PASSENGER_DETAILS}${searchSuffix}`;
+  const { data: bookingData } = useAsyncValue(loadBookingData);
+  const booking = bookingData ?? BOOKING_DATA;
   const [selectedSeat, setSelectedSeat] = useState<string | null>(null);
 
   const rows = useMemo(() => Array.from({ length: 11 }, (_, i) => i + 1), []);
@@ -55,7 +61,7 @@ const SeatSelectionPage = () => {
                   Select Your Seat
                 </h2>
                 <p className="text-xs text-slate-500">
-                  Airbus A320 - {BOOKING_DATA.flightCode}
+                  Airbus A320 - {booking.flightCode}
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
@@ -83,7 +89,7 @@ const SeatSelectionPage = () => {
                 <Plane className="h-4 w-4" />
                 Front of aircraft
               </div>
-              
+
               <div className="mt-4 flex justify-center">
                 <div className="space-y-2">
                   {rows.map((row) => (

@@ -18,5 +18,9 @@ export const BOOKING_DATA = {
   total: 1890,
 };
 
+export type BookingData = typeof BOOKING_DATA;
+
+export const loadBookingData = async (): Promise<BookingData> => BOOKING_DATA;
+
 export const formatCurrency = (value: number) =>
   `PHP ${value.toLocaleString("en-US")}`;

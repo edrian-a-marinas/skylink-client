@@ -4,17 +4,21 @@ import { ROUTES } from "@/constants/routes";
 import BookingStepper from "@/pages/BookingPagesFolder/components/BookingStepper";
 import {
   BOOKING_DATA,
+  loadBookingData,
   formatCurrency,
 } from "@/pages/BookingPagesFolder/bookingData";
+import useAsyncValue from "@/hooks/useAsyncValue";
 
 const PassengerDetailsPage = () => {
   const location = useLocation();
   const searchSuffix = location.search ?? "";
   const seatSelectionHref = `${ROUTES.BOOKING_SEAT_SELECTION}${searchSuffix}`;
   const backHref = `${ROUTES.SEARCH_RESULTS}${searchSuffix}`;
-  const baseFare = formatCurrency(BOOKING_DATA.baseFare);
-  const taxes = formatCurrency(BOOKING_DATA.taxes);
-  const total = formatCurrency(BOOKING_DATA.total);
+  const { data: bookingData } = useAsyncValue(loadBookingData);
+  const booking = bookingData ?? BOOKING_DATA;
+  const baseFare = formatCurrency(booking.baseFare);
+  const taxes = formatCurrency(booking.taxes);
+  const total = formatCurrency(booking.total);
   const inputClass =
     "mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 focus:border-[#5D7FA7] focus:outline-none focus:ring-2 focus:ring-[#5D7FA7]/20";
 
@@ -92,7 +96,7 @@ const PassengerDetailsPage = () => {
                 </label>
                 <input
                   className={inputClass}
-                  defaultValue={BOOKING_DATA.passengerId}
+                  defaultValue={booking.passengerId}
                   placeholder="Enter passport or ID number"
                 />
               </div>
@@ -115,19 +119,19 @@ const PassengerDetailsPage = () => {
               <p className="text-[11px] font-semibold text-slate-400">Flight</p>
               <div className="mt-1 flex items-center justify-between">
                 <span className="text-sm font-semibold text-slate-800">
-                  {BOOKING_DATA.fromCode} {"->"} {BOOKING_DATA.toCode}
+                  {booking.fromCode} {"->"} {booking.toCode}
                 </span>
                 <span className="text-[11px] text-slate-400">
-                  {BOOKING_DATA.flightCode}
+                  {booking.flightCode}
                 </span>
               </div>
               <p className="mt-1 text-xs text-slate-500">
-                {BOOKING_DATA.departTime} {"->"} {BOOKING_DATA.arriveTime}
+                {booking.departTime} {"->"} {booking.arriveTime}
                 {" - "}
-                {BOOKING_DATA.duration}
+                {booking.duration}
               </p>
               <p className="text-xs text-slate-500">
-                {BOOKING_DATA.cabin} {" - "} {BOOKING_DATA.baggage}
+                {booking.cabin} {" - "} {booking.baggage}
               </p>
             </div>
 
