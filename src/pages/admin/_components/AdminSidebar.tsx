@@ -17,6 +17,8 @@ import {
 import logos1 from "@/assets/logos/Logos-1.png";
 import { useState } from "react";
 import Toast from "@/pages/_shared/components/ui/Toast";
+import { MapPin } from "lucide-react";
+
 
 type AdminSidebarProps = {
   isOpen: boolean;
@@ -40,6 +42,7 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
   const menuItems = [
     { label: "Dashboard", icon: LayoutDashboard, path: ROUTES.ADMIN_DASHBOARD },
     { label: "Flights", icon: Plane, path: ROUTES.ADMIN_FLIGHTS },
+    { label: "Destinations", icon: MapPin, path: ROUTES.ADMIN_DESTINATIONS },
     { label: "Promotions", icon: Tag, path: ROUTES.ADMIN_PROMOTIONS },
     { label: "Users", icon: Users, path: ROUTES.ADMIN_USERS },
     { label: "Bookings", icon: BookOpen, path: ROUTES.ADMIN_BOOKINGS },

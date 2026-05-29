@@ -54,6 +54,7 @@ export const ROUTES = {
   ADMIN_REPORTS: "/admin/reports",
   ADMIN_REPORT_RESULT: "/admin/reports/result",
   ADMIN_PROMOTIONS: "/admin/promotions",
+  ADMIN_DESTINATIONS: "/admin/destinations",
 
   // Fallbacks
   UNAUTHORIZED: "/unauthorized",
