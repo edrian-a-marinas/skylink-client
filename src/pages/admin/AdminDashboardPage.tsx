@@ -87,7 +87,7 @@ function mapBookingToRecentBooking(booking: Booking): RecentBooking {
       booking.createdAt?.split("T")[0] ??
       new Date().toISOString().split("T")[0],
     status: booking.status,
-    amount: `₱${booking.totalPrice.toLocaleString("en-US")}`,
+    amount: `₱${(booking.totalPrice ?? 0).toLocaleString("en-US")}`,
   };
 }
 
@@ -128,48 +128,53 @@ const AdminDashboardPage = () => {
   const totalRevenue = useMemo(
     () =>
       dashboardData.bookings.reduce(
-        (sum, booking) => sum + booking.totalPrice,
+        (sum, booking) => sum + (booking.totalPrice ?? 0),
         0,
       ),
     [dashboardData.bookings],
   );
 
-  const columns: TableColumn<RecentBooking>[] = useMemo(() => [
-    {
-      key: "pnr",
-      header: "PNR",
-      cell: (row) => <span className="font-bold text-blue-600">{row.pnr}</span>,
-    },
-    {
-      key: "passenger",
-      header: "Passenger",
-      cell: (row) => (
-        <span className="font-medium text-slate-700">{row.passenger}</span>
-      ),
-    },
-    {
-      key: "route",
-      header: "Route",
-      cell: (row) => <span className="text-slate-600">{row.route}</span>,
-    },
-    {
-      key: "date",
-      header: "Date",
-      cell: (row) => <span className="text-slate-500">{row.date}</span>,
-    },
-    {
-      key: "status",
-      header: "Status",
-      cell: (row) => <StatusBadge label={row.status} />,
-    },
-    {
-      key: "amount",
-      header: "Amount",
-      cell: (row) => (
-        <span className="font-bold text-slate-900">{row.amount}</span>
-      ),
-    },
-  ], []);
+  const columns: TableColumn<RecentBooking>[] = useMemo(
+    () => [
+      {
+        key: "pnr",
+        header: "PNR",
+        cell: (row) => (
+          <span className="font-bold text-blue-600">{row.pnr}</span>
+        ),
+      },
+      {
+        key: "passenger",
+        header: "Passenger",
+        cell: (row) => (
+          <span className="font-medium text-slate-700">{row.passenger}</span>
+        ),
+      },
+      {
+        key: "route",
+        header: "Route",
+        cell: (row) => <span className="text-slate-600">{row.route}</span>,
+      },
+      {
+        key: "date",
+        header: "Date",
+        cell: (row) => <span className="text-slate-500">{row.date}</span>,
+      },
+      {
+        key: "status",
+        header: "Status",
+        cell: (row) => <StatusBadge label={row.status} />,
+      },
+      {
+        key: "amount",
+        header: "Amount",
+        cell: (row) => (
+          <span className="font-bold text-slate-900">{row.amount}</span>
+        ),
+      },
+    ],
+    [],
+  );
 
   return (
     <AdminLayout>
