@@ -9,7 +9,8 @@ import {
   XCircle,
 } from "lucide-react";
 import { searchFlights } from "@/api/flights.api";
-import type { Flight } from "@/types";
+import { getPNRStatus } from "@/api/pnr.api";
+import type { Flight, PNRStatusResult } from "@/types";
 
 /* ================= TYPES ================= */
 
@@ -36,123 +37,9 @@ type FlightResult = {
   terminal: string;
 };
 
-/* ================= MOCK DATA ================= */
-
-// Looked up by PNR / booking reference (e.g. ABC123)
-const MOCK_PNR: Record<string, FlightResult> = {
-  ABC123: {
-    status: "on-time",
-    flightCode: "SK 7831",
-    departure: {
-      code: "MNL",
-      city: "Manila",
-      scheduled: "06:45",
-      actual: null,
-    },
-    arrival: { code: "CEB", city: "Cebu", scheduled: "08:00", actual: null },
-    gate: "Gate 3",
-    terminal: "Terminal 1",
-  },
-  XYZ789: {
-    status: "cancelled",
-    flightCode: "SK 4421",
-    departure: {
-      code: "MNL",
-      city: "Manila",
-      scheduled: "10:00",
-      actual: null,
-    },
-    arrival: { code: "DVO", city: "Davao", scheduled: "11:30", actual: null },
-    gate: "Gate 9",
-    terminal: "Terminal 2",
-  },
-  DEF456: {
-    status: "delayed",
-    flightCode: "PR 101",
-    newArrival: "14:50",
-    departure: {
-      code: "MNL",
-      city: "Manila",
-      scheduled: "09:00",
-      actual: "09:30",
-    },
-    arrival: {
-      code: "HKG",
-      city: "Hong Kong",
-      scheduled: "13:30",
-      actual: "14:50",
-    },
-    gate: "Gate 12",
-    terminal: "Terminal 1",
-  },
-};
-
-// Looked up by flight number (e.g. PR101)
-const MOCK_FLIGHTS: Record<string, FlightResult> = {
-  "5J213": {
-    status: "on-time",
-    flightCode: "5J 213",
-    departure: { code: "CEB", city: "Cebu", scheduled: "15:00", actual: null },
-    arrival: {
-      code: "SIN",
-      city: "Singapore",
-      scheduled: "18:10",
-      actual: null,
-    },
-    gate: "Gate 7",
-    terminal: "Terminal 3",
-  },
-  SK4500: {
-    status: "delayed",
-    flightCode: "SK 4500",
-    newArrival: "12:25",
-    departure: {
-      code: "MNL",
-      city: "Manila",
-      scheduled: "08:00",
-      actual: "08:25",
-    },
-    arrival: {
-      code: "SIN",
-      city: "Singapore",
-      scheduled: "12:00",
-      actual: "12:25",
-    },
-    gate: "Gate 5",
-    terminal: "Terminal 2",
-  },
-  PR101: {
-    status: "on-time",
-    flightCode: "PR 101",
-    departure: {
-      code: "MNL",
-      city: "Manila",
-      scheduled: "09:00",
-      actual: null,
-    },
-    arrival: {
-      code: "HKG",
-      city: "Hong Kong",
-      scheduled: "13:30",
-      actual: null,
-    },
-    gate: "Gate 12",
-    terminal: "Terminal 1",
-  },
-};
-
 function mapFlightToStatusResult(flight: Flight): FlightResult {
   const departure = new Date(flight.departureTime);
   const arrival = new Date(flight.arrivalTime);
-  const totalMinutes =
-    Number.isNaN(departure.getTime()) || Number.isNaN(arrival.getTime())
-      ? 80
-      : Math.max(
-          Math.round((arrival.getTime() - departure.getTime()) / 60000),
-          60,
-        );
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
 
   return {
     status:
@@ -176,7 +63,36 @@ function mapFlightToStatusResult(flight: Flight): FlightResult {
     },
     gate: "Gate 1",
     terminal: "Terminal 1",
-    newArrival: `${hours}:${minutes.toString().padStart(2, "0")}`,
+  };
+}
+
+function mapPNRToStatusResult(pnr: PNRStatusResult): FlightResult {
+  const segment = pnr.itinerary[0];
+  const departure = segment ? new Date(segment.departureTime) : new Date();
+  const arrival = segment ? new Date(segment.arrivalTime) : new Date();
+
+  return {
+    status:
+      pnr.journeyStatus === "delayed"
+        ? "delayed"
+        : pnr.journeyStatus === "cancelled"
+          ? "cancelled"
+          : "on-time",
+    flightCode: segment?.flightNumber ?? "TBA",
+    departure: {
+      code: segment?.origin ?? "TBA",
+      city: segment?.origin ?? "TBA",
+      scheduled: segment ? departure.toISOString().slice(11, 16) : "--:--",
+      actual: null,
+    },
+    arrival: {
+      code: segment?.destination ?? "TBA",
+      city: segment?.destination ?? "TBA",
+      scheduled: segment ? arrival.toISOString().slice(11, 16) : "--:--",
+      actual: null,
+    },
+    gate: "TBA",
+    terminal: "TBA",
   };
 }
 
@@ -195,13 +111,13 @@ const TAB_CONFIG: Record<
     label: "By PNR",
     inputLabel: "PNR / Booking Reference",
     placeholder: "E.G. ABC123",
-    examples: ["ABC123", "XYZ789", "DEF456"],
+    examples: ["ABC123"],
   },
   flight: {
     label: "By Flight No.",
     inputLabel: "Flight Number",
     placeholder: "E.G. PR101",
-    examples: ["PR101", "5J213", "SK4500"],
+    examples: ["PR101"],
   },
 };
 
@@ -287,7 +203,7 @@ const FlightResultCard = ({
           {s.icon}
           <span className={`text-xs font-semibold ${s.text}`}>
             {isDelayed
-              ? `Delayed — New arrival: ${data.newArrival}`
+              ? `Delayed — New arrival: ${data.newArrival ?? "--:--"}`
               : isCancelled
                 ? "Cancelled"
                 : "On Time"}
@@ -412,50 +328,37 @@ const FlightStatusPage = () => {
     }
 
     setIsLoading(true);
-
-    if (activeTab === "pnr") {
-      const dataset = MOCK_PNR;
-      const found = dataset[val];
-
-      if (found) {
-        setResult(found);
-        setError("");
-      } else {
-        setResult(null);
-        setError("No flight found.");
-      }
-      setIsLoading(false);
-      return;
-    }
+    setError("");
 
     try {
-      const flights = await searchFlights();
-      const match = flights.find(
-        (flight) =>
-          flight.flightNumber.replace(/\s+/g, "").toUpperCase() === val,
-      );
-
-      if (match) {
-        setResult(mapFlightToStatusResult(match));
-        setError("");
+      if (activeTab === "pnr") {
+        const res = await getPNRStatus(val);
+        if (res) {
+          setResult(mapPNRToStatusResult(res));
+        } else {
+          setResult(null);
+          setError("No flight status found for this PNR.");
+        }
       } else {
-        setResult(MOCK_FLIGHTS[val] ?? null);
-        setError(MOCK_FLIGHTS[val] ? "" : "No flight found.");
-      }
-    } catch {
-      const dataset = MOCK_FLIGHTS;
-      const found = dataset[val];
+        const flights = await searchFlights();
+        const match = flights.find(
+          (flight) =>
+            flight.flightNumber.replace(/\s+/g, "").toUpperCase() === val,
+        );
 
-      if (found) {
-        setResult(found);
-        setError("");
-      } else {
-        setResult(null);
-        setError("No flight found.");
+        if (match) {
+          setResult(mapFlightToStatusResult(match));
+        } else {
+          setResult(null);
+          setError("No flight found with this number.");
+        }
       }
+    } catch (err) {
+      console.error("Failed to check status", err);
+      setError("An error occurred while checking flight status.");
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   const handleCheckAnother = () => {

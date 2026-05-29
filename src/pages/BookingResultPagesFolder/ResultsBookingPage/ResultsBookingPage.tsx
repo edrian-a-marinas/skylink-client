@@ -17,57 +17,6 @@ type FlightSummary = FlightDetail & {
   seatsLeft?: number;
 };
 
-const FLIGHTS: FlightSummary[] = [
-  {
-    id: "pa-2191",
-    airline: "Philippine Airlines",
-    airlineCode: "PA",
-    flightNo: "SK 2191",
-    aircraft: "Airbus A320",
-    fromCode: "MNL",
-    toCode: "CEB",
-    departTime: "06:00",
-    arriveTime: "07:20",
-    duration: "1h 20m",
-    status: "On Time",
-    baggage: "20kg",
-    cabin: "Economy",
-    price: "PHP 1,890",
-  },
-  {
-    id: "cp-2193",
-    airline: "Cebu Pacific",
-    airlineCode: "CP",
-    flightNo: "CP 2193",
-    aircraft: "Boeing 737-800",
-    fromCode: "MNL",
-    toCode: "CEB",
-    departTime: "09:15",
-    arriveTime: "10:35",
-    duration: "1h 20m",
-    status: "On Time",
-    baggage: "20kg",
-    cabin: "Economy",
-    price: "PHP 2,350",
-  },
-  {
-    id: "aa-2201",
-    airline: "AirAsia",
-    airlineCode: "AA",
-    flightNo: "AA 2201",
-    aircraft: "Airbus A321",
-    fromCode: "MNL",
-    toCode: "CEB",
-    departTime: "14:30",
-    arriveTime: "15:55",
-    duration: "1h 25m",
-    status: "On Time",
-    baggage: "30kg",
-    cabin: "Business",
-    price: "PHP 3,150",
-  },
-];
-
 const FARE_RULES: FareRule[] = [
   {
     label: "Cancellation",
@@ -172,22 +121,42 @@ const ResultsBookingPage = () => {
 
   const loader = useCallback(async () => {
     const response = await searchFlights();
-    return response.length > 0 ? response.map(mapFlightToSummary) : FLIGHTS;
+    return response.map(mapFlightToSummary);
   }, []);
 
-  const { data: loadedFlights } = useAsyncValue(loader);
-  const flightPool = loadedFlights ?? FLIGHTS;
+  const { data: loadedFlights, isLoading } = useAsyncValue(loader);
+  const flightPool = loadedFlights ?? [];
 
   const flight = useMemo(() => {
     if (selectedFlight) {
       return selectedFlight;
     }
-    return (
-      flightPool.find((item) => item.id === id) ?? flightPool[0] ?? FLIGHTS[0]
-    );
+    return flightPool.find((item) => item.id === id) ?? flightPool[0];
   }, [flightPool, id, selectedFlight]);
 
-  const totalValue = parsePrice(flight.price || "") || 1890;
+  if (isLoading && !selectedFlight) {
+    return (
+      <main className="flex min-h-[calc(100vh-160px)] items-center justify-center bg-[#F3F5F7]">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#496B92] border-t-transparent" />
+      </main>
+    );
+  }
+
+  if (!flight) {
+    return (
+      <main className="flex min-h-[calc(100vh-160px)] items-center justify-center bg-[#F3F5F7]">
+        <div className="text-center">
+          <h2 className="text-xl font-bold text-slate-800">Flight Not Found</h2>
+          <p className="mt-2 text-slate-500">The requested flight detail is not available.</p>
+          <Link to={ROUTES.HOME} className="mt-4 inline-block text-blue-600 font-bold hover:underline">
+            Go back to search
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  const totalValue = parsePrice(flight.price || "0") || 1890;
   const baseValue = Math.round(totalValue * 0.78);
   const taxesValue = totalValue - baseValue;
   const totalLabel = formatCurrency(totalValue);

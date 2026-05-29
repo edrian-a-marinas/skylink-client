@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ArrowLeft, Clock, MapPin, Plane } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
@@ -32,12 +32,11 @@ type DestinationProfile = {
   bestTime: string;
   airport: string;
   lowestFare: string;
-  flights: FlightCard[];
 };
 
-function mapFlightToCard(flight: Flight) {
+function mapFlightToCard(flight: Flight): FlightCard {
   return {
-    id: flight.id,
+    id: flight.flightNumber,
     time: `${new Date(flight.departureTime).toISOString().slice(11, 16)} - ${new Date(flight.arrivalTime).toISOString().slice(11, 16)}`,
     duration:
       flight.stops === 0 || flight.stops === undefined
@@ -71,29 +70,6 @@ const DESTINATION_PROFILES: Record<string, DestinationProfile> = {
     bestTime: "November to May",
     airport: "CEB - Cebu",
     lowestFare: "PHP 1,890",
-    flights: [
-      {
-        id: "SK 2191",
-        time: "06:00 - 07:20",
-        duration: "Non-stop",
-        price: "PHP 1,890",
-        cabin: "Economy",
-      },
-      {
-        id: "SK 2193",
-        time: "09:15 - 10:35",
-        duration: "Non-stop",
-        price: "PHP 2,350",
-        cabin: "Economy",
-      },
-      {
-        id: "SK 2201",
-        time: "14:30 - 15:55",
-        duration: "Non-stop",
-        price: "PHP 3,150",
-        cabin: "Business",
-      },
-    ],
   },
   PPS: {
     about:
@@ -102,29 +78,6 @@ const DESTINATION_PROFILES: Record<string, DestinationProfile> = {
     bestTime: "November to May",
     airport: "PPS - Puerto Princesa",
     lowestFare: "PHP 2,499",
-    flights: [
-      {
-        id: "SK 3301",
-        time: "07:05 - 08:25",
-        duration: "Non-stop",
-        price: "PHP 2,499",
-        cabin: "Economy",
-      },
-      {
-        id: "SK 3305",
-        time: "10:40 - 12:00",
-        duration: "Non-stop",
-        price: "PHP 2,950",
-        cabin: "Economy",
-      },
-      {
-        id: "SK 3309",
-        time: "15:20 - 16:45",
-        duration: "Non-stop",
-        price: "PHP 3,450",
-        cabin: "Business",
-      },
-    ],
   },
   KLO: {
     about:
@@ -138,29 +91,6 @@ const DESTINATION_PROFILES: Record<string, DestinationProfile> = {
     bestTime: "December to May",
     airport: "KLO - Kalibo",
     lowestFare: "PHP 1,650",
-    flights: [
-      {
-        id: "SK 4411",
-        time: "06:20 - 07:30",
-        duration: "Non-stop",
-        price: "PHP 1,650",
-        cabin: "Economy",
-      },
-      {
-        id: "SK 4415",
-        time: "11:00 - 12:10",
-        duration: "Non-stop",
-        price: "PHP 2,050",
-        cabin: "Economy",
-      },
-      {
-        id: "SK 4419",
-        time: "17:10 - 18:20",
-        duration: "Non-stop",
-        price: "PHP 2,680",
-        cabin: "Business",
-      },
-    ],
   },
   DVO: {
     about:
@@ -174,29 +104,6 @@ const DESTINATION_PROFILES: Record<string, DestinationProfile> = {
     bestTime: "December to May",
     airport: "DVO - Davao",
     lowestFare: "PHP 1,750",
-    flights: [
-      {
-        id: "SK 5201",
-        time: "06:40 - 08:25",
-        duration: "Non-stop",
-        price: "PHP 1,750",
-        cabin: "Economy",
-      },
-      {
-        id: "SK 5205",
-        time: "12:10 - 13:55",
-        duration: "Non-stop",
-        price: "PHP 2,250",
-        cabin: "Economy",
-      },
-      {
-        id: "SK 5209",
-        time: "18:05 - 19:50",
-        duration: "Non-stop",
-        price: "PHP 3,300",
-        cabin: "Business",
-      },
-    ],
   },
   SIN: {
     about:
@@ -210,29 +117,6 @@ const DESTINATION_PROFILES: Record<string, DestinationProfile> = {
     bestTime: "February to April",
     airport: "SIN - Singapore",
     lowestFare: "PHP 7,500",
-    flights: [
-      {
-        id: "SK 6101",
-        time: "08:00 - 12:00",
-        duration: "Non-stop",
-        price: "PHP 7,500",
-        cabin: "Economy",
-      },
-      {
-        id: "SK 6105",
-        time: "13:25 - 17:25",
-        duration: "Non-stop",
-        price: "PHP 8,450",
-        cabin: "Economy",
-      },
-      {
-        id: "SK 6109",
-        time: "20:10 - 00:10",
-        duration: "Non-stop",
-        price: "PHP 12,900",
-        cabin: "Business",
-      },
-    ],
   },
   TYO: {
     about:
@@ -246,29 +130,6 @@ const DESTINATION_PROFILES: Record<string, DestinationProfile> = {
     bestTime: "March to May or September to November",
     airport: "TYO - Tokyo",
     lowestFare: "PHP 18,500",
-    flights: [
-      {
-        id: "SK 7201",
-        time: "00:15 - 04:30",
-        duration: "Non-stop",
-        price: "PHP 18,500",
-        cabin: "Economy",
-      },
-      {
-        id: "SK 7205",
-        time: "09:20 - 13:35",
-        duration: "Non-stop",
-        price: "PHP 21,600",
-        cabin: "Economy",
-      },
-      {
-        id: "SK 7209",
-        time: "18:30 - 22:45",
-        duration: "Non-stop",
-        price: "PHP 28,900",
-        cabin: "Business",
-      },
-    ],
   },
   HKG: {
     about:
@@ -277,29 +138,6 @@ const DESTINATION_PROFILES: Record<string, DestinationProfile> = {
     bestTime: "October to December",
     airport: "HKG - Hong Kong",
     lowestFare: "PHP 11,200",
-    flights: [
-      {
-        id: "SK 8301",
-        time: "09:10 - 11:40",
-        duration: "Non-stop",
-        price: "PHP 11,200",
-        cabin: "Economy",
-      },
-      {
-        id: "SK 8305",
-        time: "14:15 - 16:45",
-        duration: "Non-stop",
-        price: "PHP 13,400",
-        cabin: "Economy",
-      },
-      {
-        id: "SK 8309",
-        time: "20:00 - 22:30",
-        duration: "Non-stop",
-        price: "PHP 17,800",
-        cabin: "Business",
-      },
-    ],
   },
   DPS: {
     about:
@@ -308,29 +146,6 @@ const DESTINATION_PROFILES: Record<string, DestinationProfile> = {
     bestTime: "April to October",
     airport: "DPS - Denpasar",
     lowestFare: "PHP 6,200",
-    flights: [
-      {
-        id: "SK 9401",
-        time: "07:15 - 10:25",
-        duration: "Non-stop",
-        price: "PHP 6,200",
-        cabin: "Economy",
-      },
-      {
-        id: "SK 9405",
-        time: "12:30 - 15:40",
-        duration: "Non-stop",
-        price: "PHP 7,450",
-        cabin: "Economy",
-      },
-      {
-        id: "SK 9409",
-        time: "18:40 - 21:50",
-        duration: "Non-stop",
-        price: "PHP 10,900",
-        cabin: "Business",
-      },
-    ],
   },
 };
 
@@ -346,26 +161,22 @@ const DestinationPage = () => {
     const flights = await searchFlights({
       destination: selectedDestination.code,
     });
-    return flights.length > 0
-      ? flights.map(mapFlightToCard)
-      : destinationProfile.flights;
-  }, [destinationProfile.flights, selectedDestination.code]);
+    return flights.map(mapFlightToCard);
+  }, [selectedDestination.code]);
 
-  const { data: flightData } = useAsyncValue(loader);
-
-  const availableFlights = useMemo(
-    () => flightData ?? destinationProfile.flights,
-    [destinationProfile.flights, flightData],
-  );
+  const { data: flightData, isLoading } = useAsyncValue(loader);
+  const availableFlights = flightData ?? [];
 
   return (
     <main className="min-h-[calc(100vh-160px)] bg-[#F3F5F7]">
       <section className="relative overflow-hidden bg-[#29384C]">
-        <img
-          src={selectedDestination.image}
-          alt={selectedDestination.name}
-          className="absolute inset-0 h-full w-full object-cover"
-        />
+        {selectedDestination.image && (
+          <img
+            src={selectedDestination.image}
+            alt={selectedDestination.name}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        )}
         <div className="absolute inset-0 bg-black/55" />
 
         <div className="relative mx-auto flex h-56 max-w-6xl flex-col justify-end px-6 pb-6 text-white">
@@ -434,32 +245,42 @@ const DestinationPage = () => {
               </div>
 
               <div className="mt-4 space-y-3">
-                {availableFlights.map((flight) => (
-                  <div
-                    key={flight.id}
-                    className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#5D7FA7] text-xs font-semibold text-white">
-                        SK
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-slate-900">
-                          {flight.id}
-                        </p>
-                        <p className="text-xs text-slate-500">
-                          {flight.time} - {flight.duration}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-[#5D7FA7]">
-                        {flight.price}
-                      </p>
-                      <p className="text-xs text-slate-500">{flight.cabin}</p>
-                    </div>
+                {isLoading ? (
+                  <div className="flex justify-center py-10">
+                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#496B92] border-t-transparent" />
                   </div>
-                ))}
+                ) : availableFlights.length > 0 ? (
+                  availableFlights.map((flight) => (
+                    <div
+                      key={flight.id}
+                      className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#5D7FA7] text-xs font-semibold text-white">
+                          SK
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-slate-900">
+                            {flight.id}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {flight.time} - {flight.duration}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold text-[#5D7FA7]">
+                          {flight.price}
+                        </p>
+                        <p className="text-xs text-slate-500">{flight.cabin}</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="py-6 text-center text-sm text-slate-500 italic">
+                    No scheduled flights available for this destination.
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -503,7 +324,7 @@ const DestinationPage = () => {
                 Lowest fare from Manila
               </p>
               <p className="mt-2 text-2xl font-semibold text-[#5D7FA7]">
-                {destinationProfile.lowestFare}
+                {availableFlights[0]?.price ?? destinationProfile.lowestFare}
               </p>
               <p className="mt-1 text-xs text-slate-500">One-way - Economy</p>
               <Link

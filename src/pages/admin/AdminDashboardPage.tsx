@@ -25,49 +25,6 @@ type RecentBooking = {
   amount: string;
 };
 
-const RECENT_BOOKINGS: RecentBooking[] = [
-  {
-    pnr: "AB1234",
-    passenger: "Maria Santos",
-    route: "MNL → CEB",
-    date: "2026-04-12",
-    status: "confirmed",
-    amount: "₱3,150",
-  },
-  {
-    pnr: "CD5678",
-    passenger: "Juan dela Cruz",
-    route: "CEB → MNL",
-    date: "2026-04-12",
-    status: "confirmed",
-    amount: "₱3,150",
-  },
-  {
-    pnr: "EF9012",
-    passenger: "Ana Reyes",
-    route: "MNL → DVO",
-    date: "2026-04-12",
-    status: "boarding",
-    amount: "₱2,250",
-  },
-  {
-    pnr: "GH3456",
-    passenger: "Carlos Garcia",
-    route: "MNL → KUL",
-    date: "2026-04-12",
-    status: "confirmed",
-    amount: "₱6,200",
-  },
-  {
-    pnr: "IJ7890",
-    passenger: "Luisa Fernandez",
-    route: "MNL → NRT",
-    date: "2026-04-12",
-    status: "confirmed",
-    amount: "₱24,750",
-  },
-];
-
 type DashboardData = {
   bookings: Booking[];
   flights: Flight[];
@@ -118,10 +75,6 @@ const AdminDashboardPage = () => {
   const dashboardData = data ?? { bookings: [], flights: [], totalUsers: 0 };
 
   const recentBookings = useMemo(() => {
-    if (dashboardData.bookings.length === 0) {
-      return RECENT_BOOKINGS;
-    }
-
     return dashboardData.bookings.slice(0, 5).map(mapBookingToRecentBooking);
   }, [dashboardData.bookings]);
 
@@ -191,7 +144,7 @@ const AdminDashboardPage = () => {
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <KPICard
             label="Total Flights"
-            value={String(dashboardData.flights.length || 284)}
+            value={String(dashboardData.flights.length)}
             change="8%"
             trend="up"
             icon={Plane}
@@ -203,7 +156,7 @@ const AdminDashboardPage = () => {
             value={String(
               dashboardData.bookings.filter(
                 (booking) => booking.status !== "cancelled",
-              ).length || 1842,
+              ).length,
             )}
             change="12%"
             trend="up"
@@ -213,7 +166,7 @@ const AdminDashboardPage = () => {
           />
           <KPICard
             label="Total Users"
-            value={String(dashboardData.totalUsers || 9421)}
+            value={String(dashboardData.totalUsers)}
             change="5%"
             trend="up"
             icon={Users}
@@ -222,7 +175,7 @@ const AdminDashboardPage = () => {
           />
           <KPICard
             label="Revenue Today (₱)"
-            value={`₱${totalRevenue.toLocaleString("en-US") || "284,500"}`}
+            value={`₱${totalRevenue.toLocaleString("en-US")}`}
             change="3%"
             trend="down"
             icon={Banknote}

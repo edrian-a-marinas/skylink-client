@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { colors, typography } from "@/constants/theme";
 import { ROUTES } from "@/constants/routes";
@@ -30,7 +30,7 @@ type Destination = {
   city: string;
   startingFrom: string;
   bgClass: string;
-  image?: string;
+  image: string;
 };
 
 type AirportOption = {
@@ -94,41 +94,6 @@ const POPULAR_ROUTES: Route[] = [
     toCode: "HKG",
     price: "₱11,200",
     duration: "2h 30m",
-  },
-];
-
-const DESTINATIONS: Destination[] = [
-  {
-    id: "1",
-    code: "CEB",
-    city: "Cebu",
-    startingFrom: "From ₱1,890",
-    bgClass: "bg-primary-60",
-    image: "/Images/BookPage/Cebu.png",
-  },
-  {
-    id: "2",
-    code: "PPS",
-    city: "Puerto Princesa",
-    startingFrom: "From ₱2,499",
-    bgClass: "bg-success-70",
-    image: "/Images/BookPage/Puerto Princesa.png",
-  },
-  {
-    id: "3",
-    code: "KLO",
-    city: "Kalibo (Boracay)",
-    startingFrom: "From ₱1,650",
-    bgClass: "bg-info-50",
-    image: "/Images/BookPage/Kalibo Boracay.png",
-  },
-  {
-    id: "4",
-    code: "DVO",
-    city: "Davao",
-    startingFrom: "From ₱1,750",
-    bgClass: "bg-primary-80",
-    image: "/Images/BookPage/Davao.png",
   },
 ];
 
@@ -207,8 +172,10 @@ function getCode(value: string) {
 }
 
 function DealCard({ deal }: { deal: Promotion }) {
-  const discount = Math.round(((deal.original_price - deal.sale_price) / deal.original_price) * 100);
-  
+  const discount = Math.round(
+    ((deal.original_price - deal.sale_price) / deal.original_price) * 100,
+  );
+
   const badgeClass = cn(
     "absolute bottom-3 right-3 text-text-on-primary px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
     deal.category === "flash" && "bg-warning-60",
@@ -247,17 +214,15 @@ function DealCard({ deal }: { deal: Promotion }) {
             <Tag size={40} className="text-white/20" />
           </div>
         )}
-        <span
-          className="absolute top-3 left-3 bg-rose-600 text-text-on-primary text-[11px] font-bold px-2 py-1 rounded-full"
-        >
+        <span className="absolute top-3 left-3 bg-rose-600 text-text-on-primary text-[11px] font-bold px-2 py-1 rounded-full">
           -{discount}%
         </span>
-        <span className={badgeClass}>
-          {deal.category}
-        </span>
+        <span className={badgeClass}>{deal.category}</span>
       </div>
       <div className="p-4">
-        <p className={`${typography.label.md.bold} ${colors.text.primary} line-clamp-1`}>
+        <p
+          className={`${typography.label.md.bold} ${colors.text.primary} line-clamp-1`}
+        >
           {deal.title}
         </p>
         <div className="flex items-baseline gap-2 mt-2">
@@ -351,30 +316,10 @@ function DestinationCard({ destination }: { destination: Destination }) {
           id: destination.id,
           code: destination.code,
           name: destination.city,
-          location:
-            destination.code === "SIN"
-              ? "Singapore"
-              : destination.code === "HKG"
-                ? "Hong Kong"
-                : destination.code === "DPS"
-                  ? "Indonesia"
-                  : "Philippines",
-          duration:
-            destination.code === "CEB"
-              ? "1h 20m"
-              : destination.code === "PPS"
-                ? "1h 20m"
-                : destination.code === "KLO"
-                  ? "1h 10m"
-                  : destination.code === "DVO"
-                    ? "1h 45m"
-                    : destination.code === "SIN"
-                      ? "4h 00m"
-                      : destination.code === "HKG"
-                        ? "2h 30m"
-                        : "3h 10m",
+          location: "Philippines",
+          duration: "1h 20m",
           price: destination.startingFrom,
-          image: destination.image ?? "",
+          image: destination.image,
         },
       }}
       className="relative h-50 rounded-[14px] overflow-hidden shadow-[0px_2px_8px_rgba(0,0,0,0.06)] w-full text-left hover:shadow-md transition-shadow"
@@ -450,7 +395,7 @@ const BookingLandingPage = () => {
   const [openField, setOpenField] = useState<"from" | "to" | null>(null);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [isPromosLoading, setIsPromosLoading] = useState(true);
-  
+
   const fromRef = useRef<HTMLDivElement>(null);
   const toRef = useRef<HTMLDivElement>(null);
 
@@ -514,6 +459,26 @@ const BookingLandingPage = () => {
     params.set("cabin", cabinClass);
     return `${ROUTES.SEARCH_RESULTS}?${params.toString()}`;
   })();
+
+  const derivedDestinations: Destination[] = useMemo(() => {
+    const seen = new Set<string>();
+    const dests: Destination[] = [];
+    promotions.forEach((promo) => {
+      if (!seen.has(promo.destination_code)) {
+        seen.add(promo.destination_code);
+        dests.push({
+          id: promo.id,
+          code: promo.destination_code,
+          city: promo.destination_city,
+          startingFrom: `From ₱${promo.sale_price.toLocaleString()}`,
+          bgClass: "bg-primary-60",
+          image: promo.image_url ?? "",
+        });
+      }
+    });
+    return dests.slice(0, 4);
+  }, [promotions]);
+
 
   return (
     <div className="bg-bg-surface min-h-screen">
@@ -685,7 +650,10 @@ const BookingLandingPage = () => {
           {isPromosLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {[1, 2, 3].map((n) => (
-                <div key={n} className="h-[260px] rounded-[14px] bg-slate-100 animate-pulse" />
+                <div
+                  key={n}
+                  className="h-[260px] rounded-[14px] bg-slate-100 animate-pulse"
+                />
               ))}
             </div>
           ) : (
@@ -694,7 +662,9 @@ const BookingLandingPage = () => {
                 <DealCard key={deal.id} deal={deal} />
               ))}
               {promotions.length === 0 && (
-                <p className="col-span-full text-center py-10 text-slate-500 font-medium">No active deals at the moment. Check back soon!</p>
+                <p className="col-span-full text-center py-10 text-slate-500 font-medium">
+                  No active deals at the moment. Check back soon!
+                </p>
               )}
             </div>
           )}
@@ -713,18 +683,20 @@ const BookingLandingPage = () => {
           </div>
         </section>
 
-        <section>
-          <SectionHeader
-            title="Explore Destinations"
-            linkLabel="View all"
-            to={ROUTES.EXPLORE}
-          />
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {DESTINATIONS.map((dest) => (
-              <DestinationCard key={dest.id} destination={dest} />
-            ))}
-          </div>
-        </section>
+        {derivedDestinations.length > 0 && (
+          <section>
+            <SectionHeader
+              title="Explore Destinations"
+              linkLabel="View all"
+              to={ROUTES.EXPLORE}
+            />
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {derivedDestinations.map((dest) => (
+                <DestinationCard key={dest.id} destination={dest} />
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );

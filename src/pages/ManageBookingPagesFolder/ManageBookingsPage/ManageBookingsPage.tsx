@@ -3,23 +3,23 @@ import { Link } from "react-router-dom";
 import { Plane, ChevronRight, BookOpen } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
 import {
-  MANAGE_BOOKINGS,
   loadManageBookings,
   formatPeso,
   getStatusBadgeClass,
   getStatusLabel,
   type ManageBookingStatus,
+  type ManageBooking,
 } from "@/pages/ManageBookingPagesFolder/manageBookingData";
 import useAsyncValue from "@/hooks/useAsyncValue";
 
 const ManageBookingsPage = () => {
   const [activeTab, setActiveTab] = useState<ManageBookingStatus>("upcoming");
   const { data: loadedBookings } = useAsyncValue(loadManageBookings);
-  const bookingsData = loadedBookings ?? MANAGE_BOOKINGS;
+  const bookingsData = loadedBookings ?? [];
 
   const counts = useMemo(() => {
     return bookingsData.reduce(
-      (acc, booking) => {
+      (acc: Record<ManageBookingStatus, number>, booking: ManageBooking) => {
         acc[booking.status] += 1;
         return acc;
       },
@@ -28,7 +28,10 @@ const ManageBookingsPage = () => {
   }, [bookingsData]);
 
   const bookings = useMemo(
-    () => bookingsData.filter((booking) => booking.status === activeTab),
+    () =>
+      bookingsData.filter(
+        (booking: ManageBooking) => booking.status === activeTab,
+      ),
     [activeTab, bookingsData],
   );
 
@@ -91,7 +94,7 @@ const ManageBookingsPage = () => {
       {/* BOOKINGS SECTION */}
       <section className="mx-auto w-full max-w-5xl px-4 py-6 md:px-8">
         <div className="space-y-4">
-          {bookings.map((booking) => {
+          {bookings.map((booking: ManageBooking) => {
             const statusLabel = getStatusLabel(booking.status);
 
             const badgeClass =
