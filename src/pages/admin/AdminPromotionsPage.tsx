@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getPromotions, createPromotion, deletePromotion } from "@/api/promotions.api";
 import AdminLayout from "./_components/AdminLayout";
@@ -28,6 +28,10 @@ const AdminPromotionsPage = () => {
     resolver: zodResolver(promotionSchema),
     defaultValues: {
       category: "promo",
+      image_url: "",
+      title: "",
+      destination_code: "",
+      destination_city: "",
     },
   });
 
@@ -47,7 +51,7 @@ const AdminPromotionsPage = () => {
     fetchPromotions();
   }, []);
 
-  const onSubmit = async (data: PromotionFormValues) => {
+  const onSubmit: SubmitHandler<PromotionFormValues> = async (data) => {
     try {
       await createPromotion(data as CreatePromotionPayload);
       setIsAddModalOpen(false);
@@ -58,7 +62,7 @@ const AdminPromotionsPage = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = useCallback(async (id: string) => {
     if (!confirm("Are you sure you want to delete this promotion?")) return;
     setIsDeleting(true);
     try {
@@ -69,7 +73,7 @@ const AdminPromotionsPage = () => {
     } finally {
       setIsDeleting(false);
     }
-  };
+  }, []);
 
   const filteredPromotions = useMemo(() => {
     return promotions.filter((p) =>
@@ -78,7 +82,7 @@ const AdminPromotionsPage = () => {
     );
   }, [promotions, searchQuery]);
 
-  const columns: TableColumn<Promotion>[] = [
+  const columns: TableColumn<Promotion>[] = useMemo(() => [
     {
       key: "title",
       header: "PROMOTION TITLE",
@@ -156,7 +160,7 @@ const AdminPromotionsPage = () => {
         </button>
       ),
     },
-  ];
+  ], [handleDelete, isDeleting]);
 
   return (
     <AdminLayout>
@@ -254,14 +258,14 @@ const AdminPromotionsPage = () => {
               type="number"
               placeholder="0"
               error={errors.sale_price?.message}
-              {...register("sale_price")}
+              {...register("sale_price", { valueAsNumber: true })}
             />
             <Input
               label="Original Price (₱) *"
               type="number"
               placeholder="0"
               error={errors.original_price?.message}
-              {...register("original_price")}
+              {...register("original_price", { valueAsNumber: true })}
             />
           </div>
 

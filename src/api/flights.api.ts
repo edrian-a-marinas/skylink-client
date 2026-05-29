@@ -34,11 +34,16 @@ const mapFrontendToBackend = (payload: Partial<Flight>) => {
     departure_time: payload.departureTime,
     arrival_time: payload.arrivalTime,
     status: payload.status,
+    airline: payload.airline,
     aircraft_id: 1, // Default aircraft
-    image_url: payload.imageUrl, // The field you added to the database
-    imageUrl: payload.imageUrl,  // Sending camelCase too just in case
+    image_url: payload.imageUrl,
     seat_pricing: [
-      { seat_class_id: 1, total_seats: payload.totalSeats || 153, available_seats: payload.seatsAvailable || 153, price: (payload.price || 0) * 100 },
+      { 
+        seat_class_id: 1, // Mapping everything to Economy for now in this simplified payload
+        total_seats: payload.totalSeats || 153, 
+        available_seats: payload.seatsAvailable || 153, 
+        price: Math.round((payload.price || 0) * 100) // Price is in cents in backend
+      },
     ]
   };
 

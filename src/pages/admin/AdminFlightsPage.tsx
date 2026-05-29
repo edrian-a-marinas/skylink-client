@@ -70,7 +70,7 @@ const AdminFlightsPage = () => {
     }
   };
 
-  const columns: TableColumn<Flight>[] = [
+  const columns: TableColumn<Flight>[] = useMemo(() => [
     {
       key: "flightNumber",
       header: "FLIGHT NO",
@@ -163,7 +163,7 @@ const AdminFlightsPage = () => {
         </div>
       ),
     },
-  ];
+  ], [navigate]);
 
   return (
     <AdminLayout>

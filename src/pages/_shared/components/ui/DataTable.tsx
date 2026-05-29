@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 
 export type TableColumn<T> = {
   key: string;
@@ -13,13 +13,12 @@ type DataTableProps<T> = {
   emptyState?: ReactNode;
 };
 
-function DataTable<T>({
+function DataTableComponent<T>({
   columns,
   rows,
   rowKey,
   emptyState,
 }: DataTableProps<T>) {
-  console.log("DataTable rows:", rows);
   // Defensive check for non-array rows
   const safeRows = Array.isArray(rows) ? rows : [];
 
@@ -59,5 +58,8 @@ function DataTable<T>({
     </div>
   );
 }
+
+// Use a generic memo wrapper to handle the generic type T
+export const DataTable = memo(DataTableComponent) as typeof DataTableComponent;
 
 export default DataTable;

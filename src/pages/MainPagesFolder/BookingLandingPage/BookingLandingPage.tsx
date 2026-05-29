@@ -1,27 +1,20 @@
-import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { colors, typography } from "@/constants/theme";
 import { ROUTES } from "@/constants/routes";
 import { CiLocationOn, CiSearch, CiClock2 } from "react-icons/ci";
+import { Tag } from "lucide-react";
 import DatePicker from "@/pages/_shared/components/ui/DatePicker";
 import TripTypePill, { type TripType } from "./components/TripTypePill";
 import PassengerSelector, {
   type CabinClass,
   type PassengerCounts,
 } from "./components/PassengerSelector";
-
-type Deal = {
-  id: string;
-  title: string;
-  description: string;
-  price: string;
-  originalPrice: string;
-  discount: string;
-  badge: string;
-  badgeClass: string;
-  validUntil: string;
-  image?: string;
-};
+import { getPromotions } from "@/api/promotions.api";
+import { searchFlights } from "@/api/flights.api";
+import type { Flight } from "@/types";
+import type { Promotion } from "@/types/promotion.types";
+import { cn } from "@/utils/cn";
 
 type Route = {
   id: string;
@@ -39,7 +32,7 @@ type Destination = {
   city: string;
   startingFrom: string;
   bgClass: string;
-  image?: string;
+  image: string;
 };
 
 type AirportOption = {
@@ -48,140 +41,6 @@ type AirportOption = {
   airport: string;
   country: string;
 };
-
-const DEALS: Deal[] = [
-  {
-    id: "1",
-    title: "Flash Sale: Manila–Cebu",
-    description:
-      "Limited seats at unbeatable prices. Book now and save big on your next getaway!",
-    price: "₱1,490",
-    originalPrice: "₱3,500",
-    discount: "-57%",
-    badge: "Flash",
-    badgeClass: "bg-warning-60",
-    validUntil: "Until April 30",
-    image: "/Images/BookPage/Flash Sale Manila-Cebu.png",
-  },
-  {
-    id: "2",
-    title: "Weekend Escape: Manila–Palawan",
-    description:
-      "Discover Palawan's pristine beaches with our special weekend rates.",
-    price: "₱2,199",
-    originalPrice: "₱4,200",
-    discount: "-48%",
-    badge: "Weekend",
-    badgeClass: "bg-success-60",
-    validUntil: "Until May 15",
-    image: "/Images/BookPage/Weekend Escape Manila - Palawan.png",
-  },
-  {
-    id: "3",
-    title: "Fly to Singapore from ₱7,500",
-    description:
-      "Experience the Lion City at amazing prices. Perfect for a long weekend getaway.",
-    price: "₱7,500",
-    originalPrice: "₱12,500",
-    discount: "-40%",
-    badge: "International",
-    badgeClass: "bg-success-60",
-    validUntil: "Until May 31",
-    image: "/Images/BookPage/Fly to Singapore P7500.png",
-  },
-];
-
-const POPULAR_ROUTES: Route[] = [
-  {
-    id: "1",
-    from: "Manila",
-    fromCode: "MNL",
-    to: "Cebu",
-    toCode: "CEB",
-    price: "₱1,890",
-    duration: "1h 20m",
-  },
-  {
-    id: "2",
-    from: "Manila",
-    fromCode: "MNL",
-    to: "Davao",
-    toCode: "DVO",
-    price: "₱1,750",
-    duration: "1h 45m",
-  },
-  {
-    id: "3",
-    from: "Manila",
-    fromCode: "MNL",
-    to: "Palawan",
-    toCode: "PPS",
-    price: "₱2,499",
-    duration: "1h 20m",
-  },
-  {
-    id: "4",
-    from: "Manila",
-    fromCode: "MNL",
-    to: "Boracay",
-    toCode: "KLO",
-    price: "₱1,650",
-    duration: "1h 10m",
-  },
-  {
-    id: "5",
-    from: "Manila",
-    fromCode: "MNL",
-    to: "Singapore",
-    toCode: "SIN",
-    price: "₱7,500",
-    duration: "4h 00m",
-  },
-  {
-    id: "6",
-    from: "Manila",
-    fromCode: "MNL",
-    to: "Hong Kong",
-    toCode: "HKG",
-    price: "₱11,200",
-    duration: "2h 30m",
-  },
-];
-
-const DESTINATIONS: Destination[] = [
-  {
-    id: "1",
-    code: "CEB",
-    city: "Cebu",
-    startingFrom: "From ₱1,890",
-    bgClass: "bg-primary-60",
-    image: "/Images/BookPage/Cebu.png",
-  },
-  {
-    id: "2",
-    code: "PPS",
-    city: "Puerto Princesa",
-    startingFrom: "From ₱2,499",
-    bgClass: "bg-success-70",
-    image: "/Images/BookPage/Puerto Princesa.png",
-  },
-  {
-    id: "3",
-    code: "KLO",
-    city: "Kalibo (Boracay)",
-    startingFrom: "From ₱1,650",
-    bgClass: "bg-info-50",
-    image: "/Images/BookPage/Kalibo Boracay.png",
-  },
-  {
-    id: "4",
-    code: "DVO",
-    city: "Davao",
-    startingFrom: "From ₱1,750",
-    bgClass: "bg-primary-80",
-    image: "/Images/BookPage/Davao.png",
-  },
-];
 
 const AIRPORTS: AirportOption[] = [
   {
@@ -258,15 +117,9 @@ function getCode(value: string) {
 }
 
 function DealCard({ deal }: { deal: Promotion }) {
-  const discount = Math.round(((deal.original_price - deal.sale_price) / deal.original_price) * 100);
-  
-  // Construct search link for this promotion
-  const searchParams = new URLSearchParams();
-  searchParams.set("from", "Manila (MNL)");
-  searchParams.set("to", deal.destination_code);
-  searchParams.set("pax", "1");
-  searchParams.set("cabin", "Economy");
-  const searchHref = `${ROUTES.SEARCH_RESULTS}?${searchParams.toString()}`;
+  const discount = Math.round(
+    ((deal.original_price - deal.sale_price) / deal.original_price) * 100,
+  );
 
   const badgeClass = cn(
     "absolute bottom-3 right-3 text-text-on-primary px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
@@ -283,19 +136,19 @@ function DealCard({ deal }: { deal: Promotion }) {
         deal: {
           id: deal.id,
           title: deal.title,
-          description: deal.description,
-          price: deal.price,
-          oldPrice: deal.originalPrice,
-          discount: deal.discount,
-          validUntil: deal.validUntil,
-          image: deal.image ?? "",
-          badge: deal.badge,
+          description: deal.title,
+          price: `₱${(deal.sale_price || 0).toLocaleString()}`,
+          oldPrice: `₱${(deal.original_price || 0).toLocaleString()}`,
+          discount: `-${discount}%`,
+          validUntil: deal.valid_until,
+          image: deal.image_url ?? "",
+          badge: deal.category,
         },
       }}
       className="bg-bg-page border border-tertiary-30 rounded-[14px] overflow-hidden shadow-[0px_2px_8px_rgba(0,0,0,0.04)] text-left w-full hover:shadow-md transition-shadow"
     >
       <div className="relative h-35 bg-tertiary-20">
-        {deal.image ? (
+        {deal.image_url ? (
           <img
             src={deal.image_url}
             alt={deal.title}
@@ -306,29 +159,27 @@ function DealCard({ deal }: { deal: Promotion }) {
             <Tag size={40} className="text-white/20" />
           </div>
         )}
-        <span
-          className="absolute top-3 left-3 bg-rose-600 text-text-on-primary text-[11px] font-bold px-2 py-1 rounded-full"
-        >
+        <span className="absolute top-3 left-3 bg-rose-600 text-text-on-primary text-[11px] font-bold px-2 py-1 rounded-full">
           -{discount}%
         </span>
-        <span className={badgeClass}>
-          {deal.category}
-        </span>
+        <span className={badgeClass}>{deal.category}</span>
       </div>
       <div className="p-4">
-        <p className={`${typography.label.md.bold} ${colors.text.primary} line-clamp-1`}>
+        <p
+          className={`${typography.label.md.bold} ${colors.text.primary} line-clamp-1`}
+        >
           {deal.title}
         </p>
         <div className="flex items-baseline gap-2 mt-2">
           <span
             className={`${typography.heading.h3.bold} font-extrabold text-[#496B92]`}
           >
-            ₱{deal.sale_price.toLocaleString()}
+            ₱{(deal.sale_price || 0).toLocaleString()}
           </span>
           <span
             className={`${typography.paragraph.sm.medium} ${colors.text.secondary} line-through`}
           >
-            ₱{deal.original_price.toLocaleString()}
+            ₱{(deal.original_price || 0).toLocaleString()}
           </span>
         </div>
         <div
@@ -410,30 +261,10 @@ function DestinationCard({ destination }: { destination: Destination }) {
           id: destination.id,
           code: destination.code,
           name: destination.city,
-          location:
-            destination.code === "SIN"
-              ? "Singapore"
-              : destination.code === "HKG"
-                ? "Hong Kong"
-                : destination.code === "DPS"
-                  ? "Indonesia"
-                  : "Philippines",
-          duration:
-            destination.code === "CEB"
-              ? "1h 20m"
-              : destination.code === "PPS"
-                ? "1h 20m"
-                : destination.code === "KLO"
-                  ? "1h 10m"
-                  : destination.code === "DVO"
-                    ? "1h 45m"
-                    : destination.code === "SIN"
-                      ? "4h 00m"
-                      : destination.code === "HKG"
-                        ? "2h 30m"
-                        : "3h 10m",
+          location: "Philippines",
+          duration: "1h 20m",
           price: destination.startingFrom,
-          image: destination.image ?? "",
+          image: destination.image,
         },
       }}
       className="relative h-50 rounded-[14px] overflow-hidden shadow-[0px_2px_8px_rgba(0,0,0,0.06)] w-full text-left hover:shadow-md transition-shadow"
@@ -508,23 +339,29 @@ const BookingLandingPage = () => {
   const [cabinClass, setCabinClass] = useState<CabinClass>("Economy");
   const [openField, setOpenField] = useState<"from" | "to" | null>(null);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
-  const [isPromosLoading, setIsPromosLoading] = useState(true);
-  
+  const [flights, setFlights] = useState<Flight[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   const fromRef = useRef<HTMLDivElement>(null);
   const toRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const fetchPromos = async () => {
+    const fetchData = async () => {
+      setIsLoading(true);
       try {
-        const data = await getPromotions();
-        setPromotions(data);
+        const [promosData, flightsData] = await Promise.all([
+          getPromotions(),
+          searchFlights(),
+        ]);
+        setPromotions(promosData || []);
+        setFlights(flightsData || []);
       } catch (err) {
-        console.error("Failed to fetch promos", err);
+        console.error("Failed to fetch landing page data", err);
       } finally {
-        setIsPromosLoading(false);
+        setIsLoading(false);
       }
     };
-    fetchPromos();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -573,6 +410,47 @@ const BookingLandingPage = () => {
     params.set("cabin", cabinClass);
     return `${ROUTES.SEARCH_RESULTS}?${params.toString()}`;
   })();
+
+  const popularRoutes: Route[] = useMemo(() => {
+    const seen = new Set<string>();
+    const routes: Route[] = [];
+    (flights || []).forEach((flight) => {
+      const key = `${flight.origin}-${flight.destination}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        routes.push({
+          id: flight.id,
+          from: flight.originCity || flight.origin,
+          fromCode: flight.origin,
+          to: flight.destinationCity || flight.destination,
+          toCode: flight.destination,
+          price: `₱${(flight.price || 0).toLocaleString()}`,
+          duration: "1h 20m", // Default or calculated
+        });
+      }
+    });
+    return routes.slice(0, 6);
+  }, [flights]);
+
+  const derivedDestinations: Destination[] = useMemo(() => {
+    const seen = new Set<string>();
+    const dests: Destination[] = [];
+    (flights || []).forEach((flight) => {
+      if (flight.destination && !seen.has(flight.destination)) {
+        seen.add(flight.destination);
+        dests.push({
+          id: flight.id,
+          code: flight.destination,
+          city: flight.destinationCity || flight.destination,
+          startingFrom: `From ₱${(flight.price || 0).toLocaleString()}`,
+          bgClass: "bg-primary-60",
+          image: flight.imageUrl ?? "",
+        });
+      }
+    });
+    return dests.slice(0, 4);
+  }, [flights]);
+
 
   return (
     <div className="bg-bg-surface min-h-screen">
@@ -741,10 +619,13 @@ const BookingLandingPage = () => {
             linkLabel="See all deals"
             to={ROUTES.EXPLORE_PROMOS}
           />
-          {isPromosLoading ? (
+          {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {[1, 2, 3].map((n) => (
-                <div key={n} className="h-[260px] rounded-[14px] bg-slate-100 animate-pulse" />
+                <div
+                  key={n}
+                  className="h-[260px] rounded-[14px] bg-slate-100 animate-pulse"
+                />
               ))}
             </div>
           ) : (
@@ -753,7 +634,9 @@ const BookingLandingPage = () => {
                 <DealCard key={deal.id} deal={deal} />
               ))}
               {promotions.length === 0 && (
-                <p className="col-span-full text-center py-10 text-slate-500 font-medium">No active deals at the moment. Check back soon!</p>
+                <p className="col-span-full text-center py-10 text-slate-500 font-medium">
+                  No active deals at the moment. Check back soon!
+                </p>
               )}
             </div>
           )}
@@ -765,25 +648,43 @@ const BookingLandingPage = () => {
             linkLabel="Explore all"
             to={ROUTES.SEARCH_RESULTS}
           />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {POPULAR_ROUTES.map((route) => (
-              <RouteCard key={route.id} route={route} />
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3].map((n) => (
+                <div
+                  key={n}
+                  className="h-[80px] rounded-[14px] bg-slate-100 animate-pulse"
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {popularRoutes.map((route) => (
+                <RouteCard key={route.id} route={route} />
+              ))}
+              {popularRoutes.length === 0 && (
+                <p className="col-span-full text-center py-10 text-slate-500 font-medium">
+                  No routes available at the moment.
+                </p>
+              )}
+            </div>
+          )}
         </section>
 
-        <section>
-          <SectionHeader
-            title="Explore Destinations"
-            linkLabel="View all"
-            to={ROUTES.EXPLORE}
-          />
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {DESTINATIONS.map((dest) => (
-              <DestinationCard key={dest.id} destination={dest} />
-            ))}
-          </div>
-        </section>
+        {derivedDestinations.length > 0 && (
+          <section>
+            <SectionHeader
+              title="Explore Destinations"
+              linkLabel="View all"
+              to={ROUTES.EXPLORE}
+            />
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {derivedDestinations.map((dest) => (
+                <DestinationCard key={dest.id} destination={dest} />
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );

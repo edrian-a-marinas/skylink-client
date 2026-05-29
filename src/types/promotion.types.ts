@@ -9,6 +9,7 @@ export interface Promotion {
   valid_until: string;
   image_url?: string;
   destination_code: string;
+  destination_city: string;
   created_at?: string;
 }
 
@@ -20,4 +21,5 @@ export interface CreatePromotionPayload {
   valid_until: string;
   image_url?: string;
   destination_code: string;
+  destination_city: string;
 }

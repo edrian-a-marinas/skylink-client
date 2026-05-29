@@ -3,218 +3,180 @@ import { Link } from "react-router-dom";
 import { Clock, Tag } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
 import useAsyncValue from "@/hooks/useAsyncValue";
+import { getPromotions } from "@/api/promotions.api";
 
-type PromoTag = "Flash" | "Weekend" | "International" | "Domestic" | "Business";
-
-type Promo = {
+type Deal = {
   id: string;
   title: string;
   description: string;
   price: string;
-  oldPrice: string;
+  originalPrice: string;
   discount: string;
-  tag: PromoTag;
+  badge: string;
+  badgeClass: string;
   validUntil: string;
   image: string;
 };
 
-const FILTERS: Array<"All" | PromoTag> = [
-  "All",
-  "Flash",
-  "Weekend",
-  "International",
-  "Domestic",
-  "Business",
-];
-
-const PROMOS: Promo[] = [
-  {
-    id: "promo-1",
-    title: "Flash Sale: Manila-Cebu",
-    description:
-      "Limited seats at unbeatable prices. Book now and save big on your next getaway!",
-    price: "PHP 1,490",
-    oldPrice: "PHP 3,500",
-    discount: "-57% OFF",
-    tag: "Flash",
-    validUntil: "Apr 30",
-    image: "/Images/BookPage/Flash Sale Manila-Cebu.png",
-  },
-  {
-    id: "promo-2",
-    title: "Weekend Escape: Manila-Palawan",
-    description:
-      "Discover Palawan's pristine beaches with our special weekend rates.",
-    price: "PHP 2,199",
-    oldPrice: "PHP 4,200",
-    discount: "-48% OFF",
-    tag: "Weekend",
-    validUntil: "May 15",
-    image: "/Images/BookPage/Weekend Escape Manila - Palawan.png",
-  },
-  {
-    id: "promo-3",
-    title: "Fly to Singapore from PHP 7,500",
-    description:
-      "Experience the Lion City at amazing prices. Perfect for a long weekend getaway.",
-    price: "PHP 7,500",
-    oldPrice: "PHP 12,500",
-    discount: "-40% OFF",
-    tag: "International",
-    validUntil: "May 31",
-    image: "/Images/BookPage/Fly to Singapore P7500.png",
-  },
-  {
-    id: "promo-4",
-    title: "Business Class Upgrade: Manila-Tokyo",
-    description:
-      "Upgrade your Tokyo experience with our premium Business Class deal.",
-    price: "PHP 28,900",
-    oldPrice: "PHP 45,000",
-    discount: "-36% OFF",
-    tag: "Business",
-    validUntil: "Jun 30",
-    image: "/Images/BookPage/Tokyo.png",
-  },
-  {
-    id: "promo-5",
-    title: "Boracay Summer Sale",
-    description: "White beaches, crystal waters - now at summer sale prices.",
-    price: "PHP 1,650",
-    oldPrice: "PHP 3,200",
-    discount: "-48% OFF",
-    tag: "Flash",
-    validUntil: "Apr 25",
-    image: "/Images/BookPage/Kalibo Boracay.png",
-  },
-  {
-    id: "promo-6",
-    title: "Discover Bali from PHP 6,200",
-    description: "The Island of the Gods awaits - book early and save!",
-    price: "PHP 6,200",
-    oldPrice: "PHP 9,800",
-    discount: "-37% OFF",
-    tag: "International",
-    validUntil: "Jul 15",
-    image: "/Images/BookPage/Discover Bali from 6200.png",
-  },
-];
-
-const TAG_STYLES: Record<PromoTag, string> = {
-  Flash: "bg-amber-500",
-  Weekend: "bg-emerald-600",
-  International: "bg-teal-600",
-  Domestic: "bg-slate-600",
-  Business: "bg-gray-600",
-};
-
 const PromosPage = () => {
-  const [activeFilter, setActiveFilter] =
-    useState<(typeof FILTERS)[number]>("All");
-  const loader = useCallback(async () => PROMOS, []);
-  const { data: promoData } = useAsyncValue(loader);
+  const [filter, setFilter] = useState<string>("all");
 
-  const filteredPromos = useMemo(() => {
-    const promos = promoData ?? PROMOS;
-    if (activeFilter === "All") {
-      return promos;
-    }
-    return promos.filter((promo) => promo.tag === activeFilter);
-  }, [activeFilter, promoData]);
+  const loader = useCallback(async () => {
+    const data = await getPromotions();
+    return data || [];
+  }, []);
+
+  const { data: promotions, isLoading } = useAsyncValue(loader);
+
+  const deals = useMemo(() => {
+    const allDeals: Deal[] = (promotions || []).map((promo) => {
+      const sale = promo.sale_price || 0;
+      const original = promo.original_price || 1; // avoid div by zero
+      const discount = Math.round(((original - sale) / original) * 100);
+
+      return {
+        id: promo.id,
+        title: promo.title || "Special Deal",
+        description: promo.title || "",
+        price: `₱${sale.toLocaleString()}`,
+        originalPrice: `₱${original.toLocaleString()}`,
+        discount: `${discount}% OFF`,
+        badge: (promo.category || "PROMO").toUpperCase(),
+        badgeClass:
+          promo.category === "flash"
+            ? "bg-warning-60 text-white"
+            : promo.category === "weekend"
+              ? "bg-success-60 text-white"
+              : "bg-primary-60 text-white",
+        validUntil: promo.valid_until || "Limited Time",
+        image: promo.image_url ?? "",
+      };
+    });
+
+    if (filter === "all") return allDeals;
+    return allDeals.filter((deal) => deal.badge.toLowerCase() === filter);
+  }, [promotions, filter]);
+
+  const categories = [
+    { id: "all", label: "All Deals" },
+    { id: "flash", label: "Flash Sale" },
+    { id: "weekend", label: "Weekend Escape" },
+    { id: "international", label: "International" },
+  ];
 
   return (
     <main className="min-h-[calc(100vh-160px)] bg-[#F3F5F7]">
-      <section className="px-6 pb-16 pt-10">
-        <div className="mx-auto w-full max-w-6xl">
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#5D7FA7]/15 text-[#5D7FA7]">
-              <Tag size={18} />
+      <section className="bg-white border-b border-slate-200">
+        <div className="mx-auto max-w-6xl px-6 py-12">
+          <div className="flex items-center gap-3">
+            <div className="bg-rose-50 p-2 rounded-lg text-rose-600">
+              <Tag size={20} />
             </div>
-            <div>
-              <h1 className="text-xl font-semibold text-slate-900">
-                All Deals & Promos
-              </h1>
-              <p className="mt-1 text-sm text-slate-500">
-                Exclusive fares and limited-time offers - updated weekly.
-              </p>
-            </div>
+            <h1 className="text-3xl font-bold text-slate-900">Current Promos</h1>
           </div>
+          <p className="mt-2 text-slate-500 max-w-2xl">
+            Grab the lowest fares before they disappear. Limited-time offers on
+            select domestic and international routes.
+          </p>
 
-          <div className="mt-6 flex flex-wrap gap-2">
-            {FILTERS.map((filter) => (
+          <div className="mt-8 flex flex-wrap gap-2">
+            {categories.map((cat) => (
               <button
-                key={filter}
-                type="button"
-                onClick={() => setActiveFilter(filter)}
-                className={`rounded-full border px-4 py-1.5 text-xs font-semibold transition ${
-                  activeFilter === filter
-                    ? "border-[#5D7FA7] bg-[#5D7FA7] text-white"
-                    : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
+                key={cat.id}
+                onClick={() => setFilter(cat.id)}
+                className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
+                  filter === cat.id
+                    ? "bg-[#496B92] text-white"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
-                {filter}
+                {cat.label}
               </button>
             ))}
           </div>
+        </div>
+      </section>
 
-          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredPromos.map((promo) => (
+      <section className="mx-auto max-w-6xl px-6 py-12">
+        {isLoading ? (
+          <div className="flex justify-center py-20">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#496B92] border-t-transparent" />
+          </div>
+        ) : (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {deals.map((deal) => (
               <Link
-                key={promo.id}
+                key={deal.id}
                 to={ROUTES.EXPLORE_PROMO_DETAIL}
-                state={{ deal: promo }}
-                className="block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
+                state={{ deal }}
+                className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
               >
-                <article>
-                  <div className="relative">
-                    <img
-                      src={promo.image}
-                      alt={promo.title}
-                      className="h-40 w-full object-cover"
-                      loading="lazy"
-                    />
-                    <span className="absolute left-3 top-3 rounded-full bg-rose-500 px-2 py-1 text-[10px] font-semibold text-white">
-                      {promo.discount}
-                    </span>
-                    <span
-                      className={`absolute right-3 top-3 rounded-full px-2 py-1 text-[10px] font-semibold text-white ${
-                        TAG_STYLES[promo.tag]
-                      }`}
-                    >
-                      {promo.tag}
-                    </span>
+                <article className="flex h-full flex-col">
+                  <div className="relative h-48 overflow-hidden bg-slate-100">
+                    {deal.image ? (
+                      <img
+                        src={deal.image}
+                        alt={deal.title}
+                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-slate-300">
+                        <Tag size={48} />
+                      </div>
+                    )}
+                    <div className="absolute left-3 top-3">
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${deal.badgeClass}`}
+                      >
+                        {deal.badge}
+                      </span>
+                    </div>
+                    <div className="absolute right-3 top-3">
+                      <span className="rounded-full bg-rose-600 px-2 py-1 text-[11px] font-bold text-white">
+                        {deal.discount}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="space-y-3 p-4">
-                    <div>
-                      <h3 className="text-sm font-semibold text-slate-900">
-                        {promo.title}
-                      </h3>
-                      <p className="mt-1 text-xs text-slate-500">
-                        {promo.description}
-                      </p>
-                    </div>
+                  <div className="flex flex-1 flex-col p-5">
+                    <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition">
+                      {deal.title}
+                    </h3>
 
-                    <div className="flex items-center justify-between">
+                    <div className="mt-4 flex items-center justify-between">
                       <div>
-                        <p className="text-base font-semibold text-[#5D7FA7]">
-                          {promo.price}
-                        </p>
-                        <p className="text-xs text-slate-400 line-through">
-                          {promo.oldPrice}
-                        </p>
+                        <p className="text-xs text-slate-500">Starting from</p>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-xl font-bold text-[#496B92]">
+                            {deal.price}
+                          </span>
+                          <span className="text-sm text-slate-400 line-through">
+                            {deal.originalPrice}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1 text-xs text-slate-400">
-                        <Clock size={12} />
-                        {promo.validUntil}
+
+                      <div className="flex flex-col items-end gap-1">
+                        <div className="flex items-center gap-1 text-[10px] font-medium text-slate-500">
+                          <Clock size={12} />
+                          <span>Expires {deal.validUntil}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </article>
               </Link>
             ))}
+
+            {!isLoading && deals.length === 0 && (
+              <div className="col-span-full py-20 text-center">
+                <p className="text-slate-500 font-medium">
+                  No active promotions found in this category.
+                </p>
+              </div>
+            )}
           </div>
-        </div>
+        )}
       </section>
     </main>
   );
