@@ -3,7 +3,6 @@ import AdminLayout from "./_components/AdminLayout";
 import DataTable, { type TableColumn } from "@/pages/_shared/components/ui/DataTable";
 import Button from "@/pages/_shared/components/ui/Button";
 import Modal from "@/pages/_shared/components/ui/Modal";
-import Input from "@/pages/_shared/components/ui/Input";
 import {
   Search, Plus, Edit2, Trash2, MapPin, Plane, Tag,
 } from "lucide-react";
