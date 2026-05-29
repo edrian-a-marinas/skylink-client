@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
 import FlightDetailCard, {
