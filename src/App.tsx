@@ -282,6 +282,7 @@ const AppContent = () => {
               element={<AdminBookingDetailPage />}
             />
             <Route path={ROUTES.ADMIN_REPORTS} element={<AdminReportsPage />} />
+            <Route path="/admin/activity-log" element={<AdminReportsPage />} />
             <Route
               path={ROUTES.ADMIN_PROMOTIONS}
               element={<AdminPromotionsPage />}

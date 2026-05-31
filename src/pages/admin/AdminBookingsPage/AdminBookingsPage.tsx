@@ -205,7 +205,40 @@ const AdminBookingsPage = () => {
       try {
         const data = await getAllBookingsAdmin();
         if (data && data.length > 0) {
-          setBookings(data);
+          const normalized = data.map((b: any) => ({
+            ...b,
+            pnr: b.pnr || b.id.toUpperCase().slice(0, 6),
+            userId: b.userId || b.user_id,
+            flightId: b.flightId || b.flight_id,
+            status: b.status || "confirmed",
+            totalPrice: b.totalPrice !== undefined ? b.totalPrice : (b.total_price !== undefined ? b.total_price : 0),
+            createdAt: b.createdAt || b.booked_at || b.created_at || new Date().toISOString(),
+            paymentStatus: b.paymentStatus || b.payment_status || (b.status === "cancelled" ? "refunded" : "captured"),
+            flight: b.flight ? {
+              flightNumber: b.flight.flightNumber || b.flight.flight_number || "FLIGHT",
+              origin: b.flight.origin || "MNL",
+              destination: b.flight.destination || "CEB",
+              departureTime: b.flight.departureTime || b.flight.departure_time || new Date().toISOString(),
+              arrivalTime: b.flight.arrivalTime || b.flight.arrival_time || new Date().toISOString(),
+              airline: b.flight.airline || "Commercial Carrier"
+            } : {
+              flightNumber: "FLIGHT",
+              origin: "MNL",
+              destination: "CEB",
+              departureTime: b.createdAt || b.booked_at || new Date().toISOString(),
+              arrivalTime: b.createdAt || b.booked_at || new Date().toISOString(),
+              airline: "Commercial Carrier"
+            },
+            passengers: b.passengers && b.passengers.length > 0 ? b.passengers : [
+              {
+                firstName: "Passenger",
+                lastName: "Details",
+                seatNumber: b.seatNumber || b.seat_number || "—",
+                mealPreference: "standard"
+              }
+            ]
+          }));
+          setBookings(normalized);
         } else {
           setBookings(MOCK_BOOKINGS);
         }
