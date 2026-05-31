@@ -12,7 +12,9 @@ export type BookingStatus =
   | "pending_cancellation"
   | "cancelled"
   | "refunded"
-  | "expired";
+  | "expired"
+  | "boarded"
+  | "completed";
 
 export type MealPreference =
   | "standard"

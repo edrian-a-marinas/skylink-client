@@ -12,7 +12,7 @@ function statusToTone(status: string): StatusTone {
   const normalized = status.trim().toLowerCase();
 
   if (
-    ["confirmed", "captured", "on_time", "landed", "active"].includes(
+    ["confirmed", "captured", "on_time", "landed", "active", "boarded"].includes(
       normalized,
     )
   ) {
