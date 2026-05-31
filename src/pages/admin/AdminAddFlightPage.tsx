@@ -11,7 +11,6 @@ import Button from "@/pages/_shared/components/ui/Button";
 import { ChevronLeft, Save, Plane, Tag } from "lucide-react";
 import { flightSchema, type FlightFormValues } from "@/validation/flight.schemas";
 import type { Aircraft } from "@/types/destinations.types";
-import { cn } from "@/utils/cn";
 
 const AdminAddFlightPage = () => {
   const navigate = useNavigate();
@@ -24,7 +23,6 @@ const AdminAddFlightPage = () => {
     handleSubmit,
     watch,
     control,
-    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FlightFormValues>({
     resolver: zodResolver(flightSchema) as any,

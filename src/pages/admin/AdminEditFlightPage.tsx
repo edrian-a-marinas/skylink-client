@@ -12,6 +12,13 @@ import { flightSchema, type FlightFormValues } from "@/validation/flight.schemas
 import type { Flight } from "@/types";
 import { cn } from "@/utils/cn";
 
+type EditFlightFormValues = FlightFormValues & {
+  cabinClass?: string;
+  totalSeats?: number;
+  seatsAvailable?: number;
+  price?: number;
+};
+
 const AdminEditFlightPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -24,7 +31,7 @@ const AdminEditFlightPage = () => {
     reset,
     watch,
     formState: { errors, isSubmitting },
-  } = useForm<FlightFormValues>({
+  } = useForm<EditFlightFormValues>({
     resolver: zodResolver(flightSchema) as any,
   });
 

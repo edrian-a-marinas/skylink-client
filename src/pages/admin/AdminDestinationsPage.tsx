@@ -69,7 +69,7 @@ const AdminDestinationsPage = () => {
     setSeatConfigs([{ seat_class_id: seatClasses[0]?.id || 1, quantity: 150 }]);
     setAddModalOpen(true); 
   };
-  const openEdit = (item: Airport | Aircraft | SeatClass) => { setSelectedItem(item); setForm({ ...item }); setEditModalOpen(true); };
+  const openEdit = (item: Airport | Aircraft | SeatClass) => { setSelectedItem(item); setForm(item as any); setEditModalOpen(true); };
   const openDelete = (item: Airport | Aircraft | SeatClass) => { setSelectedItem(item); setDeleteModalOpen(true); };
 
   const handleAdd = async (e?: React.MouseEvent) => {

@@ -1,4 +1,4 @@
-import AdminLayout from "./_components/AdminLayout";
+import AdminLayout from "../_components/AdminLayout";
 import { useCallback, useMemo } from "react";
 import { generateReport } from "@/api/reports.api";
 import type { ReportResult } from "@/types";
