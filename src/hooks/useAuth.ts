@@ -26,8 +26,8 @@ export function useAuth() {
    */
 
   const signInWithGoogle = useCallback(
-    async (googleToken: string) => {
-      const { access_token } = await apiGoogleAuth(googleToken);
+    async (googleToken: string, mode: "login" | "register" = "login") => {  // 👈 add mode
+      const { access_token } = await apiGoogleAuth(googleToken, mode);  // 👈 pass mode
       axiosClient.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
       const user = await getProfile();
       store.login(access_token, user);

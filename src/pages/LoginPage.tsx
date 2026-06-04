@@ -126,7 +126,7 @@ const LoginPage = ({ defaultTab = "login" }: LoginPageProps) => {
     onSuccess: async (tokenResponse) => {
       setServerError(null);
       try {
-        await signInWithGoogle(tokenResponse.access_token);
+        await signInWithGoogle(tokenResponse.access_token, activeTab);
         navigate(ROUTES.HOME);
       } catch (err: unknown) {
         const axiosErr = err as { response?: { data?: { detail?: unknown } } };

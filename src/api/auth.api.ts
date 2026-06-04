@@ -101,9 +101,9 @@ export async function resendVerification(email: string): Promise<MessageResponse
   }
 }
 
-export async function googleAuth(token: string): Promise<TokenResponse> {
+export async function googleAuth(token: string, mode: "login" | "register" = "login"): Promise<TokenResponse> {
   try {
-    const res = await axiosClient.post<TokenResponse>("/auth/google", { token });
+    const res = await axiosClient.post<TokenResponse>("/auth/google", { token, mode }); // 👈 add mode
     return res.data;
   } catch (err) {
     handleApiError(err);
