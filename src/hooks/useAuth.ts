@@ -7,6 +7,7 @@ import {
   forgotPassword as apiForgotPassword,
   resetPassword as apiResetPassword,
   resendVerification as apiResendVerification,
+  googleAuth as apiGoogleAuth,
 } from "@/api/auth.api";
 import { useAuthStore } from "@/store/useAuthStore";
 import type {
@@ -23,6 +24,17 @@ export function useAuth() {
    * Sign in: get token → attach to axios → fetch profile → store both.
    * Pages call this only — never touch auth.api.ts directly.
    */
+
+  const signInWithGoogle = useCallback(
+    async (googleToken: string) => {
+      const { access_token } = await apiGoogleAuth(googleToken);
+      axiosClient.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
+      const user = await getProfile();
+      store.login(access_token, user);
+    },
+    [store],
+  );
+
   const signIn = useCallback(
     async (credentials: LoginFormValues) => {
       const { access_token } = await apiLogin(credentials);
@@ -91,6 +103,7 @@ export function useAuth() {
     sendForgotPassword,
     sendResetPassword,
     sendResendVerification,
+    signInWithGoogle,
   };
 }
 

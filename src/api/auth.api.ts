@@ -100,3 +100,13 @@ export async function resendVerification(email: string): Promise<MessageResponse
     throw err;
   }
 }
+
+export async function googleAuth(token: string): Promise<TokenResponse> {
+  try {
+    const res = await axiosClient.post<TokenResponse>("/auth/google", { token });
+    return res.data;
+  } catch (err) {
+    handleApiError(err);
+    throw err;
+  }
+}
