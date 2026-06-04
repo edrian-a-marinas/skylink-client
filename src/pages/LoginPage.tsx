@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -82,16 +82,21 @@ const LoginPage = ({ defaultTab = "login" }: LoginPageProps) => {
     setSuccessMsg(null);
   };
 
+  const activeTabRef = useRef<AuthTab>(activeTab);
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+  }, [activeTab]);
+
   const onLoginSubmit = async (data: LoginFormValues) => {
     setServerError(null);
     try {
       await signIn({ email: data.email, password: data.password });
       navigate(ROUTES.HOME);
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { detail?: unknown } } };
-      const detail = axiosErr?.response?.data?.detail;
+      const apiErr = err as { details?: { detail?: unknown }; message?: string };
+      const detail = apiErr?.details?.detail;
       setServerError(
-        typeof detail === "string" ? detail : "Login failed. Please try again.",
+        typeof detail === "string" ? detail : (apiErr?.message ?? "Login failed. Please try again."),
       );
     }
   };
@@ -112,12 +117,12 @@ const LoginPage = ({ defaultTab = "login" }: LoginPageProps) => {
       setActiveTab("login");
       resetRegisterForm();
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { detail?: unknown } } };
-      const detail = axiosErr?.response?.data?.detail;
+      const apiErr = err as { details?: { detail?: unknown }; message?: string };
+      const detail = apiErr?.details?.detail;
       setServerError(
         typeof detail === "string"
           ? detail
-          : "Registration failed. Please try again.",
+          : (apiErr?.message ?? "Registration failed. Please try again."),
       );
     }
   };
@@ -125,18 +130,19 @@ const LoginPage = ({ defaultTab = "login" }: LoginPageProps) => {
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       setServerError(null);
+      const mode = activeTabRef.current;
       try {
-        await signInWithGoogle(tokenResponse.access_token, activeTab);
+        await signInWithGoogle(tokenResponse.access_token, mode);
         navigate(ROUTES.HOME);
       } catch (err: unknown) {
-        const axiosErr = err as { response?: { data?: { detail?: unknown } } };
-        const detail = axiosErr?.response?.data?.detail;
+        const apiErr = err as { details?: { detail?: unknown }; message?: string };
+        const detail = apiErr?.details?.detail;
         if (detail === "no_account") {
           handleTabChange("register");
           setSuccessMsg("No account found. Please register first.");
         } else {
           setServerError(
-            typeof detail === "string" ? detail : "Google sign-in failed. Please try again."
+            typeof detail === "string" ? detail : (apiErr?.message ?? "Google sign-in failed. Please try again.")
           );
         }
       }
@@ -145,7 +151,7 @@ const LoginPage = ({ defaultTab = "login" }: LoginPageProps) => {
       setServerError("Google sign-in was cancelled or failed.");
     },
   });
-
+  
   return (
     <section className="relative min-h-[calc(100vh-80px)] flex items-center justify-center overflow-hidden px-4 py-12 md:px-6 bg-[#FDFBF8]">
       {/* Background decoration */}
