@@ -53,3 +53,17 @@ export interface RouteReport {
   date_from?: string | null;
   date_to?: string | null;
 }
+
+export interface MonthlyCancellationPoint {
+  month: string;
+  year: number;
+  total_bookings: number;
+  cancelled_bookings: number;
+  cancellation_rate: number;
+}
+
+export interface CancellationReport {
+  monthly_cancellations: MonthlyCancellationPoint[];
+  date_from?: string | null;
+  date_to?: string | null;
+}

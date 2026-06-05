@@ -7,7 +7,7 @@ import { cn } from "@/utils/cn";
 import { ROUTES } from "@/constants/routes";
 import RevenueSummary from "./__components/RevenueSummary";
 import BookingsRoute from "./__components/BookingsRoute";
-import CancellationRate from "./__components/CanceellationRate";
+import CancellationRate from "./__components/CancellationRate";
 import UserGrowth from "./__components/UserGrowth";
 import type { ReportType, DateRange } from "./__components/types";
 import ActivityLogTab from "./subPageActivityLog";

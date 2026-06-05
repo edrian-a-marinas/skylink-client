@@ -1,6 +1,6 @@
 import axiosClient from "./axiosClient";
 import { handleApiError } from "./api.helpers";
-import type { ExportRequest, ReportResult, ReportQuery, RouteReport } from "@/types";
+import type { ExportRequest, ReportResult, ReportQuery, RouteReport, CancellationReport } from "@/types";
 
 /**
  * Admin: Get Booking Report
@@ -23,6 +23,19 @@ export async function getRouteReport(query?: ReportQuery): Promise<RouteReport> 
   try {
     const res = await axiosClient.get("/admin/reports/routes", { params: query });
     return res.data as RouteReport;
+  } catch (err) {
+    handleApiError(err);
+  }
+}
+
+/**
+ * Admin: Get Cancellation Report
+ * GET /api/v1/admin/reports/cancellations
+ */
+export async function getCancellationReport(query?: ReportQuery): Promise<CancellationReport> {
+  try {
+    const res = await axiosClient.get("/admin/reports/cancellations", { params: query });
+    return res.data as CancellationReport;
   } catch (err) {
     handleApiError(err);
   }

@@ -37,3 +37,10 @@ export interface RouteDataRow {
   bookings: number;
   revenue: string;
 }
+
+export interface CancellationDataRow {
+  period: string;
+  value: number;
+  change: string;
+  changeValue?: number | undefined; 
+}
