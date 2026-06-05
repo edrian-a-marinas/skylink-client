@@ -79,3 +79,15 @@ export interface UserGrowthReport {
   date_from?: string | null;
   date_to?: string | null;
 }
+
+export interface ActivityLogItem {
+  id: string;
+  email: string;
+  ip_address?: string | null;
+  attempted_at: string;
+}
+
+export interface ActivityLogList {
+  logs: ActivityLogItem[];
+  total: number;
+}
