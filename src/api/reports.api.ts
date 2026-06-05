@@ -1,6 +1,6 @@
 import axiosClient from "./axiosClient";
 import { handleApiError } from "./api.helpers";
-import type { ExportRequest, ReportResult, ReportQuery, RouteReport, CancellationReport } from "@/types";
+import type { ExportRequest, ReportResult, ReportQuery, RouteReport, CancellationReport, UserGrowthReport } from "@/types";
 
 /**
  * Admin: Get Booking Report
@@ -36,6 +36,19 @@ export async function getCancellationReport(query?: ReportQuery): Promise<Cancel
   try {
     const res = await axiosClient.get("/admin/reports/cancellations", { params: query });
     return res.data as CancellationReport;
+  } catch (err) {
+    handleApiError(err);
+  }
+}
+
+/**
+ * Admin: Get User Growth Report
+ * GET /api/v1/admin/reports/user-growth
+ */
+export async function getUserGrowthReport(query?: ReportQuery): Promise<UserGrowthReport> {
+  try {
+    const res = await axiosClient.get("/admin/reports/user-growth", { params: query });
+    return res.data as UserGrowthReport;
   } catch (err) {
     handleApiError(err);
   }

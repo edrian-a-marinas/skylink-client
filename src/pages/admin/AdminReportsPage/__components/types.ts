@@ -44,3 +44,10 @@ export interface CancellationDataRow {
   change: string;
   changeValue?: number | undefined; 
 }
+
+export interface UserGrowthDataRow {
+  period: string;
+  value: number;
+  change: string;
+  changeValue?: number | undefined;
+}

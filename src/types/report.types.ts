@@ -67,3 +67,15 @@ export interface CancellationReport {
   date_from?: string | null;
   date_to?: string | null;
 }
+
+export interface MonthlyUserGrowthPoint {
+  month: string;
+  year: number;
+  new_users: number;
+}
+
+export interface UserGrowthReport {
+  monthly_growth: MonthlyUserGrowthPoint[];
+  date_from?: string | null;
+  date_to?: string | null;
+}
