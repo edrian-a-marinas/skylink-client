@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ChevronLeft, Info, User } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
@@ -21,6 +22,20 @@ const PassengerDetailsPage = () => {
   const total = formatCurrency(booking.total);
   const inputClass =
     "mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 focus:border-[#5D7FA7] focus:outline-none focus:ring-2 focus:ring-[#5D7FA7]/20";
+  const selectClass =
+    "rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 focus:border-[#5D7FA7] focus:outline-none focus:ring-2 focus:ring-[#5D7FA7]/20";
+
+  const MONTHS = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+  ];
+  const currentYear = new Date().getFullYear();
+  const YEARS = Array.from({ length: currentYear - 1923 }, (_, i) => currentYear - i);
+  const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
+
+  const [dobMonth, setDobMonth] = useState("");
+  const [dobDay, setDobDay] = useState("");
+  const [dobYear, setDobYear] = useState("");
 
   return (
     <main className="min-h-[calc(100vh-160px)] bg-[#F3F5F7]">
@@ -78,7 +93,38 @@ const PassengerDetailsPage = () => {
                 <label className="text-xs font-semibold text-slate-600">
                   Date of Birth *
                 </label>
-                <input className={inputClass} placeholder="MM / DD / YYYY" />
+                <div className="mt-1 grid grid-cols-3 gap-2">
+                  <select
+                    value={dobMonth}
+                    onChange={(e) => setDobMonth(e.target.value)}
+                    className={selectClass}
+                  >
+                    <option value="" disabled>Month</option>
+                    {MONTHS.map((m, i) => (
+                      <option key={m} value={String(i + 1).padStart(2, "0")}>{m}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={dobDay}
+                    onChange={(e) => setDobDay(e.target.value)}
+                    className={selectClass}
+                  >
+                    <option value="" disabled>Day</option>
+                    {DAYS.map((d) => (
+                      <option key={d} value={String(d).padStart(2, "0")}>{d}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={dobYear}
+                    onChange={(e) => setDobYear(e.target.value)}
+                    className={selectClass}
+                  >
+                    <option value="" disabled>Year</option>
+                    {YEARS.map((y) => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <div>
                 <label className="text-xs font-semibold text-slate-600">

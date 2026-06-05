@@ -133,17 +133,17 @@ const BookingConfirmationPage = () => {
           </div>
         </div>
 
-        <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+        <div className="mt-6 flex flex-row gap-3">
           <button
             type="button"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#5D7FA7] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#4E6B8D] sm:w-auto"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#5D7FA7] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#4E6B8D]"
           >
             <Download className="h-4 w-4" />
             Download E-ticket
           </button>
           <Link
             to={ROUTES.MANAGE}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#AFC2DD] px-6 py-2.5 text-sm font-semibold text-[#5D7FA7] hover:border-[#8EA7CB] sm:w-auto"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#AFC2DD] px-6 py-2.5 text-sm font-semibold text-[#5D7FA7] hover:border-[#8EA7CB]"
           >
             View My Booking
             <ArrowRight className="h-4 w-4" />

@@ -202,6 +202,7 @@ const HomePage = () => {
 
       {/* Minimal gap before footer */}
       <div className="h-4 md:h-8"></div>
+
     </main>
   );
 };

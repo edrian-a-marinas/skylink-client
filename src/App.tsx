@@ -40,6 +40,7 @@ import DeaPage from "@/pages/ExplorePagesFolder/DeaPage/DeaPage";
 import AdminDestinationsPage from "@/pages/admin/AdminDestinationsPage";
 import AdminSettingsPage from "@/pages/admin/AdminSettingsPage/AdminSettingsPage";
 import AdminBookingsPage from "@/pages/admin/AdminBookingsPage/AdminBookingsPage";
+import ProfileSettingsPage from "@/pages/ProfileSettingsPage/ProfileSettingsPage";
 
 function screen(
   id: string,
@@ -170,6 +171,7 @@ const AppContent = () => {
           <Route element={<ProtectedRoute />}>
             <Route path={ROUTES.USER_DASHBOARD} element={<HomePage />} />
             <Route path={ROUTES.MY_BOOKINGS} element={<MyBookingsPage />} />
+            <Route path={ROUTES.PROFILE_SETTINGS} element={<ProfileSettingsPage />} />
             <Route
               path={ROUTES.BOOKING_DETAIL}
               element={<BookingDetailPage />}
@@ -199,15 +201,6 @@ const AppContent = () => {
                 "Reschedule Summary",
                 "user",
                 "Compare old vs new itinerary and confirm changes.",
-              )}
-            />
-            <Route
-              path={ROUTES.PROFILE_SETTINGS}
-              element={screen(
-                "S-17",
-                "Profile / Settings",
-                "user",
-                "User profile management and notification preferences.",
               )}
             />
             <Route

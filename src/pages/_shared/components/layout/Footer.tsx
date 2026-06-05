@@ -1,7 +1,35 @@
 
+import { useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import Global from "@/assets/logos/Vector.png";
 
+const footerSections = [
+  {
+    title: "Company",
+    links: ["About Us", "Careers", "Press", "Investor Relations"],
+  },
+  {
+    title: "Fly",
+    links: ["Book a Flight", "Flight Status", "Check-In Online", "Baggage Info"],
+  },
+  {
+    title: "Support",
+    links: ["Help Center", "Contact Us", "Feedback", "Accessibility"],
+  },
+  {
+    title: "Legal",
+    links: ["Terms", "Privacy", "Cookies", "Refund Policy"],
+  },
+];
+
 export default function Footer() {
+  const [clickedOpen, setClickedOpen] = useState<Record<string, boolean>>({});
+  const [hovered, setHovered] = useState<string | null>(null);
+
+  const toggle = (title: string) => {
+    setClickedOpen((prev) => ({ ...prev, [title]: !prev[title] }));
+  };
+
   return (
     <footer className="bg-[#171A1C] py-12 text-white">
       <div className="mx-auto max-w-[1131px] px-6">
@@ -38,38 +66,43 @@ export default function Footer() {
           </div>
 
           {/* RIGHT LINKS */}
-          <div className="flex flex-wrap gap-12">
-            <div className="flex flex-col gap-3">
-              <h4 className="text-xs font-semibold uppercase">Company</h4>
-              <a className="text-sm text-[#75808A]">About Us</a>
-              <a className="text-sm text-[#75808A]">Careers</a>
-              <a className="text-sm text-[#75808A]">Press</a>
-              <a className="text-sm text-[#75808A]">Investor Relations</a>
-            </div>
+          <div className="grid grid-cols-2 gap-x-12 gap-y-6 md:grid-cols-4 items-start">
+            {footerSections.map(({ title, links }) => {
+              const isActive = !!clickedOpen[title] || hovered === title;
+              return (
+                <div
+                  key={title}
+                  className="relative w-28 self-start"
+                  onMouseEnter={() => setHovered(title)}
+                  onMouseLeave={() => setHovered(null)}
+                >
+                  <button
+                    onClick={() => toggle(title)}
+                    className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none hover:text-white/80 transition-colors duration-150"
+                  >
+                    {title}
+                    {isActive ? (
+                      <ChevronUp size={13} />
+                    ) : (
+                      <ChevronDown size={13} />
+                    )}
+                  </button>
 
-            <div className="flex flex-col gap-3">
-              <h4 className="text-xs font-semibold uppercase">Fly</h4>
-              <a className="text-sm text-[#75808A]">Book a Flight</a>
-              <a className="text-sm text-[#75808A]">Flight Status</a>
-              <a className="text-sm text-[#75808A]">Check-In Online</a>
-              <a className="text-sm text-[#75808A]">Baggage Info</a>
-            </div>
-
-            <div className="flex flex-col gap-3">
-              <h4 className="text-xs font-semibold uppercase">Support</h4>
-              <a className="text-sm text-[#75808A]">Help Center</a>
-              <a className="text-sm text-[#75808A]">Contact Us</a>
-              <a className="text-sm text-[#75808A]">Feedback</a>
-              <a className="text-sm text-[#75808A]">Accessibility</a>
-            </div>
-
-            <div className="flex flex-col gap-3">
-              <h4 className="text-xs font-semibold uppercase">Legal</h4>
-              <a className="text-sm text-[#75808A]">Terms</a>
-              <a className="text-sm text-[#75808A]">Privacy</a>
-              <a className="text-sm text-[#75808A]">Cookies</a>
-              <a className="text-sm text-[#75808A]">Refund Policy</a>
-            </div>
+                  {isActive && (
+                    <div className="absolute top-full left-0 z-10 pt-3 pb-1 flex flex-col gap-3 bg-[#171A1C]">
+                      {links.map((link) => (
+                        <a
+                          key={link}
+                          className="text-sm text-[#75808A] cursor-pointer hover:text-white transition-colors duration-150 whitespace-nowrap"
+                        >
+                          {link}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -79,7 +112,6 @@ export default function Footer() {
         {/* BOTTOM COPYRIGHT */}
         <div className="flex flex-col items-center justify-between gap-3 text-xs text-[#75808A] md:flex-row">
           <span>© 2026 SkyLink Airlines, Inc. All rights reserved.</span>
-
           <span>Philippines (PHP ₱)</span>
         </div>
       </div>
