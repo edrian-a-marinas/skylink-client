@@ -31,24 +31,18 @@ type DashboardData = {
   totalUsers: number;
 };
 
-function mapBookingToRecentBooking(booking: Booking): RecentBooking {
-  const route = `${booking.flight?.origin ?? "MNL"} → ${booking.flight?.destination ?? "CEB"}`;
-
-  const p = booking.passengers?.[0];
-  const passenger = `${p?.firstName ?? "Guest"} ${p?.lastName ?? "Passenger"}`;
-
-  const date =
-    booking.flight?.departureTime?.split?.("T")?.[0] ??
-    booking.createdAt?.split?.("T")?.[0] ??
-    "";
-
+function mapBookingToRecentBooking(booking: any): RecentBooking {
+  const origin = booking.flight?.origin_airport?.iata_code ?? "—";
+  const destination = booking.flight?.destination_airport?.iata_code ?? "—";
+  const route = `${origin} → ${destination}`;
+  const date = booking.flight?.departure_time?.split?.("T")?.[0] ?? booking.booked_at?.split?.("T")?.[0] ?? "";
   return {
-    pnr: booking.pnr ?? booking.id.toUpperCase(),
-    passenger,
+    pnr: booking.id.slice(0, 8).toUpperCase(),
+    passenger: booking.seat_class?.name ?? "—",
     route,
     date,
     status: booking.status,
-    amount: `₱${(booking.totalPrice ?? 0).toLocaleString("en-US")}`,
+    amount: `₱${((booking.total_price ?? 0) / 100).toLocaleString("en-US")}`,
   };
 }
 
