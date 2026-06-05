@@ -20,12 +20,20 @@ import { generateReport } from "@/api/reports.api";
 type ReportType = "revenue" | "route" | "cancellation" | "growth";
 type DateRange = "today" | "week" | "month" | "3months" | "custom";
 
+interface MonthlyRevenuePoint {
+  month: string;
+  year: number;
+  revenue: number;
+  bookings: number;
+}
+
 interface BookingReport {
   total_bookings: number;
   confirmed_bookings: number;
   cancelled_bookings: number;
   total_revenue: number;
   confirmed_revenue: number;
+  monthly_revenue: MonthlyRevenuePoint[];
 }
 
 interface ReportDataRow {
@@ -44,34 +52,7 @@ interface ActivityLog {
 }
 
 // --- Data ---
-const REVENUE_DATA: ReportDataRow[] = [
-  { period: "Jan", value: 2400000, change: "—" },
-  { period: "Feb", value: 1980000, change: "-17.5%", changeValue: -17.5 },
-  { period: "Mar", value: 3100000, change: "+56.6%", changeValue: 56.6 },
-  { period: "Apr", value: 2750000, change: "-11.3%", changeValue: -11.3 }
-];
-
-const ROUTE_DATA: ReportDataRow[] = [
-  { period: "MNL→CEB", value: 1240, change: "—" },
-  { period: "MNL→DVO", value: 980, change: "-21.0%", changeValue: -21.0 },
-  { period: "MNL→SIN", value: 560, change: "-42.9%", changeValue: -42.9 },
-  { period: "MNL→KUL", value: 430, change: "-23.2%", changeValue: -23.2 },
-  { period: "CEB→DVO", value: 320, change: "-25.6%", changeValue: -25.6 }
-];
-
-const CANCELLATION_DATA: ReportDataRow[] = [
-  { period: "Jan", value: 3.2, change: "—" },
-  { period: "Feb", value: 4.1, change: "+28.1%", changeValue: 28.1 }, // up is bad for cancellations
-  { period: "Mar", value: 2.8, change: "-31.7%", changeValue: -31.7 }, // down is good
-  { period: "Apr", value: 3.5, change: "+25.0%", changeValue: 25.0 }
-];
-
-const GROWTH_DATA: ReportDataRow[] = [
-  { period: "Jan", value: 1200, change: "—" },
-  { period: "Feb", value: 1450, change: "+20.8%", changeValue: 20.8 },
-  { period: "Mar", value: 1830, change: "+26.2%", changeValue: 26.2 },
-  { period: "Apr", value: 2140, change: "+16.9%", changeValue: 16.9 }
-];
+const EMPTY_DATA: ReportDataRow[] = [];
 
 const MOCK_ACTIVITY_LOGS: ActivityLog[] = [
   {
@@ -205,17 +186,31 @@ const AdminReportsPage = () => {
   const reportData = useMemo(() => {
     switch (reportType) {
       case "revenue":
-        return REVENUE_DATA;
+        if (reportData_api?.monthly_revenue?.length) {
+          return reportData_api.monthly_revenue.map((m, idx, arr) => {
+            const prev = arr[idx - 1];
+            const changeValue = prev
+              ? parseFloat((((m.revenue - prev.revenue) / prev.revenue) * 100).toFixed(1))
+              : undefined;
+            return {
+              period: `${m.month} ${m.year}`,
+              value: m.revenue / 100,
+              change: changeValue !== undefined
+                ? `${changeValue > 0 ? "+" : ""}${changeValue}%`
+                : "—",
+              changeValue,
+            } as ReportDataRow;
+          });
+        }
+        return EMPTY_DATA;
+
       case "route":
-        return ROUTE_DATA;
       case "cancellation":
-        return CANCELLATION_DATA;
       case "growth":
-        return GROWTH_DATA;
       default:
-        return REVENUE_DATA;
+        return EMPTY_DATA;
     }
-  }, [reportType]);
+  }, [reportType, reportData_api]);
 
   const activeReportTitle = useMemo(() => {
     switch (reportType) {
@@ -313,9 +308,17 @@ ${reportData.map(r => `  - ${r.period}: ${typeof r.value === "number" && reportT
   const chartPoints = useMemo(() => {
     if (reportType === "route") return []; // Horizontal bars drawn separately
     
-    const xCoords = [120, 300, 480, 660];
+    const count = reportData.length || 1;
+    const xStart = 120;
+    const xEnd = 660;
+    const xCoords = reportData.map((_, i) =>
+      count === 1 ? (xStart + xEnd) / 2 : xStart + (i / (count - 1)) * (xEnd - xStart)
+    );
     let maxY = 100;
-    if (reportType === "revenue") maxY = 3200000;
+    if (reportType === "revenue") {
+      const maxVal = Math.max(...reportData.map(d => typeof d.value === "number" ? d.value : 0));
+      maxY = maxVal > 0 ? Math.ceil(maxVal * 1.3) : 100;
+    }
     if (reportType === "cancellation") maxY = 8;
     if (reportType === "growth") maxY = 2200;
 
@@ -634,7 +637,11 @@ ${reportData.map(r => `  - ${r.period}: ${typeof r.value === "number" && reportT
                     {Array.from({ length: 5 }).map((_, idx) => {
                       const y = 60 + idx * 50; // grid spacing
                       let label = "";
-                      if (reportType === "revenue") label = `₱${((4 - idx) * 800000).toLocaleString()}`;
+                      if (reportType === "revenue") {
+                        const maxVal = Math.max(...chartPoints.map(p => p.value));
+                        const step = maxVal > 0 ? Math.ceil(maxVal / 4) : 0;
+                        label = `₱${((4 - idx) * step).toLocaleString()}`;
+                      }
                       if (reportType === "cancellation") label = `${((4 - idx) * 2)}%`;
                       if (reportType === "growth") label = `${((4 - idx) * 550).toLocaleString()}`;
 
@@ -776,50 +783,18 @@ ${reportData.map(r => `  - ${r.period}: ${typeof r.value === "number" && reportT
                 <h3 className="text-sm font-bold text-slate-900">Data Table</h3>
               </div>
               <div className="p-1">
-                {reportType === "revenue" ? (
-                  isLoadingReport ? (
-                    <div className="py-16 flex justify-center">
-                      <div className="animate-spin size-8 border-4 border-[#496B92] border-t-transparent rounded-full" />
-                    </div>
-                  ) : reportData_api ? (
-                    <table className="w-full text-sm text-left">
-                      <thead>
-                        <tr className="text-xs font-bold text-slate-400 uppercase border-b border-slate-100">
-                          <th className="px-6 py-3">Metric</th>
-                          <th className="px-6 py-3">Value</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr className="border-b border-slate-50">
-                          <td className="px-6 py-3 font-bold text-slate-800">Total Bookings</td>
-                          <td className="px-6 py-3 font-bold text-slate-900">{reportData_api.total_bookings.toLocaleString()}</td>
-                        </tr>
-                        <tr className="border-b border-slate-50">
-                          <td className="px-6 py-3 font-bold text-slate-800">Confirmed Bookings</td>
-                          <td className="px-6 py-3 font-bold text-emerald-600">{reportData_api.confirmed_bookings.toLocaleString()}</td>
-                        </tr>
-                        <tr className="border-b border-slate-50">
-                          <td className="px-6 py-3 font-bold text-slate-800">Cancelled Bookings</td>
-                          <td className="px-6 py-3 font-bold text-rose-600">{reportData_api.cancelled_bookings.toLocaleString()}</td>
-                        </tr>
-                        <tr className="border-b border-slate-50">
-                          <td className="px-6 py-3 font-bold text-slate-800">Total Revenue</td>
-                          <td className="px-6 py-3 font-bold text-[#496B92]">₱{(reportData_api.total_revenue / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}</td>
-                        </tr>
-                        <tr>
-                          <td className="px-6 py-3 font-bold text-slate-800">Confirmed Revenue</td>
-                          <td className="px-6 py-3 font-bold text-[#496B92]">₱{(reportData_api.confirmed_revenue / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  ) : (
-                    <div className="py-16 text-center text-slate-400 font-medium">No report data available.</div>
-                  )
+                {isLoadingReport && reportType === "revenue" ? (
+                  <div className="py-16 flex justify-center">
+                    <div className="animate-spin size-8 border-4 border-[#496B92] border-t-transparent rounded-full" />
+                  </div>
                 ) : (
                   <DataTable
                     columns={reportColumns}
                     rows={reportData}
                     rowKey={(r) => r.period}
+                    emptyState={
+                      <div className="py-16 text-center text-slate-400 font-medium">No data available.</div>
+                    }
                   />
                 )}
               </div>
