@@ -14,10 +14,19 @@ import Toast from "@/pages/_shared/components/ui/Toast";
 import DataTable, { type TableColumn } from "@/pages/_shared/components/ui/DataTable";
 import { cn } from "@/utils/cn";
 import { ROUTES } from "@/constants/routes";
+import { generateReport } from "@/api/reports.api";
 
 // --- Types ---
 type ReportType = "revenue" | "route" | "cancellation" | "growth";
 type DateRange = "today" | "week" | "month" | "3months" | "custom";
+
+interface BookingReport {
+  total_bookings: number;
+  confirmed_bookings: number;
+  cancelled_bookings: number;
+  total_revenue: number;
+  confirmed_revenue: number;
+}
 
 interface ReportDataRow {
   period: string;
@@ -159,6 +168,10 @@ const AdminReportsPage = () => {
   const [logPage, setLogPage] = useState(1);
   const logsPerPage = 8;
 
+  // Report API State
+  const [reportData_api, setReportData_api] = useState<BookingReport | null>(null);
+  const [isLoadingReport, setIsLoadingReport] = useState(false);
+
   // Toast State
   const [toast, setToast] = useState<{ isOpen: boolean; message: string; type: "success" | "error" | "info" }>({
     isOpen: false,
@@ -166,9 +179,26 @@ const AdminReportsPage = () => {
     type: "success"
   });
 
-  // Reset tab scroll/state on path updates
+// Reset tab scroll/state on path updates
   useEffect(() => {
     setHoveredPoint(null);
+  }, [activeTab, reportType]);
+
+  // Fetch real report data from backend
+  useEffect(() => {
+    if (activeTab !== "reports" || reportType !== "revenue") return;
+    const fetchReport = async () => {
+      setIsLoadingReport(true);
+      try {
+        const data = await generateReport();
+        setReportData_api(data as unknown as BookingReport);
+      } catch (err) {
+        console.error("Failed to load report:", err);
+      } finally {
+        setIsLoadingReport(false);
+      }
+    };
+    fetchReport();
   }, [activeTab, reportType]);
 
   // Report details matching Type
@@ -746,11 +776,52 @@ ${reportData.map(r => `  - ${r.period}: ${typeof r.value === "number" && reportT
                 <h3 className="text-sm font-bold text-slate-900">Data Table</h3>
               </div>
               <div className="p-1">
-                <DataTable
-                  columns={reportColumns}
-                  rows={reportData}
-                  rowKey={(r) => r.period}
-                />
+                {reportType === "revenue" ? (
+                  isLoadingReport ? (
+                    <div className="py-16 flex justify-center">
+                      <div className="animate-spin size-8 border-4 border-[#496B92] border-t-transparent rounded-full" />
+                    </div>
+                  ) : reportData_api ? (
+                    <table className="w-full text-sm text-left">
+                      <thead>
+                        <tr className="text-xs font-bold text-slate-400 uppercase border-b border-slate-100">
+                          <th className="px-6 py-3">Metric</th>
+                          <th className="px-6 py-3">Value</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b border-slate-50">
+                          <td className="px-6 py-3 font-bold text-slate-800">Total Bookings</td>
+                          <td className="px-6 py-3 font-bold text-slate-900">{reportData_api.total_bookings.toLocaleString()}</td>
+                        </tr>
+                        <tr className="border-b border-slate-50">
+                          <td className="px-6 py-3 font-bold text-slate-800">Confirmed Bookings</td>
+                          <td className="px-6 py-3 font-bold text-emerald-600">{reportData_api.confirmed_bookings.toLocaleString()}</td>
+                        </tr>
+                        <tr className="border-b border-slate-50">
+                          <td className="px-6 py-3 font-bold text-slate-800">Cancelled Bookings</td>
+                          <td className="px-6 py-3 font-bold text-rose-600">{reportData_api.cancelled_bookings.toLocaleString()}</td>
+                        </tr>
+                        <tr className="border-b border-slate-50">
+                          <td className="px-6 py-3 font-bold text-slate-800">Total Revenue</td>
+                          <td className="px-6 py-3 font-bold text-[#496B92]">₱{(reportData_api.total_revenue / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}</td>
+                        </tr>
+                        <tr>
+                          <td className="px-6 py-3 font-bold text-slate-800">Confirmed Revenue</td>
+                          <td className="px-6 py-3 font-bold text-[#496B92]">₱{(reportData_api.confirmed_revenue / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className="py-16 text-center text-slate-400 font-medium">No report data available.</div>
+                  )
+                ) : (
+                  <DataTable
+                    columns={reportColumns}
+                    rows={reportData}
+                    rowKey={(r) => r.period}
+                  />
+                )}
               </div>
             </section>
 
