@@ -31,3 +31,9 @@ export interface ActivityLog {
   recordId: string;
   details: string;
 }
+
+export interface RouteDataRow {
+  route: string;
+  bookings: number;
+  revenue: string;
+}

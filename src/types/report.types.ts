@@ -41,3 +41,15 @@ export interface ExportRequest {
   query: ReportQuery;
   format: "pdf" | "csv";
 }
+
+export interface RouteBookingPoint {
+  route: string;      
+  bookings: number;
+  revenue: number;
+}
+
+export interface RouteReport {
+  routes: RouteBookingPoint[];
+  date_from?: string | null;
+  date_to?: string | null;
+}
