@@ -7,9 +7,11 @@ import { FiMapPin } from "react-icons/fi";
 import { RiPriceTagLine } from "react-icons/ri";
 import { HiChevronRight } from "react-icons/hi2";
 import { getPromotions } from "@/api/promotions.api";
+import { getPublicAirports } from "@/api/destinations.api";
 import { searchFlights } from "@/api/flights.api";
 import type { Flight } from "@/types";
 import type { Promotion } from "@/types/promotion.types";
+import type { Airport } from "@/types/destinations.types";
 
 // ─── Derived types ────────────────────────────────────────────────────────────
 
@@ -42,8 +44,7 @@ type Deal = {
 function DestinationCard({ dest }: { dest: Destination }) {
   return (
     <Link
-      to={ROUTES.EXPLORE_DESTINATION}
-      state={{ destination: dest }}
+      to={`/explore/destination/${dest.code}`}
       className="relative h-55 rounded-[14px] overflow-hidden shadow-[0px_2px_8px_rgba(0,0,0,0.06)] w-full text-left hover:shadow-md transition-shadow"
     >
       {dest.image ? (
@@ -130,17 +131,20 @@ const ExplorePage = () => {
   const [search, setSearch] = useState("");
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [flights, setFlights] = useState<Flight[]>([]);
+  const [airports, setAirports] = useState<Airport[]>([]); // <-- add
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [promosData, flightsData] = await Promise.all([
+        const [promosData, flightsData, airportsData] = await Promise.all([
           getPromotions(),
           searchFlights(),
+          getPublicAirports(), // <-- add
         ]);
         setPromotions(promosData || []);
         setFlights(flightsData || []);
+        setAirports(airportsData || []); // <-- add
       } catch (err) {
         console.error("Failed to fetch explore page data", err);
       } finally {
@@ -156,6 +160,7 @@ const ExplorePage = () => {
     (flights || []).forEach((flight) => {
       if (flight.destination && !seen.has(flight.destination)) {
         seen.add(flight.destination);
+        const airport = airports.find((a) => a.iata_code === flight.destination); // <-- use airport image
         dests.push({
           id: flight.id,
           code: flight.destination,
@@ -164,7 +169,7 @@ const ExplorePage = () => {
           duration: "1h 20m",
           price: `From ₱${(flight.price || 0).toLocaleString()}`,
           bgClass: "bg-primary-60",
-          image: flight.imageUrl ?? "",
+          image: airport?.image_url ?? flight.imageUrl ?? "", // <-- airport image first
         });
       }
     });
@@ -192,13 +197,15 @@ const ExplorePage = () => {
         price: `₱${sale.toLocaleString()}`,
         originalPrice: `₱${original.toLocaleString()}`,
         discount: `${discount}% OFF`,
-        badge: (promo.category || "PROMO").toUpperCase(),
+        badge: (promo.badge_text || promo.badge_type || "PROMO").toUpperCase(),
         badgeClass:
-          promo.category === "flash"
-            ? "bg-warning-60"
-            : promo.category === "weekend"
-              ? "bg-success-60"
-              : "bg-primary-60",
+          promo.badge_type === "hot"
+            ? "bg-rose-500"
+            : promo.badge_type === "limited"
+              ? "bg-amber-500"
+              : promo.badge_type === "new"
+                ? "bg-emerald-600"
+                : "bg-[#496B92]",
         validUntil: promo.valid_until || "Limited Time",
         image: promo.image_url ?? "",
       };

@@ -1,13 +1,22 @@
 import HeroImage from "@/assets/BackgroundImages/homepagePlane.png";
-import LondonImg from "@/assets/BackgroundImages/london.png";
-import ParisImg from "@/assets/BackgroundImages/paris.png";
-import TokyoImg from "@/assets/BackgroundImages/tokyo.png";
-import SydneyImg from "@/assets/BackgroundImages/sydney.png";
+import { useState, useEffect } from "react";
+import { getPublicAirports } from "@/api/destinations.api";
+import type { Airport } from "@/types/destinations.types";
 import FlightSearchForm from "@/pages/_shared/components/flights/FlightSearchForm";
 import { ArrowRight, ConciergeBell, Plane, Leaf } from "lucide-react";
+import { ROUTES } from "@/constants/routes";
 import { Link } from "react-router-dom";
 
 const HomePage = () => {
+  const [airports, setAirports] = useState<Airport[]>([]);
+
+  useEffect(() => {
+    getPublicAirports().then(setAirports).catch(console.error);
+  }, []);
+
+  const escapes = airports.slice(0, 4);
+  const [featured, ...rest] = escapes;
+
   return (
     <main className="relative min-h-screen bg-[#FDFBF8]">
       {/* Hero Section */}
@@ -59,7 +68,7 @@ const HomePage = () => {
               </p>
             </div>
             <Link
-              to="#"
+              to={ROUTES.EXPLORE}
               className="flex items-center gap-2 text-[#496B92] font-bold text-[14px] md:text-[15px] hover:underline group"
             >
               View all destinations{" "}
@@ -70,81 +79,79 @@ const HomePage = () => {
             </Link>
           </div>
 
-          {/* Strict Bento Grid - London is the height anchor */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-6xl">
-            {/* Left: London - Large Square spanning 2 row heights */}
-            <div className="relative rounded-[16px] md:rounded-[24px] overflow-hidden group cursor-pointer aspect-square">
-              <img
-                src={LondonImg}
-                alt="London"
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
-              <div className="absolute bottom-6 left-6 md:bottom-8 md:left-8 text-white">
-                <p className="text-[10px] md:text-[12px] font-bold uppercase tracking-widest opacity-80 mb-1">
-                  United Kingdom
-                </p>
-                <h3 className="text-[24px] md:text-[32px] font-bold">London</h3>
-              </div>
+{/* Bento Grid — real airport data */}
+          {escapes.length === 0 ? (
+            <div className="h-64 flex items-center justify-center text-slate-400 font-medium">
+              Loading destinations...
             </div>
-
-            {/* Right: Nested Grid for perfect alignment */}
-            <div className="grid grid-rows-2 gap-4 md:gap-6">
-              {/* Paris - Horizontal Rectangle (Top Half) */}
-              <div className="relative rounded-[16px] md:rounded-[24px] overflow-hidden group cursor-pointer h-full">
-                <img
-                  src={ParisImg}
-                  alt="Paris"
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
-                <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 text-white">
-                  <p className="text-[10px] md:text-[12px] font-bold uppercase tracking-widest opacity-80 mb-0.5">
-                    France
-                  </p>
-                  <h3 className="text-[20px] md:text-[28px] font-bold">
-                    Paris
-                  </h3>
-                </div>
-              </div>
-
-              {/* Bottom Row: Tokyo & Sydney - Two Squares (Bottom Half) */}
-              <div className="grid grid-cols-2 gap-4 md:gap-6 h-full">
-                <div className="relative rounded-[16px] md:rounded-[24px] overflow-hidden group cursor-pointer aspect-square md:aspect-auto">
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-6xl">
+              {/* Featured — large left card */}
+              {featured && (
+                <Link
+                  to={`/explore/destination/${featured.iata_code}`}
+                  className="relative rounded-[16px] md:rounded-[24px] overflow-hidden group cursor-pointer aspect-square"
+                >
                   <img
-                    src={TokyoImg}
-                    alt="Tokyo"
+                    src={featured.image_url ?? ""}
+                    alt={featured.city}
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
-                  <div className="absolute bottom-4 left-4 md:bottom-5 md:left-5 text-white">
-                    <p className="text-[9px] md:text-[11px] font-bold uppercase tracking-widest opacity-80 mb-0.5">
-                      Japan
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                  <div className="absolute bottom-6 left-6 md:bottom-8 md:left-8 text-white">
+                    <p className="text-[10px] md:text-[12px] font-bold uppercase tracking-widest opacity-80 mb-1">
+                      {featured.country}
                     </p>
-                    <h3 className="text-[18px] md:text-[22px] font-bold">
-                      Tokyo
-                    </h3>
+                    <h3 className="text-[24px] md:text-[32px] font-bold">{featured.city}</h3>
                   </div>
-                </div>
-                <div className="relative rounded-[16px] md:rounded-[24px] overflow-hidden group cursor-pointer aspect-square md:aspect-auto">
-                  <img
-                    src={SydneyImg}
-                    alt="Sydney"
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
-                  <div className="absolute bottom-4 left-4 md:bottom-5 md:left-5 text-white">
-                    <p className="text-[9px] md:text-[11px] font-bold uppercase tracking-widest opacity-80 mb-0.5">
-                      Australia
-                    </p>
-                    <h3 className="text-[18px] md:text-[22px] font-bold">
-                      Sydney
-                    </h3>
-                  </div>
+                </Link>
+              )}
+              {/* Right: remaining 3 */}
+              <div className="grid grid-rows-2 gap-4 md:gap-6">
+                {rest[0] && (
+                  <Link
+                    to={`/explore/destination/${rest[0].iata_code}`}
+                    className="relative rounded-[16px] md:rounded-[24px] overflow-hidden group cursor-pointer h-full"
+                  >
+                    <img
+                      src={rest[0].image_url ?? ""}
+                      alt={rest[0].city}
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                    <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 text-white">
+                      <p className="text-[10px] md:text-[12px] font-bold uppercase tracking-widest opacity-80 mb-0.5">
+                        {rest[0].country}
+                      </p>
+                      <h3 className="text-[20px] md:text-[28px] font-bold">{rest[0].city}</h3>
+                    </div>
+                  </Link>
+                )}
+                <div className="grid grid-cols-2 gap-4 md:gap-6 h-full">
+                  {rest.slice(1).map((airport) => (
+                    <Link
+                      key={airport.iata_code}
+                      to={`/explore/destination/${airport.iata_code}`}
+                      className="relative rounded-[16px] md:rounded-[24px] overflow-hidden group cursor-pointer aspect-square md:aspect-auto"
+                    >
+                      <img
+                        src={airport.image_url ?? ""}
+                        alt={airport.city}
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                      <div className="absolute bottom-4 left-4 md:bottom-5 md:left-5 text-white">
+                        <p className="text-[9px] md:text-[11px] font-bold uppercase tracking-widest opacity-80 mb-0.5">
+                          {airport.country}
+                        </p>
+                        <h3 className="text-[18px] md:text-[22px] font-bold">{airport.city}</h3>
+                      </div>
+                    </Link>
+                  ))}
                 </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
 

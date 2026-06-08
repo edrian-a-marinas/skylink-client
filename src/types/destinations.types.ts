@@ -5,6 +5,10 @@ export interface Airport {
   city: string;
   country: string;
   timezone: string;
+  about?: string | null;
+  highlights?: string[] | null;
+  best_time?: string | null;
+  image_url?: string | null;
 }
 
 export interface Aircraft {
@@ -44,6 +48,20 @@ export interface CreateAirportPayload {
   city: string;
   country: string;
   timezone: string;
+  about?: string | null;
+  highlights?: string[] | null;
+  best_time?: string | null;
+  image_url?: string | null;
+}
+export interface UpdateAirportPayload {
+  name?: string;
+  city?: string;
+  country?: string;
+  timezone?: string;
+  about?: string | null;
+  highlights?: string[] | null;
+  best_time?: string | null;
+  image_url?: string | null;
 }
 
 export interface UpdateAirportPayload {

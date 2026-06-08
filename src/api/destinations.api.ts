@@ -85,3 +85,9 @@ export const updateSeatClass = async (id: number, payload: UpdateSeatClassPayloa
 export const deleteSeatClass = async (id: number): Promise<void> => {
   await axiosClient.delete(`${SEAT_CLASSES}/${id}`);
 };
+
+// ── Public Airports (no auth) ─────────────────────────────────────────────────
+export const getPublicAirports = async (): Promise<Airport[]> => {
+  const response = await axiosClient.get("/admin/airports/public");
+  return response.data;
+};

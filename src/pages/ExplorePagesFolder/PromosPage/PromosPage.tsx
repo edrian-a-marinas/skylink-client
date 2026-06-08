@@ -41,29 +41,32 @@ const PromosPage = () => {
         price: `₱${sale.toLocaleString()}`,
         originalPrice: `₱${original.toLocaleString()}`,
         discount: `${discount}% OFF`,
-        badge: (promo.category || "PROMO").toUpperCase(),
+        badge: (promo.badge_text || promo.badge_type || "PROMO").toUpperCase(),
         badgeClass:
-          promo.category === "flash"
-            ? "bg-warning-60 text-white"
-            : promo.category === "weekend"
-              ? "bg-success-60 text-white"
-              : "bg-primary-60 text-white",
+          promo.badge_type === "hot"
+            ? "bg-rose-500 text-white"
+            : promo.badge_type === "limited"
+              ? "bg-amber-500 text-white"
+              : promo.badge_type === "new"
+                ? "bg-emerald-600 text-white"
+                : "bg-[#496B92] text-white",
         validUntil: promo.valid_until || "Limited Time",
         image: promo.image_url ?? "",
       };
     });
 
     if (filter === "all") return allDeals;
-    return allDeals.filter((deal) => deal.badge.toLowerCase() === filter);
+    return allDeals.filter((deal) =>
+      promotions?.find((p) => p.id === deal.id)?.badge_type === filter
+    );
   }, [promotions, filter]);
 
   const categories = [
     { id: "all", label: "All Deals" },
-    { id: "flash", label: "Flash Sale" },
-    { id: "weekend", label: "Weekend Escape" },
-    { id: "international", label: "International" },
+    { id: "hot", label: "Hot Deal" },
+    { id: "limited", label: "Limited" },
+    { id: "new", label: "New" },
   ];
-
   return (
     <main className="min-h-[calc(100vh-160px)] bg-[#F3F5F7]">
       <section className="bg-white border-b border-slate-200">

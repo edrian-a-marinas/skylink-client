@@ -12,8 +12,10 @@ import PassengerSelector, {
 } from "./components/PassengerSelector";
 import { getPromotions } from "@/api/promotions.api";
 import { searchFlights } from "@/api/flights.api";
+import { getPublicAirports } from "@/api/destinations.api";
 import type { Flight } from "@/types";
 import type { Promotion } from "@/types/promotion.types";
+import type { Airport } from "@/types/destinations.types";
 import { cn } from "@/utils/cn";
 
 type Route = {
@@ -122,11 +124,11 @@ function DealCard({ deal }: { deal: Promotion }) {
   );
 
   const badgeClass = cn(
-    "absolute bottom-3 right-3 text-text-on-primary px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
-    deal.category === "flash" && "bg-warning-60",
-    deal.category === "weekend" && "bg-success-60",
-    deal.category === "international" && "bg-purple-60",
-    deal.category === "promo" && "bg-blue-60",
+    "absolute bottom-3 right-3 text-white px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
+    deal.badge_type === "hot" && "bg-rose-500",
+    deal.badge_type === "limited" && "bg-amber-500",
+    deal.badge_type === "new" && "bg-emerald-600",
+    !deal.badge_type && "bg-[#496B92]",
   );
 
   return (
@@ -142,7 +144,6 @@ function DealCard({ deal }: { deal: Promotion }) {
           discount: `-${discount}%`,
           validUntil: deal.valid_until,
           image: deal.image_url ?? "",
-          badge: deal.category,
         },
       }}
       className="bg-bg-page border border-tertiary-30 rounded-[14px] overflow-hidden shadow-[0px_2px_8px_rgba(0,0,0,0.04)] text-left w-full hover:shadow-md transition-shadow"
@@ -162,7 +163,7 @@ function DealCard({ deal }: { deal: Promotion }) {
         <span className="absolute top-3 left-3 bg-rose-600 text-text-on-primary text-[11px] font-bold px-2 py-1 rounded-full">
           -{discount}%
         </span>
-        <span className={badgeClass}>{deal.category}</span>
+        <span className={badgeClass}>{deal.badge_text || deal.badge_type || "PROMO"}</span>
       </div>
       <div className="p-4">
         <p
@@ -255,18 +256,7 @@ function RouteCard({ route }: { route: Route }) {
 function DestinationCard({ destination }: { destination: Destination }) {
   return (
     <Link
-      to={ROUTES.EXPLORE_DESTINATION}
-      state={{
-        destination: {
-          id: destination.id,
-          code: destination.code,
-          name: destination.city,
-          location: "Philippines",
-          duration: "1h 20m",
-          price: destination.startingFrom,
-          image: destination.image,
-        },
-      }}
+      to={`/explore/destination/${destination.code}`}
       className="relative h-50 rounded-[14px] overflow-hidden shadow-[0px_2px_8px_rgba(0,0,0,0.06)] w-full text-left hover:shadow-md transition-shadow"
     >
       {destination.image ? (
@@ -340,6 +330,7 @@ const BookingLandingPage = () => {
   const [openField, setOpenField] = useState<"from" | "to" | null>(null);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [flights, setFlights] = useState<Flight[]>([]);
+  const [airports, setAirports] = useState<Airport[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fromRef = useRef<HTMLDivElement>(null);
@@ -349,12 +340,14 @@ const BookingLandingPage = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const [promosData, flightsData] = await Promise.all([
+        const [promosData, flightsData, airportsData] = await Promise.all([
           getPromotions(),
           searchFlights(),
+          getPublicAirports(),
         ]);
         setPromotions(promosData || []);
         setFlights(flightsData || []);
+        setAirports(airportsData || []);
       } catch (err) {
         console.error("Failed to fetch landing page data", err);
       } finally {
@@ -438,18 +431,19 @@ const BookingLandingPage = () => {
     (flights || []).forEach((flight) => {
       if (flight.destination && !seen.has(flight.destination)) {
         seen.add(flight.destination);
+        const airport = airports.find((a) => a.iata_code === flight.destination);
         dests.push({
           id: flight.id,
           code: flight.destination,
           city: flight.destinationCity || flight.destination,
           startingFrom: `From ₱${(flight.price || 0).toLocaleString()}`,
           bgClass: "bg-primary-60",
-          image: flight.imageUrl ?? "",
+          image: airport?.image_url ?? flight.imageUrl ?? "",
         });
       }
     });
     return dests.slice(0, 4);
-  }, [flights]);
+  }, [flights, airports]);
 
 
   return (
