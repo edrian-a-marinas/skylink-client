@@ -110,8 +110,8 @@ const PromosPage = () => {
             {deals.map((deal) => (
               <Link
                 key={deal.id}
-                to={ROUTES.EXPLORE_PROMO_DETAIL}
-                state={{ deal }}
+                to={ROUTES.EXPLORE_PROMO_DETAIL.replace(":id", deal.id)}
+                state={{ deal: promotions?.find((p) => p.id === deal.id) }}
                 className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
               >
                 <article className="flex h-full flex-col">

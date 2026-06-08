@@ -70,11 +70,11 @@ function DestinationCard({ dest }: { dest: Destination }) {
   );
 }
 
-function DealCard({ deal }: { deal: Deal }) {
+function DealCard({ deal, promo }: { deal: Deal; promo: Promotion }) {
   return (
     <Link
-      to={ROUTES.EXPLORE_PROMO_DETAIL}
-      state={{ deal }}
+      to={ROUTES.EXPLORE_PROMO_DETAIL.replace(":id", deal.id)}
+      state={{ deal: promo }}
       className="bg-bg-page border border-tertiary-30 rounded-[14px] overflow-hidden shadow-[0px_2px_8px_rgba(0,0,0,0.04)] text-left w-full hover:shadow-md transition-shadow"
     >
       <div className="relative h-32.5 bg-tertiary-20">
@@ -317,7 +317,13 @@ const ExplorePage = () => {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {deals.length > 0 ? (
-                  deals.map((deal) => <DealCard key={deal.id} deal={deal} />)
+                  deals.map((deal) => (
+                    <DealCard
+                      key={deal.id}
+                      deal={deal}
+                      promo={promotions.find((p) => p.id === deal.id)!}
+                    />
+                  ))
                 ) : (
                   <p
                     className={`col-span-3 ${typography.paragraph.md.normal} ${colors.text.secondary}`}

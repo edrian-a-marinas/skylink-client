@@ -14,7 +14,7 @@ export const ROUTES = {
   EXPLORE_DESTINATION: "/explore/destination",
   EXPLORE_DESTINATION_DETAIL: "/explore/destination/:iata_code",
   EXPLORE_PROMOS: "/explore/promos",
-  EXPLORE_PROMO_DETAIL: "/explore/promos/deal",
+  EXPLORE_PROMO_DETAIL: "/explore/promos/:id",
   LOGIN: "/login",
   FORGOT_PASSWORD: "/forgot-password",
   RESET_PASSWORD: "/reset-password",
