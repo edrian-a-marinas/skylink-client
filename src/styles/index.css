@@ -172,3 +172,34 @@
 
   * { box-sizing: border-box; }
 }
+
+@media print {
+  /* Hide all elements on the page except the printable ticket container */
+  body * {
+    visibility: hidden;
+  }
+
+  .printable-ticket,
+  .printable-ticket * {
+    visibility: visible;
+  }
+
+  /* Position the printable ticket cleanly at the top-left of the printed page */
+  .printable-ticket {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Optimize print margins */
+  @page {
+    size: auto;
+    margin: 15mm;
+  }
+}

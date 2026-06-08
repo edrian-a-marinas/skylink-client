@@ -1,4 +1,4 @@
-import { Bell, Menu, Search } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 
 type AdminTopHeaderProps = {
   onMenuClick: () => void;

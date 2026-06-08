@@ -43,10 +43,20 @@ const ManageBookingDetailsLayout = ({
   const modifyDisabledClass =
     actionsDisabled || !isUpcoming ? "pointer-events-none opacity-60" : "";
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_320px]">
       {/* LEFT CONTENT */}
-      <div className="w-full space-y-4">
+      <div className="printable-ticket w-full space-y-4">
+        {/* Print-only Header */}
+        <div className="hidden print:flex flex-col items-center border-b border-slate-200 pb-5 mb-5 text-center">
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">SkyLink E-Ticket</h1>
+          <p className="text-sm text-slate-500 mt-1 font-semibold">Thank you for flying with SkyLink</p>
+        </div>
+
         {/* FLIGHT CARD */}
         <div className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           {/* TOP */}
@@ -181,7 +191,7 @@ const ManageBookingDetailsLayout = ({
       </div>
 
       {/* RIGHT SIDEBAR */}
-      <aside className="space-y-4">
+      <aside className="space-y-4 print:hidden">
         {/* ACTIONS */}
         <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <p className="text-sm font-bold text-slate-800">Manage Booking</p>
@@ -189,7 +199,8 @@ const ManageBookingDetailsLayout = ({
           <div className="mt-3 flex flex-col gap-2">
             <button
               type="button"
-              className={`${actionBaseClass} border-2 border-[#5D7FA7] bg-[#5D7FA7] text-white hover:bg-[#4E6B8D] ${actionDisabledClass}`}
+              onClick={handlePrint}
+              className={`${actionBaseClass} border-2 border-[#5D7FA7] bg-[#5D7FA7] text-white hover:bg-[#4E6B8D] ${actionDisabledClass} cursor-pointer`}
             >
               <Download className="h-4 w-4" />
               Download E-ticket
