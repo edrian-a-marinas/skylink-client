@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { cn } from "@/utils/cn";
 
 interface RawBooking {
@@ -16,6 +16,8 @@ interface Props {
 }
 
 const DashboardCharts = ({ bookings }: Props) => {
+  const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
+
   // --- Bookings Over Time (last 30 days, grouped by date) ---
   const bookingsByDate = useMemo(() => {
     const now = new Date();
@@ -111,7 +113,7 @@ const DashboardCharts = ({ bookings }: Props) => {
           <h3 className="text-lg font-bold text-slate-900 leading-none">Bookings Over Time</h3>
           <p className="mt-1 text-sm text-slate-500 font-medium">Last 30 days</p>
         </div>
-        <div className="relative h-64 w-full">
+        <div className="relative h-64 w-full select-none">
           <svg className="h-full w-full" viewBox="0 0 400 160" preserveAspectRatio="none">
             <defs>
               <linearGradient id="booking-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -119,11 +121,74 @@ const DashboardCharts = ({ bookings }: Props) => {
                 <stop offset="100%" stopColor="#496B92" stopOpacity="0" />
               </linearGradient>
             </defs>
+            {/* Guide line on hover */}
+            {hoveredPoint !== null && linePoints[hoveredPoint] && (
+              <line
+                x1={linePoints[hoveredPoint].x}
+                y1={10}
+                x2={linePoints[hoveredPoint].x}
+                y2={150}
+                stroke="#cbd5e1"
+                strokeWidth="1"
+                strokeDasharray="3 3"
+                className="pointer-events-none"
+              />
+            )}
             {fillPath && <path d={fillPath} fill="url(#booking-gradient)" />}
             {linePath && (
               <path d={linePath} fill="none" stroke="#496B92" strokeWidth="3" strokeLinecap="round" />
             )}
+            {/* Point triggers */}
+            {linePoints.map((pt, idx) => (
+              <g key={idx} className="cursor-pointer">
+                {/* Transparent hit area */}
+                <circle
+                  cx={pt.x}
+                  cy={pt.y}
+                  r="8"
+                  fill="transparent"
+                  onMouseEnter={() => setHoveredPoint(idx)}
+                  onMouseLeave={() => setHoveredPoint(null)}
+                />
+                {/* Visible dot shown on hover */}
+                {hoveredPoint === idx && (
+                  <circle
+                    cx={pt.x}
+                    cy={pt.y}
+                    r="4"
+                    fill="#496B92"
+                    stroke="#ffffff"
+                    strokeWidth="1.5"
+                    className="pointer-events-none"
+                  />
+                )}
+              </g>
+            ))}
           </svg>
+          
+          {/* Tooltip Overlay */}
+          {hoveredPoint !== null && linePoints[hoveredPoint] && (
+            <div
+              className="absolute bg-slate-900/95 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg shadow-lg border border-slate-800 pointer-events-none flex flex-col gap-0.5 z-10 whitespace-nowrap"
+              style={{
+                left: `${(linePoints[hoveredPoint].x / 400) * 100}%`,
+                top: `${(linePoints[hoveredPoint].y / 160) * 100}%`,
+                transform: "translate(-50%, -125%)",
+              }}
+            >
+              <span className="text-slate-400 font-semibold">
+                {new Date(linePoints[hoveredPoint].date).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </span>
+              <span className="text-white text-xs">
+                {linePoints[hoveredPoint].count} booking{linePoints[hoveredPoint].count === 1 ? "" : "s"}
+              </span>
+            </div>
+          )}
+
           <div className="mt-2 flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest">
             {dateLabels.map((label) => <span key={label}>{label}</span>)}
           </div>

@@ -10,9 +10,11 @@ interface Props {
   dateRange: DateRange;
   dateRangeLabel: string;
   onToast: (msg: string, type: "success" | "error" | "info") => void;
+  customStartDate?: string;
+  customEndDate?: string;
 }
 
-const BookingsRoute = ({ dateRange, dateRangeLabel, onToast }: Props) => {
+const BookingsRoute = ({ dateRange, dateRangeLabel, onToast, customStartDate, customEndDate }: Props) => {
   const [routes, setRoutes] = useState<RouteBookingPoint[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -21,7 +23,15 @@ const BookingsRoute = ({ dateRange, dateRangeLabel, onToast }: Props) => {
     let date_from: string | undefined;
     let date_to: string | undefined = now.toISOString();
 
-    if (dateRange === "today") {
+    if (dateRange === "custom") {
+      if (customStartDate && customEndDate) {
+        date_from = new Date(customStartDate + "T00:00:00.000Z").toISOString();
+        date_to = new Date(customEndDate + "T23:59:59.999Z").toISOString();
+      } else {
+        date_from = undefined;
+        date_to = undefined;
+      }
+    } else if (dateRange === "today") {
       const start = new Date(now); start.setHours(0, 0, 0, 0);
       date_from = start.toISOString();
     } else if (dateRange === "week") {
@@ -55,7 +65,7 @@ const BookingsRoute = ({ dateRange, dateRangeLabel, onToast }: Props) => {
     };
 
     fetch();
-  }, [dateRange]);
+  }, [dateRange, customStartDate, customEndDate]);
 
   // Chart: horizontal bar chart — top routes by bookings
   const maxBookings = useMemo(() => Math.max(...routes.map(r => r.bookings), 1), [routes]);
