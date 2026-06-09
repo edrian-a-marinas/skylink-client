@@ -2,12 +2,12 @@ import { Link, useLocation } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
 import BookingStepper from "@/pages/BookingPagesFolder/components/BookingStepper";
-import {
-  BOOKING_DATA,
-  loadBookingData,
-  formatCurrency,
-} from "@/pages/BookingPagesFolder/bookingData";
+import { formatCurrency } from "@/pages/BookingPagesFolder/bookingData";
+import useBookingFlowStore from "@/store/useBookingFlowStore";
+import { useNavigate } from "react-router-dom";
+import { getFlightById } from "@/api/flights.api";
 import useAsyncValue from "@/hooks/useAsyncValue";
+import { useCallback } from "react";
 
 type LocationState = {
   seat?: string;
@@ -15,15 +15,22 @@ type LocationState = {
 
 const BookingSummaryPage = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const searchSuffix = location.search ?? "";
   const backHref = `${ROUTES.BOOKING_SEAT_SELECTION}${searchSuffix}`;
   const locationState = location.state as LocationState | null;
-  const { data: bookingData } = useAsyncValue(loadBookingData);
-  const booking = bookingData ?? BOOKING_DATA;
-  const seatLabel = locationState?.seat ?? booking.seat;
-  const baseFare = formatCurrency(booking.baseFare);
-  const taxes = formatCurrency(booking.taxes);
-  const total = formatCurrency(booking.total);
+  const { state } = useBookingFlowStore();
+  const { passengers, pricing, selectedFlightId, seatSelections } = state;
+  const passenger = passengers[0];
+  const seatLabel = locationState?.seat ?? seatSelections[0] ?? "—";
+  const flightLoader = useCallback(async () => {
+    if (!selectedFlightId) return null;
+    return getFlightById(selectedFlightId);
+  }, [selectedFlightId]);
+  const { data: flight } = useAsyncValue(flightLoader);
+  const baseFare = formatCurrency(pricing ? Math.round(pricing.baseFare) : 0);
+  const taxes = formatCurrency(pricing ? Math.round(pricing.taxes) : 0);
+  const total = formatCurrency(pricing ? Math.round(pricing.total) : 0);
 
   return (
     <main className="min-h-[calc(100vh-160px)] bg-[#F3F5F7]">
@@ -49,16 +56,13 @@ const BookingSummaryPage = () => {
                     Flight
                   </p>
                   <h2 className="mt-1 text-sm font-semibold text-slate-800">
-                    {booking.fromCode} {"->"} {booking.toCode}
+                    {flight ? `${flight.origin} → ${flight.destination}` : "—"}
                   </h2>
                   <p className="mt-1 text-xs text-slate-500">
-                    {booking.flightCode} {" - "}
-                    {booking.departTime} {"->"} {booking.arriveTime}
-                    {" - "}
-                    {booking.duration}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    {booking.cabin} {" - "} {booking.baggage}
+                    {flight?.flightNumber} {" - "}
+                    {flight ? new Date(flight.departureTime).toISOString().slice(11, 16) : "—"}
+                    {" → "}
+                    {flight ? new Date(flight.arrivalTime).toISOString().slice(11, 16) : "—"}
                   </p>
                 </div>
                 <Link
@@ -77,13 +81,13 @@ const BookingSummaryPage = () => {
                     Passenger
                   </p>
                   <h3 className="mt-1 text-sm font-semibold text-slate-800">
-                    {BOOKING_DATA.passengerName}
+                    {passenger ? `${passenger.firstName} ${passenger.lastName}` : "—"}
                   </h3>
                   <p className="mt-1 text-xs text-slate-500">
-                    {BOOKING_DATA.passengerNationality}
+                    {passenger?.nationality ?? "—"}
                   </p>
                   <p className="text-xs text-slate-500">
-                    ID: {BOOKING_DATA.passengerId}
+                    ID: {passenger?.passport ?? "—"}
                   </p>
                 </div>
                 <Link
@@ -139,12 +143,13 @@ const BookingSummaryPage = () => {
               </span>
             </div>
 
-            <Link
-              to={`${ROUTES.PAYMENT}${searchSuffix}`}
+            <button
+              type="button"
+              onClick={() => navigate(`${ROUTES.PAYMENT}${searchSuffix}`)}
               className="mt-4 flex w-full items-center justify-center rounded-lg bg-[#5D7FA7] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#4E6B8D]"
             >
               Proceed to Payment
-            </Link>
+            </button>
             <p className="mt-3 text-[11px] text-slate-400">
               By proceeding to payment, you agree to SkyLink's Terms of Service
               and Privacy Policy.

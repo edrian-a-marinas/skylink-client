@@ -2,13 +2,14 @@ import { useCallback, useMemo, useState } from "react";
 import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
+import useBookingFlowStore from "@/store/useBookingFlowStore";
 import FlightDetailCard, {
   type FlightDetail,
 } from "./components/FlightDetailCard";
 import PriceSummaryCard from "./components/PriceSummaryCard";
 import FareRulesCard, { type FareRule } from "./components/FareRulesCard";
 import AuthGateModal from "./components/AuthGateModal";
-import { searchFlights } from "@/api/flights.api";
+import { getFlightById } from "@/api/flights.api";
 import type { Flight } from "@/types";
 import useAsyncValue from "@/hooks/useAsyncValue";
 
@@ -114,15 +115,18 @@ const ResultsBookingPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { startFlow, setPricing } = useBookingFlowStore();
   const searchSuffix = location.search ?? "";
   const searchResultsLink = `${ROUTES.SEARCH_RESULTS}${searchSuffix}`;
   const locationState = location.state as LocationState | null;
   const selectedFlight = locationState?.flight;
 
   const loader = useCallback(async () => {
-    const response = await searchFlights();
-    return response.map(mapFlightToSummary);
-  }, []);
+    if (!id) return [];
+    const flight = await getFlightById(id);
+    if (!flight) return [];
+    return [mapFlightToSummary(flight)];
+  }, [id]);
 
   const { data: loadedFlights, isLoading } = useAsyncValue(loader);
   const flightPool = loadedFlights ?? [];
@@ -156,7 +160,7 @@ const ResultsBookingPage = () => {
     );
   }
 
-  const totalValue = parsePrice(flight.price || "0") || 1890;
+  const totalValue = parsePrice(flight.price || "0");
   const baseValue = Math.round(totalValue * 0.78);
   const taxesValue = totalValue - baseValue;
   const totalLabel = formatCurrency(totalValue);
@@ -164,8 +168,17 @@ const ResultsBookingPage = () => {
   const taxesLabel = formatCurrency(taxesValue);
 
   const handleBook = () => {
+    if (!flight) return;
     const nextPath = `${ROUTES.BOOKING_PASSENGER_DETAILS}${searchSuffix}`;
     if (isAuthenticated) {
+      startFlow(flight.id);
+      setPricing({
+        baseFare: baseValue,
+        taxes: taxesValue,
+        fees: 0,
+        addOns: [],
+        total: totalValue,
+      });
       navigate(nextPath);
     } else {
       setIsModalOpen(true);
