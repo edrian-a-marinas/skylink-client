@@ -73,9 +73,9 @@ function mapPNRToStatusResult(pnr: PNRStatusResult): FlightResult {
 
   return {
     status:
-      pnr.journeyStatus === "delayed"
+      pnr.journey_status === "delayed"
         ? "delayed"
-        : pnr.journeyStatus === "cancelled"
+        : pnr.journey_status === "cancelled"
           ? "cancelled"
           : "on-time",
     flightCode: segment?.flightNumber ?? "TBA",
@@ -340,7 +340,7 @@ const FlightStatusPage = () => {
           setError("No flight status found for this PNR.");
         }
       } else {
-        const flights = await searchFlights();
+        const flights = await searchFlights({ page: 1, pageSize: 100 });
         const match = flights.find(
           (flight) =>
             flight.flightNumber.replace(/\s+/g, "").toUpperCase() === val,
