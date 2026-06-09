@@ -89,7 +89,7 @@ interface PaymongoMethodPayload {
   };
 }
 
-const PAYMONGO_PUBLIC_KEY = import.meta.env.VITE_PAYMONGO_PUBLIC_KEY || "pk_test_QTFqGzqXDCZ1KZ3dmWHc95Yw";
+const PAYMONGO_PUBLIC_KEY = import.meta.env.VITE_PAYMONGO_PUBLIC_KEY || "pk_test_uNZ8jMZLRV5B3eLZUeRNG4y6";
 
 export async function createPaymongoPaymentMethod(payload: PaymongoMethodPayload): Promise<any> {
   const options = {

@@ -71,7 +71,7 @@ const PassengerDetailsPage = () => {
         lastName,
         dateOfBirth: `${dobYear}-${dobMonth}-${dobDay}`,
         nationality,
-        passportNumber,
+        passport: passportNumber,
       } as any,
     ]);
     navigate(seatSelectionHref);

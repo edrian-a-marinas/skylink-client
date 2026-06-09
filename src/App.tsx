@@ -100,7 +100,7 @@ const AppContent = () => {
           />
           <Route path={ROUTES.PAYMENT} element={<PaymentPage />} />
           <Route
-            path={ROUTES.PAYMENT_OTP}
+            path={ROUTES.PAYMENT_PROCESSING}
             element={<PaymentProcessingPage />}
           />
           <Route

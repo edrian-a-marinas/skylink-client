@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Loader2 } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
 import BookingStepper from "@/pages/BookingPagesFolder/components/BookingStepper";
 import { formatCurrency } from "@/pages/BookingPagesFolder/bookingData";
@@ -7,7 +7,8 @@ import useBookingFlowStore from "@/store/useBookingFlowStore";
 import { useNavigate } from "react-router-dom";
 import { getFlightById } from "@/api/flights.api";
 import useAsyncValue from "@/hooks/useAsyncValue";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
+import { useBookingActions } from "@/hooks/useBookings";
 
 type LocationState = {
   seat?: string;
@@ -23,14 +24,57 @@ const BookingSummaryPage = () => {
   const { passengers, pricing, selectedFlightId, seatSelections } = state;
   const passenger = passengers[0];
   const seatLabel = locationState?.seat ?? seatSelections[0] ?? "—";
+  
+  const { create, isLoading: isCreating } = useBookingActions();
+  const [error, setError] = useState("");
+
   const flightLoader = useCallback(async () => {
     if (!selectedFlightId) return null;
     return getFlightById(selectedFlightId);
   }, [selectedFlightId]);
+  
   const { data: flight } = useAsyncValue(flightLoader);
+  
   const baseFare = formatCurrency(pricing ? Math.round(pricing.baseFare) : 0);
   const taxes = formatCurrency(pricing ? Math.round(pricing.taxes) : 0);
   const total = formatCurrency(pricing ? Math.round(pricing.total) : 0);
+
+  const handleProceedToPayment = async () => {
+    if (!selectedFlightId || passengers.length === 0) {
+      setError("Missing booking information. Please go back and fill in all details.");
+      return;
+    }
+
+    try {
+      setError("");
+      // Align with backend snake_case and schema requirements
+      const payload = {
+        flight_id: selectedFlightId,
+        seat_class_id: 1, // Default to Economy (1) for now
+        seat_number: seatLabel !== "—" && seatLabel !== "Auto-assign" ? seatLabel : undefined,
+        passengers: passengers.map(p => ({
+          first_name: p.firstName,
+          last_name: p.lastName,
+          date_of_birth: p.dateOfBirth,
+          passport_number: p.passport,
+          nationality: p.nationality
+        })),
+        total_price: pricing.total,
+      };
+
+      const booking = await create(payload as any);
+      if (booking && booking.id) {
+        // Navigate to payment with the real booking ID
+        const paymentParams = new URLSearchParams(searchSuffix);
+        paymentParams.set("booking_id", booking.id);
+        navigate(`${ROUTES.PAYMENT}?${paymentParams.toString()}`);
+      } else {
+        throw new Error("Failed to create booking. Please try again.");
+      }
+    } catch (err: any) {
+      setError(err.message || "An error occurred while creating your booking.");
+    }
+  };
 
   return (
     <main className="min-h-[calc(100vh-160px)] bg-[#F3F5F7]">
@@ -49,6 +93,12 @@ const BookingSummaryPage = () => {
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
           <div className="space-y-4">
+            {error && (
+              <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-600">
+                {error}
+              </div>
+            )}
+            
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -145,10 +195,18 @@ const BookingSummaryPage = () => {
 
             <button
               type="button"
-              onClick={() => navigate(`${ROUTES.PAYMENT}${searchSuffix}`)}
-              className="mt-4 flex w-full items-center justify-center rounded-lg bg-[#5D7FA7] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#4E6B8D]"
+              disabled={isCreating}
+              onClick={handleProceedToPayment}
+              className="mt-4 flex w-full items-center justify-center rounded-lg bg-[#5D7FA7] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#4E6B8D] disabled:opacity-70"
             >
-              Proceed to Payment
+              {isCreating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                "Proceed to Payment"
+              )}
             </button>
             <p className="mt-3 text-[11px] text-slate-400">
               By proceeding to payment, you agree to SkyLink's Terms of Service

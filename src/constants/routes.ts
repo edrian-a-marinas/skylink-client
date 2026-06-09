@@ -36,6 +36,7 @@ export const ROUTES = {
   BOOKING_SUMMARY: "/booking/summary",
   PAYMENT: "/payment",
   PAYMENT_OTP: "/payment/otp",
+  PAYMENT_PROCESSING: "/payment/processing",
   BOOKING_CONFIRMATION: "/booking/confirmation",
   PAYMENT_FAILURE: "/payment/failure",
 

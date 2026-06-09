@@ -1,14 +1,10 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ChevronLeft, Lock, Loader2 } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
 import BookingStepper from "@/pages/BookingPagesFolder/components/BookingStepper";
-import {
-  BOOKING_DATA,
-  loadBookingData,
-  formatCurrency,
-} from "@/pages/BookingPagesFolder/bookingData";
-import useAsyncValue from "@/hooks/useAsyncValue";
+import { formatCurrency } from "@/pages/BookingPagesFolder/bookingData";
+import { useBookingDetail } from "@/hooks/useBookings";
 import {
   createPaymentIntent,
   createPaymongoPaymentMethod,
@@ -22,13 +18,30 @@ const PaymentPage = () => {
   const navigate = useNavigate();
   const searchSuffix = location.search ?? "";
   const query = new URLSearchParams(location.search);
-  const bookingId = query.get("booking_id") || "test_booking_id";
+  const bookingId = query.get("booking_id");
+  
+  if (!bookingId) {
+    // If no booking ID, we can't proceed with payment.
+    // Navigate back to summary or search
+    return (
+      <main className="flex min-h-[calc(100vh-160px)] items-center justify-center bg-[#F3F5F7]">
+        <div className="text-center">
+          <h2 className="text-lg font-bold text-slate-800">No Booking ID found</h2>
+          <p className="mt-2 text-sm text-slate-500">Please go back to summary and try again.</p>
+          <Link to={ROUTES.HOME} className="mt-4 inline-block text-[#5D7FA7] font-semibold hover:underline">
+            Go to Home
+          </Link>
+        </div>
+      </main>
+    );
+  }
   
   const backHref = `${ROUTES.BOOKING_SUMMARY}${searchSuffix}`;
   const [method, setMethod] = useState<PaymentMethod>("card");
-  const { data: bookingData } = useAsyncValue(loadBookingData);
-  const booking = bookingData ?? BOOKING_DATA;
-  const total = formatCurrency(booking.total);
+  
+  const { data: bookingDetail, isLoading: isLoadingBooking } = useBookingDetail(bookingId);
+  const bookingTotal = bookingDetail?.totalPrice || 0;
+  const total = formatCurrency(bookingTotal);
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -96,6 +109,14 @@ const PaymentPage = () => {
     }
   };
 
+  if (isLoadingBooking) {
+    return (
+      <main className="flex min-h-[calc(100vh-160px)] items-center justify-center bg-[#F3F5F7]">
+        <Loader2 className="h-8 w-8 animate-spin text-[#496B92]" />
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-[calc(100vh-160px)] bg-[#F3F5F7]">
       <section className="mx-auto w-full max-w-6xl px-6 py-6">
@@ -111,7 +132,7 @@ const PaymentPage = () => {
 
         <BookingStepper activeId={4} searchSuffix={searchSuffix} />
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_240px]">
+        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             {errorMsg && (
               <div className="mb-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-600 border border-rose-200">
@@ -207,7 +228,7 @@ const PaymentPage = () => {
               Order Total
             </h3>
             <p className="mt-2 text-xs text-slate-500">
-              {booking.flightCode} fare
+              {bookingDetail?.flight?.flightNumber || "Flight"} fare
             </p>
             <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
               <span className="text-sm font-semibold text-slate-800">
