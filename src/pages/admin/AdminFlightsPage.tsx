@@ -9,7 +9,8 @@ import StatusBadge from "@/pages/_shared/components/ui/StatusBadge";
 import Button from "@/pages/_shared/components/ui/Button";
 import Modal from "@/pages/_shared/components/ui/Modal";
 import { Search, Plus, Edit2, Trash2, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
-import type { Flight } from "@/types";
+import type { Flight, PricingSuggestions } from "@/types";
+import { getPricingSuggestions } from "@/api/reports.api";
 import { cn } from "@/utils/cn";
 
 const AdminFlightsPage = () => {
@@ -21,6 +22,9 @@ const AdminFlightsPage = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [flightToDelete, setFlightToDelete] = useState<Flight | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [pricingMap, setPricingMap] = useState<Record<string, PricingSuggestions>>({});
+  const [pricingLoadingId, setPricingLoadingId] = useState<string | null>(null);
+  const [pricingModalFlight, setPricingModalFlight] = useState<Flight | null>(null);
 
   // Memoized filtering and sorting logic for performance
   const filteredFlights = useMemo(() => {
@@ -49,6 +53,20 @@ const AdminFlightsPage = () => {
       return 0;
     });
   }, [flights, searchQuery, statusFilter, sortBy]);
+
+  const handleOpenPricing = async (flight: Flight) => {
+    setPricingModalFlight(flight);
+    if (pricingMap[flight.id]) return;
+    setPricingLoadingId(flight.id);
+    try {
+      const result = await getPricingSuggestions(flight.id);
+      setPricingMap((prev) => ({ ...prev, [flight.id]: result }));
+    } catch {
+      // silent — no suggestions available
+    } finally {
+      setPricingLoadingId(null);
+    }
+  };
 
   const handleOpenDeleteModal = (flight: Flight) => {
     setFlightToDelete(flight);
@@ -146,6 +164,17 @@ const AdminFlightsPage = () => {
       header: "ACTIONS",
       cell: (row) => (
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => handleOpenPricing(row)}
+            className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors border border-emerald-100"
+            title="Pricing Suggestions"
+          >
+            {pricingLoadingId === row.id ? (
+              <span className="animate-spin size-4 border-2 border-emerald-600 border-t-transparent rounded-full block" />
+            ) : (
+              <span className="text-xs font-bold">₱?</span>
+            )}
+          </button>
           <button
             onClick={() => navigate(ROUTES.ADMIN_EDIT_FLIGHT.replace(":id", row.id))}
             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-100"
@@ -258,6 +287,59 @@ const AdminFlightsPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Pricing Suggestions Modal */}
+      <Modal
+        isOpen={!!pricingModalFlight}
+        onClose={() => setPricingModalFlight(null)}
+        title="ML Pricing Suggestions"
+      >
+        {pricingModalFlight && (
+          <div className="space-y-4 py-2">
+            <p className="text-xs text-slate-500 font-medium">
+              {pricingModalFlight.flightNumber} — {pricingModalFlight.origin} → {pricingModalFlight.destination}
+            </p>
+            {pricingLoadingId === pricingModalFlight.id ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin size-8 border-4 border-[#496B92] border-t-transparent rounded-full" />
+              </div>
+            ) : pricingMap[pricingModalFlight.id]?.suggestions?.length ? (
+              <div className="space-y-3">
+                {pricingMap[pricingModalFlight.id].suggestions.map((s) => (
+                  <div key={s.seat_class_id} className="rounded-xl border border-slate-100 bg-slate-50 p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-bold text-slate-800">{s.seat_class_name}</span>
+                      <span className={cn(
+                        "text-[10px] font-bold uppercase rounded-full px-2 py-0.5",
+                        s.adjustment_pct > 0 ? "bg-emerald-100 text-emerald-700" :
+                        s.adjustment_pct < 0 ? "bg-rose-100 text-rose-700" :
+                        "bg-slate-100 text-slate-500"
+                      )}>
+                        {s.adjustment_pct > 0 ? `+${s.adjustment_pct}%` : `${s.adjustment_pct}%`}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-slate-500">
+                      <span>Current: <span className="font-bold text-slate-700">₱{(s.current_price / 100).toLocaleString()}</span></span>
+                      <span>→</span>
+                      <span>Suggested: <span className="font-bold text-[#496B92]">₱{(s.suggested_price / 100).toLocaleString()}</span></span>
+                    </div>
+                    <div className="flex gap-3 text-[11px] text-slate-400">
+                      <span>Occupancy: {s.occupancy_rate}%</span>
+                      <span>·</span>
+                      <span>{s.available_seats}/{s.total_seats} seats</span>
+                      <span>·</span>
+                      <span>{s.days_until_departure}d to departure</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 italic">{s.reason}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-sm text-slate-400 py-8">No pricing suggestions available for this flight.</p>
+            )}
+          </div>
+        )}
+      </Modal>
 
       {/* Delete Confirmation Modal */}
       <Modal
