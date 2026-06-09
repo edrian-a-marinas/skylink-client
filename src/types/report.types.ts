@@ -91,3 +91,78 @@ export interface ActivityLogList {
   logs: ActivityLogItem[];
   total: number;
 }
+
+// ─── ML Types ─────────────────────────────────────────────────────────────────
+
+export interface RevenueForecastPoint {
+  month: string;
+  year: number;
+  revenue: number;
+}
+
+export interface RevenueForecast {
+  historical: RevenueForecastPoint[];
+  forecast: RevenueForecastPoint[];
+  r2_score: number | null;
+  confidence: string | null;
+  message?: string | null;
+}
+
+export interface DemandForecastRoute {
+  route: string;
+  predicted_bookings_next_30_days: number;
+  avg_monthly_bookings: number;
+  r2_score: number;
+  confidence: string;
+}
+
+export interface DemandForecast {
+  routes: DemandForecastRoute[];
+  message?: string | null;
+}
+
+export interface CancellationRisk {
+  booking_id: string;
+  risk_score: number | null;
+  risk_level: "low" | "medium" | "high" | "unknown";
+  confidence: string;
+  lead_time_days?: number;
+  route?: string;
+  message?: string | null;
+}
+
+export interface RevenueAnomalyPoint {
+  month: string;
+  year: number;
+  revenue: number;
+  z_score: number;
+  is_anomaly: boolean;
+  severity: "warning" | "critical" | null;
+}
+
+export interface RevenueAnomalies {
+  monthly: RevenueAnomalyPoint[];
+  anomalies: RevenueAnomalyPoint[];
+  mean_revenue: number;
+  std_revenue: number;
+  message?: string | null;
+}
+
+export interface PricingSuggestion {
+  seat_class_id: number;
+  seat_class_name: string;
+  current_price: number;
+  suggested_price: number;
+  adjustment_pct: number;
+  occupancy_rate: number;
+  available_seats: number;
+  total_seats: number;
+  days_until_departure: number;
+  avg_monthly_booking_velocity: number;
+  reason: string;
+}
+
+export interface PricingSuggestions {
+  flight_id: string;
+  suggestions: PricingSuggestion[];
+}
