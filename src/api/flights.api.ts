@@ -37,13 +37,29 @@ const mapBackendFlight = (f: any): Flight => {
 };
 
 // Helper to map frontend data to backend payload
-const mapFrontendToBackend = (payload: any) => {
-  const AIRPORT_MAP: Record<string, number> = { MNL: 1, CEB: 2, DVO: 3, ILO: 4, BCD: 5 };
+// Cache airports to avoid repeated fetches
+let _airportCache: Record<string, number> | null = null;
+async function getAirportMap(): Promise<Record<string, number>> {
+  if (_airportCache) return _airportCache;
+  try {
+    const res = await axiosClient.get("/admin/airports/public");
+    _airportCache = Object.fromEntries(
+      res.data.map((a: any) => [a.iata_code, a.id])
+    );
+    return _airportCache!;
+  } catch {
+    return {};
+  }
+}
+
+// Helper to map frontend data to backend payload
+const mapFrontendToBackend = async (payload: any) => {
+  const AIRPORT_MAP = await getAirportMap();
   
   const mapped = {
     flight_number: payload.flightNumber,
-    origin_airport_id: AIRPORT_MAP[payload.origin?.toUpperCase() || ""] || 1,
-    destination_airport_id: AIRPORT_MAP[payload.destination?.toUpperCase() || ""] || 2,
+    origin_airport_id: AIRPORT_MAP[payload.origin?.toUpperCase() || ""],
+    destination_airport_id: AIRPORT_MAP[payload.destination?.toUpperCase() || ""],
     departure_time: payload.departureTime,
     arrival_time: payload.arrivalTime,
     status: payload.status,
@@ -85,7 +101,7 @@ export async function getFlightById(id: string): Promise<Flight | null> {
 
 export async function createFlight(payload: Partial<Flight>): Promise<Flight | null> { 
   try {
-    const backendPayload = mapFrontendToBackend(payload);
+    const backendPayload = await mapFrontendToBackend(payload);
     const res = await axiosClient.post("/flights", backendPayload);
     return mapBackendFlight(res.data);
   } catch (err) {
@@ -99,7 +115,7 @@ export async function updateFlight(
   payload: Partial<Flight>,
 ): Promise<Flight | null> { 
   try {
-    const backendPayload = mapFrontendToBackend(payload);
+    const backendPayload = await mapFrontendToBackend(payload);
     const res = await axiosClient.put(`/flights/${id}`, backendPayload);
     return mapBackendFlight(res.data);
   } catch (err) {
