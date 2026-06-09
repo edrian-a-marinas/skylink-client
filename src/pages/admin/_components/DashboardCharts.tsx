@@ -32,7 +32,8 @@ const DashboardCharts = ({ bookings }: Props) => {
     }
 
     bookings.forEach((b) => {
-      const day = b.booked_at?.split("T")[0];
+      const raw = (b as any).booked_at ?? (b as any).createdAt ?? b.booked_at;
+      const day = raw?.split("T")[0];
       if (day && map[day] !== undefined) map[day]++;
     });
 
@@ -87,7 +88,7 @@ const DashboardCharts = ({ bookings }: Props) => {
       const dest = (b.flight as any)?.destination_airport?.iata_code; 
       if (!origin || !dest) return;
       const key = `${origin} → ${dest}`;
-      map[key] = (map[key] ?? 0) + (b.total_price ?? 0); 
+      map[key] = (map[key] ?? 0) + ((b as any).total_price ?? (b as any).totalPrice ?? 0);
     });
     return Object.entries(map)
       .sort((a, b) => b[1] - a[1])
