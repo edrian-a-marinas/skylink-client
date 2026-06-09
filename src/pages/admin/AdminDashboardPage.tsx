@@ -13,7 +13,6 @@ import StatusBadge from "@/pages/_shared/components/ui/StatusBadge";
 import { getAllBookingsAdmin } from "@/api/bookings.api";
 import { getUsers } from "@/api/users.api";
 import { searchFlights } from "@/api/flights.api";
-import { getKpiSummary } from "@/api/reports.api";
 import type { Booking, Flight } from "@/types";
 import useAsyncValue from "@/hooks/useAsyncValue";
 
@@ -26,22 +25,10 @@ type RecentBooking = {
   amount: string;
 };
 
-type KpiSummary = {
-  total_flights: number;
-  total_bookings: number;
-  total_users: number;
-  total_revenue: number;
-  flights_change: number;
-  bookings_change: number;
-  users_change: number;
-  revenue_change: number;
-};
-
 type DashboardData = {
   bookings: Booking[];
   flights: Flight[];
   totalUsers: number;
-  kpi: KpiSummary | null;
 };
 
 function mapBookingToRecentBooking(booking: any): RecentBooking {
@@ -62,30 +49,28 @@ function mapBookingToRecentBooking(booking: any): RecentBooking {
 const AdminDashboardPage = () => {
   const loader = useCallback(async (): Promise<DashboardData> => {
     try {
-      const [bookings, users, flights, kpi] = await Promise.all([
+      const [bookings, users, flights] = await Promise.all([
         getAllBookingsAdmin(),
         getUsers(),
         searchFlights(),
-        getKpiSummary(),
       ]);
+
       return {
         bookings,
         flights,
         totalUsers: users.filter((user) => user.role_id !== 1).length,
-        kpi,
       };
     } catch {
       return {
         bookings: [],
         flights: [],
         totalUsers: 0,
-        kpi: null,
       };
     }
   }, []);
 
   const { data } = useAsyncValue(loader);
-  const dashboardData = data ?? { bookings: [], flights: [], totalUsers: 0, kpi: null };
+  const dashboardData = data ?? { bookings: [], flights: [], totalUsers: 0 };
 
   const recentBookings = useMemo(() => {
     return dashboardData.bookings.slice(0, 5).map(mapBookingToRecentBooking);
@@ -157,36 +142,40 @@ const AdminDashboardPage = () => {
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <KPICard
             label="Total Flights"
-            value={String(dashboardData.kpi?.total_flights ?? dashboardData.flights.length)}
-            change={`${Math.abs(dashboardData.kpi?.flights_change ?? 0)}%`}
-            trend={(dashboardData.kpi?.flights_change ?? 0) >= 0 ? "up" : "down"}
+            value={String(dashboardData.flights.length)}
+            change="8%"
+            trend="up"
             icon={Plane}
             iconBg="bg-blue-50"
             iconColor="text-blue-600"
           />
           <KPICard
             label="Active Bookings"
-            value={String(dashboardData.kpi?.total_bookings ?? dashboardData.bookings.filter((b) => b.status !== "cancelled").length)}
-            change={`${Math.abs(dashboardData.kpi?.bookings_change ?? 0)}%`}
-            trend={(dashboardData.kpi?.bookings_change ?? 0) >= 0 ? "up" : "down"}
+            value={String(
+              dashboardData.bookings.filter(
+                (booking) => booking.status !== "cancelled",
+              ).length,
+            )}
+            change="12%"
+            trend="up"
             icon={Ticket}
             iconBg="bg-sky-50"
             iconColor="text-sky-600"
           />
           <KPICard
             label="Total Users"
-            value={String(dashboardData.kpi?.total_users ?? dashboardData.totalUsers)}
-            change={`${Math.abs(dashboardData.kpi?.users_change ?? 0)}%`}
-            trend={(dashboardData.kpi?.users_change ?? 0) >= 0 ? "up" : "down"}
+            value={String(dashboardData.totalUsers)}
+            change="5%"
+            trend="up"
             icon={Users}
             iconBg="bg-emerald-50"
             iconColor="text-emerald-600"
           />
           <KPICard
-            label="Total Revenue (₱)"
-            value={`₱${((dashboardData.kpi?.total_revenue ?? 0) / 100).toLocaleString("en-US")}`}
-            change={`${Math.abs(dashboardData.kpi?.revenue_change ?? 0)}%`}
-            trend={(dashboardData.kpi?.revenue_change ?? 0) >= 0 ? "up" : "down"}
+            label="Revenue Today (₱)"
+            value={`₱${totalRevenue.toLocaleString("en-US")}`}
+            change="3%"
+            trend="down"
             icon={Banknote}
             iconBg="bg-amber-50"
             iconColor="text-amber-600"

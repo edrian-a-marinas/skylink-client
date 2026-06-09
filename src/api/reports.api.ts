@@ -3,29 +3,6 @@ import { handleApiError } from "./api.helpers";
 import type { ExportRequest, ReportResult, ReportQuery, RouteReport, CancellationReport, UserGrowthReport, ActivityLogList } from "@/types";
 
 /**
- * Admin: Get KPI Summary
- * GET /api/v1/admin/kpi
- */
-export async function getKpiSummary(): Promise<{
-  total_flights: number;
-  total_bookings: number;
-  total_users: number;
-  total_revenue: number;
-  flights_change: number;
-  bookings_change: number;
-  users_change: number;
-  revenue_change: number;
-}> {
-  try {
-    const res = await axiosClient.get("/admin/kpi");
-    return res.data;
-  } catch (err) {
-    handleApiError(err);
-    throw err;
-  }
-}
-
-/**
  * Admin: Get Booking Report
  * GET /api/v1/admin/reports
  */
