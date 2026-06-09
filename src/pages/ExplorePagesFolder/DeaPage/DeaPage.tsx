@@ -5,17 +5,11 @@ import { ROUTES } from "@/constants/routes";
 import { searchFlights } from "@/api/flights.api";
 import type { Promotion } from "@/types/promotion.types";
 import useAsyncValue from "@/hooks/useAsyncValue";
+import { PROMO_TERMS } from "../PromosPage/constants_promotions";
 
 type DealState = {
   deal?: Promotion;
 };
-
-
-const TERMS = [
-  "25kg baggage included.",
-  "Meal included.",
-  "Refundable with fee.",
-];
 
 const DeaPage = () => {
   const location = useLocation();
@@ -170,7 +164,7 @@ const DeaPage = () => {
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-sm font-semibold text-slate-900">Terms & Conditions</h2>
             <ul className="mt-4 space-y-2 text-sm text-slate-600">
-              {TERMS.map((item) => (
+              {PROMO_TERMS.map((item) => (
                 <li key={item} className="flex items-center gap-2">
                   <CheckCircle2 size={14} className="text-amber-500" />
                   {item}
