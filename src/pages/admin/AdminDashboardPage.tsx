@@ -44,7 +44,7 @@ function mapBookingToRecentBooking(booking: any): RecentBooking {
   const origin = booking.flight?.origin_airport?.iata_code ?? "—";
   const destination = booking.flight?.destination_airport?.iata_code ?? "—";
   const route = `${origin} → ${destination}`;
-  const date = booking.flight?.departure_time?.split?.("T")?.[0] ?? booking.booked_at?.split?.("T")?.[0] ?? "";
+  const date = booking.booked_at?.split?.("T")?.[0] ?? "";
   return {
     pnr: booking.id.slice(0, 8).toUpperCase(),
     passenger: booking.seat_class?.name ?? "—",
@@ -121,7 +121,7 @@ const AdminDashboardPage = () => {
       },
       {
         key: "date",
-        header: "Date",
+        header: "Booked",
         cell: (row) => <span className="text-slate-500">{row.date}</span>,
       },
       {

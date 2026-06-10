@@ -11,10 +11,8 @@ import { ROUTES } from "@/constants/routes";
 import type { Booking } from "@/types";
 
 
-const getPaymentMethod = (pnr?: string) => {
-  if (pnr === "CD5678" || pnr === "KL1234") return "GCash";
-  if (pnr === "GH3456") return "Debit Card";
-  return "Credit Card";
+const getPaymentMethod = (booking?: any) => {
+  return booking?.payment?.payment_method_type ?? "—";
 };
 
 const AdminBookingsPage = () => {
@@ -26,6 +24,7 @@ const AdminBookingsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [paymentFilter, setPaymentFilter] = useState("");
+  // Payment filter removed from UI since payment method comes from real data
   const [dateFilter, setDateFilter] = useState("");
 
   // Pagination State
@@ -70,12 +69,7 @@ const AdminBookingsPage = () => {
                   seatNumber: b.seat_number ?? b.seatNumber ?? "—",
                   mealPreference: "standard",
                 }))
-              : [{
-                  firstName: "—",
-                  lastName: "—",
-                  seatNumber: b.seat_number ?? "—",
-                  mealPreference: "standard",
-                }],
+              : [],
           }));
           setBookings(normalized as Booking[]);
         } else {
@@ -195,7 +189,7 @@ const AdminBookingsPage = () => {
     {
       key: "payment",
       header: "PAYMENT",
-      cell: (row) => <span className="text-slate-600">{getPaymentMethod(row.pnr)}</span>,
+      cell: (row) => <span className="text-slate-600">{getPaymentMethod(row)}</span>,
     },
     {
       key: "risk",
@@ -254,7 +248,7 @@ const AdminBookingsPage = () => {
       const passengerName = p ? `${p.firstName} ${p.lastName}` : "—";
       const route = b.flight ? `${b.flight.origin} -> ${b.flight.destination}` : "—";
       const departure = b.flight ? b.flight.departureTime.split("T")[0] : "—";
-      return `${b.pnr || b.id.toUpperCase()},"${passengerName}",${route},${departure},${b.totalPrice},${getPaymentMethod(b.pnr)},${b.status}\n`;
+      return `${b.pnr || b.id.toUpperCase()},"${passengerName}",${route},${departure},${b.totalPrice},${getPaymentMethod(b)},${b.status}\n`;
     });
     const blob = new Blob([...headers, ...rows], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
