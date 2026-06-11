@@ -33,7 +33,7 @@ const BookingSummaryPage = () => {
     return getFlightById(selectedFlightId);
   }, [selectedFlightId]);
   
-  const { data: flight } = useAsyncValue(flightLoader, ["booking-flight", selectedFlightId]);
+  const { data: flight } = useAsyncValue(flightLoader);
   
   const baseFare = formatCurrency(pricing ? Math.round(pricing.baseFare) : 0);
   const taxes = formatCurrency(pricing ? Math.round(pricing.taxes) : 0);
@@ -110,25 +110,9 @@ const BookingSummaryPage = () => {
                   </h2>
                   <p className="mt-1 text-xs text-slate-500">
                     {flight?.flightNumber} {" - "}
-                    {flight ? (() => {
-                      const d = new Date(flight.departureTime);
-                      if (isNaN(d.getTime())) return "—";
-                      try {
-                        return d.toISOString().slice(11, 16);
-                      } catch {
-                        return "—";
-                      }
-                    })() : "—"}
+                    {flight ? new Date(flight.departureTime).toISOString().slice(11, 16) : "—"}
                     {" → "}
-                    {flight ? (() => {
-                      const d = new Date(flight.arrivalTime);
-                      if (isNaN(d.getTime())) return "—";
-                      try {
-                        return d.toISOString().slice(11, 16);
-                      } catch {
-                        return "—";
-                      }
-                    })() : "—"}
+                    {flight ? new Date(flight.arrivalTime).toISOString().slice(11, 16) : "—"}
                   </p>
                 </div>
                 <Link

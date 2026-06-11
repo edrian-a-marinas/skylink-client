@@ -11,26 +11,10 @@ import type { MealPreference, Passenger } from "@/types";
 
 const SEAT_HOLD_DEFAULT_MINUTES = 15;
 
-const LOCAL_STORAGE_KEY = "skylink_booking_flow_state";
-
 export const BookingFlowProvider = ({ children }: { children: ReactNode }) => {
-  const [state, setState] = useState<BookingFlowState>(() => {
-    try {
-      const saved = sessionStorage.getItem(LOCAL_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : INITIAL_BOOKING_FLOW_STATE;
-    } catch {
-      return INITIAL_BOOKING_FLOW_STATE;
-    }
-  });
-
-  useEffect(() => {
-    try {
-      sessionStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
-    } catch (e) {
-      console.error("Failed to save booking flow state:", e);
-    }
-  }, [state]);
-
+  const [state, setState] = useState<BookingFlowState>(
+    INITIAL_BOOKING_FLOW_STATE,
+  );
   const seatHoldTimerRef = useRef<number | null>(null);
 
   const clearSeatHoldTimer = () => {

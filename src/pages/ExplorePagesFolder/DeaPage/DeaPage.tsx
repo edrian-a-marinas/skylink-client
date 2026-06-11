@@ -46,7 +46,7 @@ const DeaPage = () => {
     return { deal, routes };
   }, [id, passedDeal]);
 
-  const { data, isLoading } = useAsyncValue(loader, ["dea-detail", id]);
+  const { data, isLoading } = useAsyncValue(loader);
   const deal = data?.deal;
   const routes = data?.routes ?? [];
 

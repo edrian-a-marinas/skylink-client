@@ -10,7 +10,7 @@ import useAsyncValue from "@/hooks/useAsyncValue";
 
 const BookingConfirmationPage = () => {
   const [copied, setCopied] = useState(false);
-  const { data: bookingData } = useAsyncValue(loadBookingData, ["booking-data"]);
+  const { data: bookingData } = useAsyncValue(loadBookingData);
   const booking = bookingData ?? BOOKING_DATA;
   const meal = booking.meal ?? "Standard Meal";
 

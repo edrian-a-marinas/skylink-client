@@ -128,7 +128,7 @@ const ResultsBookingPage = () => {
     return [mapFlightToSummary(flight)];
   }, [id]);
 
-  const { data: loadedFlights, isLoading } = useAsyncValue(loader, ["flight-summary", id]);
+  const { data: loadedFlights, isLoading } = useAsyncValue(loader);
   const flightPool = loadedFlights ?? [];
 
   const flight = useMemo(() => {
@@ -169,17 +169,16 @@ const ResultsBookingPage = () => {
 
   const handleBook = () => {
     if (!flight) return;
-    startFlow(flight.id);
-    setPricing({
-      baseFare: baseValue,
-      taxes: taxesValue,
-      fees: 0,
-      addOns: [],
-      total: totalValue,
-    });
-
     const nextPath = `${ROUTES.BOOKING_PASSENGER_DETAILS}${searchSuffix}`;
     if (isAuthenticated) {
+      startFlow(flight.id);
+      setPricing({
+        baseFare: baseValue,
+        taxes: taxesValue,
+        fees: 0,
+        addOns: [],
+        total: totalValue,
+      });
       navigate(nextPath);
     } else {
       setIsModalOpen(true);

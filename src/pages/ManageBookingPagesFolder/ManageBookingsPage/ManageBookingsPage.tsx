@@ -14,7 +14,7 @@ import useAsyncValue from "@/hooks/useAsyncValue";
 
 const ManageBookingsPage = () => {
   const [activeTab, setActiveTab] = useState<ManageBookingStatus>("upcoming");
-  const { data: loadedBookings } = useAsyncValue(loadManageBookings, ["manage-bookings"]);
+  const { data: loadedBookings } = useAsyncValue(loadManageBookings);
   const bookingsData = loadedBookings ?? [];
 
   const counts = useMemo(() => {
