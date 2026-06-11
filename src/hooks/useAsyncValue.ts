@@ -1,36 +1,24 @@
-import { useCallback, useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
-export function useAsyncValue<T>(loader: () => Promise<T>) {
-  const [data, setData] = useState<T | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<unknown>(null);
-
-  const refetch = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const nextData = await loader();
-      setData(nextData);
-      return nextData;
-    } catch (nextError) {
-      setError(nextError);
-      setData(null);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [loader]);
-
-  useEffect(() => {
-    void refetch();
-  }, [refetch]);
+export function useAsyncValue<T>(
+  loader: () => Promise<T>,
+  queryKey: unknown[] = [],
+  staleTime: number = 60 * 1000,
+) {
+  const { data, isLoading, error, refetch } = useQuery<T>({
+    queryKey,
+    queryFn: loader,
+    staleTime,
+  });
 
   return {
-    data,
+    data: data ?? null,
     isLoading,
     error,
-    refetch,
+    refetch: async () => {
+      const result = await refetch();
+      return result.data ?? null;
+    },
   };
 }
 

@@ -16,7 +16,7 @@ import { cn } from "@/utils/cn";
 
 const AdminFlightsPage = () => {
   const navigate = useNavigate();
-  const { data: flights, isLoading, refetch } = useFlights({ pageSize: 100 });
+  const { data: flights, isLoading, invalidate } = useFlights({ pageSize: 100 });
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [searchParams, setSearchParams] = useSearchParams();
@@ -85,7 +85,7 @@ const AdminFlightsPage = () => {
       await deleteFlight(flightToDelete.id);
       setDeleteModalOpen(false);
       setFlightToDelete(null);
-      refetch();
+      invalidate();
     } catch (err) {
       console.error("Failed to delete flight", err);
     } finally {

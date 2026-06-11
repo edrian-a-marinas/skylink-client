@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   cancelBooking,
   createBooking,
@@ -15,79 +15,52 @@ import type {
   RescheduleRequest,
 } from "@/types";
 
+import { useState, useCallback } from 'react';
+
+export const MY_BOOKINGS_QUERY_KEY = "my-bookings";
+export const BOOKING_DETAIL_QUERY_KEY = "booking-detail";
+
 export function useMyBookings() {
   const { user } = useAuthStore();
-  const [data, setData] = useState<Booking[] | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<APIError | null>(null);
-
-  const fetchMyBookings = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const bookings = await getBookingsForUser(user?.id);
-      setData(bookings);
-      return bookings;
-    } catch (err) {
-      setError(err as APIError);
-      setData(null);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user?.id]);
-
-  useEffect(() => {
-    void fetchMyBookings();
-  }, [fetchMyBookings]);
+  const { data, isLoading, error, refetch } = useQuery<Booking[]>({
+    queryKey: [MY_BOOKINGS_QUERY_KEY, user?.id],
+    queryFn: () => getBookingsForUser(user?.id),
+    enabled: !!user?.id,
+    staleTime: 30 * 1000,
+  });
 
   return {
-    data,
+    data: data ?? null,
     isLoading,
-    error,
-    refetch: fetchMyBookings,
+    error: error as APIError | null,
+    refetch: async () => {
+      const result = await refetch();
+      return result.data ?? null;
+    },
   };
 }
 
 export function useBookingDetail(bookingId?: string) {
-  const [data, setData] = useState<BookingDetail | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<APIError | null>(null);
-
-  const fetchDetail = useCallback(async () => {
-    if (!bookingId) {
-      setData(null);
-      return null;
-    }
-
-    setIsLoading(true);
-    setError(null);
-    try {
-      const detail = await getBookingDetail(bookingId);
-      setData(detail);
-      return detail;
-    } catch (err) {
-      setError(err as APIError);
-      setData(null);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [bookingId]);
-
-  useEffect(() => {
-    void fetchDetail();
-  }, [fetchDetail]);
+  const { data, isLoading, error, refetch } = useQuery<BookingDetail>({
+    queryKey: [BOOKING_DETAIL_QUERY_KEY, bookingId],
+    queryFn: () => getBookingDetail(bookingId!),
+    enabled: !!bookingId,
+    staleTime: 60 * 1000,
+  });
 
   return {
-    data,
+    data: data ?? null,
     isLoading,
-    error,
-    refetch: fetchDetail,
+    error: error as APIError | null,
+    refetch: async () => {
+      const result = await refetch();
+      return result.data ?? null;
+    },
   };
 }
 
 export function useBookingActions() {
+  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<APIError | null>(null);
 
@@ -122,7 +95,10 @@ export function useBookingActions() {
       setIsLoading(true);
       setError(null);
       try {
-        return await cancelBooking(bookingId);
+        const result = await cancelBooking(bookingId);
+        queryClient.invalidateQueries({ queryKey: [MY_BOOKINGS_QUERY_KEY] });
+        queryClient.invalidateQueries({ queryKey: [BOOKING_DETAIL_QUERY_KEY, bookingId] });
+        return result;
       } catch (err) {
         setError(err as APIError);
         return null;
@@ -130,7 +106,7 @@ export function useBookingActions() {
         setIsLoading(false);
       }
     },
-    [],
+    [queryClient],
   );
 
   const reschedule = useCallback(
@@ -138,7 +114,10 @@ export function useBookingActions() {
       setIsLoading(true);
       setError(null);
       try {
-        return await rescheduleBooking(bookingId, payload);
+        const result = await rescheduleBooking(bookingId, payload);
+        queryClient.invalidateQueries({ queryKey: [MY_BOOKINGS_QUERY_KEY] });
+        queryClient.invalidateQueries({ queryKey: [BOOKING_DETAIL_QUERY_KEY, bookingId] });
+        return result;
       } catch (err) {
         setError(err as APIError);
         return null;
@@ -146,7 +125,7 @@ export function useBookingActions() {
         setIsLoading(false);
       }
     },
-    [],
+    [queryClient],
   );
 
   return {

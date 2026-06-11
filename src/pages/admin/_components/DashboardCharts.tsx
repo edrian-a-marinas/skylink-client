@@ -1,5 +1,6 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { cn } from "@/utils/cn";
+import { useQuery } from "@tanstack/react-query";
 import { getRevenueByRoute } from "@/api/reports.api";
 interface RawBooking {
   id: string;
@@ -17,12 +18,11 @@ interface Props {
 
 const DashboardCharts = ({ bookings }: Props) => {
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
-  const [revenueByRoute, setRevenueByRoute] = useState<{ route: string; revenue: number }[]>([]);
-
-  useEffect(() => {
-    getRevenueByRoute().then(setRevenueByRoute);
-  }, []);
-
+  const { data: revenueByRoute = [] } = useQuery({
+    queryKey: ["revenue-by-route"],
+    queryFn: getRevenueByRoute,
+    staleTime: 60 * 1000,
+  });
   // --- Bookings Over Time (last 30 days, grouped by date) ---
   const bookingsByDate = useMemo(() => {
     const now = new Date();

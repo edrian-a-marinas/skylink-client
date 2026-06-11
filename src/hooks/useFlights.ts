@@ -1,41 +1,28 @@
-import { useCallback, useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { searchFlights } from "@/api/flights.api";
-import type { Flight, FlightSearchParams, APIError } from "@/types";
+import type { FlightSearchParams } from "@/types";
+
+export const FLIGHTS_QUERY_KEY = "flights";
 
 export function useFlights(initialParams?: FlightSearchParams) {
-  const [data, setData] = useState<Flight[] | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<APIError | null>(null);
-  const [params, setParams] = useState<FlightSearchParams>(initialParams ?? {});
+  const queryClient = useQueryClient();
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: [FLIGHTS_QUERY_KEY, initialParams],
+    queryFn: () => searchFlights(initialParams ?? {}),
+    staleTime: 60 * 1000,
+  });
 
-  const fetch = useCallback(
-    async (overrideParams?: FlightSearchParams) => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const res = await searchFlights(overrideParams ?? params);
-        setData(res);
-      } catch (err) {
-        setError(err as APIError);
-        setData(null);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [params],
-  );
-
-  useEffect(() => {
-    fetch();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const invalidate = () =>
+    queryClient.invalidateQueries({ queryKey: [FLIGHTS_QUERY_KEY] });
 
   return {
-    data,
+    data: data ?? null,
     isLoading,
     error,
-    refetch: fetch,
-    setParams,
+    refetch,
+    invalidate,
+    // kept for API compatibility — no-op since params are now part of query key
+    setParams: () => {},
   };
 }
 

@@ -82,7 +82,7 @@ const AdminDashboardPage = () => {
     }
   }, []);
 
-  const { data } = useAsyncValue(loader);
+  const { data } = useAsyncValue(loader, ["admin-dashboard"], 60 * 1000);
   const dashboardData = data ?? {
     bookings: [],
     flights: [],
