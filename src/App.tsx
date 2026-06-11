@@ -44,6 +44,9 @@ import AdminDestinationsPage from "@/pages/admin/AdminDestinationsPage";
 import AdminSettingsPage from "@/pages/admin/AdminSettingsPage/AdminSettingsPage";
 import AdminBookingsPage from "@/pages/admin/AdminBookingsPage/AdminBookingsPage";
 import ProfileSettingsPage from "@/pages/ProfileSettingsPage/ProfileSettingsPage";
+import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
+import ResetPasswordPage from "@/pages/ResetPasswordPage";
+import VerifyOtpPage from "@/pages/VerifyOtpPage";
 
 function screen(
   id: string,
@@ -146,21 +149,15 @@ const AppContent = () => {
             <Route path={ROUTES.LOGIN} element={<LoginPage />} />
             <Route
               path={ROUTES.FORGOT_PASSWORD}
-              element={screen(
-                "S-06",
-                "Forgot Password",
-                "public",
-                "Password recovery request and resend flow.",
-              )}
+              element={<ForgotPasswordPage />}
+            />
+            <Route
+              path={ROUTES.VERIFY_OTP}
+              element={<VerifyOtpPage />}
             />
             <Route
               path={ROUTES.RESET_PASSWORD}
-              element={screen(
-                "S-07",
-                "Reset Password",
-                "public",
-                "Set new password with strength and confirmation rules.",
-              )}
+              element={<ResetPasswordPage />}
             />
             <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
             <Route

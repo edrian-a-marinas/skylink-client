@@ -17,6 +17,7 @@ export const ROUTES = {
   EXPLORE_PROMO_DETAIL: "/explore/promos/:id",
   LOGIN: "/login",
   FORGOT_PASSWORD: "/forgot-password",
+  VERIFY_OTP: "/verify-otp",
   RESET_PASSWORD: "/reset-password",
   REGISTER: "/register",
   VERIFY_EMAIL_PENDING: "/verify-email-pending",
