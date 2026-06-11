@@ -15,7 +15,7 @@ import { cn } from "@/utils/cn";
 
 const AdminFlightsPage = () => {
   const navigate = useNavigate();
-  const { data: flights, isLoading, refetch } = useFlights();
+  const { data: flights, isLoading, refetch } = useFlights({ pageSize: 100 });
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [sortBy, setSortBy] = useState("");
