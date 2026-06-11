@@ -20,7 +20,8 @@ const AdminFlightsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [searchParams, setSearchParams] = useSearchParams();
-  const [sortBy, setSortBy] = useState(() => searchParams.get("sort") ?? "");
+  const sortBy = searchParams.get("sort") ?? "";
+  const setSortBy = (val: string) => setSearchParams(val ? { sort: val } : {});
   const isLowSeatsView = searchParams.get("sort") === "seats";
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [flightToDelete, setFlightToDelete] = useState<Flight | null>(null);
@@ -279,6 +280,23 @@ const AdminFlightsPage = () => {
               <option value="price">Price</option>
               <option value="seats">Seats</option>
             </select>
+            {(() => {
+              const lowCount = (flights ?? []).filter((f) => f.hasLowSeats).length;
+              return lowCount > 0 ? (
+                <button
+                  onClick={() => setSearchParams(isLowSeatsView ? {} : { sort: "seats" })}
+                  className={cn(
+                    "h-11 px-4 rounded-xl text-sm font-bold flex items-center gap-2 border transition-all",
+                    isLowSeatsView
+                      ? "bg-amber-500 text-white border-amber-500"
+                      : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100"
+                  )}
+                >
+                  <AlertTriangle size={14} />
+                  Low Seats ({lowCount})
+                </button>
+              ) : null;
+            })()}
           </div>
         </div>
 
