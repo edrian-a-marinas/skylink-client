@@ -101,6 +101,16 @@ export async function resendVerification(email: string): Promise<MessageResponse
   }
 }
 
+export async function verifyOtp(payload: { email: string; otp: string }): Promise<MessageResponse> {
+  try {
+    const res = await axiosClient.post<MessageResponse>("/auth/verify-otp", payload);
+    return res.data;
+  } catch (err) {
+    handleApiError(err);
+    throw err;
+  }
+}
+
 export async function googleAuth(token: string, mode: "login" | "register" = "login"): Promise<TokenResponse> {
   try {
     const res = await axiosClient.post<TokenResponse>("/auth/google", { token, mode }); // 👈 add mode
