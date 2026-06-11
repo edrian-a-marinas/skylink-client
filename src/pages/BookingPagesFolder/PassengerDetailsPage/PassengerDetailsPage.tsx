@@ -56,37 +56,10 @@ const PassengerDetailsPage = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Nationalities autocomplete state
-  const [nationalityList, setNationalityList] = useState<string[]>(FALLBACK_NATIONALITIES);
+  const [nationalityList] = useState<string[]>(FALLBACK_NATIONALITIES);
   const [searchQuery, setSearchQuery] = useState(existingPassenger?.nationality || "");
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Fetch from restcountries API dynamically
-  useEffect(() => {
-    let isMounted = true;
-    const fetchNationalities = async () => {
-      try {
-        const res = await fetch("https://restcountries.com/v3.1/all?fields=name,demonyms");
-        if (!res.ok) throw new Error("API failed");
-        const data = await res.json();
-        if (!isMounted) return;
-
-        const fetched = data
-          .map((country: any) => country.demonyms?.eng?.m || country.name?.common)
-          .filter(Boolean) as string[];
-
-        // Merge, deduplicate, and sort alphabetically
-        const merged = Array.from(new Set([...FALLBACK_NATIONALITIES, ...fetched])).sort();
-        setNationalityList(merged);
-      } catch (err) {
-        console.warn("Failed to fetch nationalities from API, using fallback list:", err);
-      }
-    };
-    fetchNationalities();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   // Filter nationality list options based on user search
   const filteredNationalities = useMemo(() => {
@@ -108,7 +81,7 @@ const PassengerDetailsPage = () => {
 
   const handleFirstNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    if (nameRegex.test(val) && val.length <= 50) {
+    if (nameRegex.test(val)) {
       setFirstName(val);
       setErrors((prev) => ({ ...prev, firstName: "" }));
     }
@@ -116,7 +89,7 @@ const PassengerDetailsPage = () => {
 
   const handleLastNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    if (nameRegex.test(val) && val.length <= 50) {
+    if (nameRegex.test(val)) {
       setLastName(val);
       setErrors((prev) => ({ ...prev, lastName: "" }));
     }
@@ -124,7 +97,7 @@ const PassengerDetailsPage = () => {
 
   const handlePassportChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/\s/g, ""); // strip space immediately
-    if (passportRegex.test(val) && val.length <= 20) {
+    if (passportRegex.test(val)) {
       setPassportNumber(val);
       setErrors((prev) => ({ ...prev, passportNumber: "" }));
     }
@@ -141,12 +114,16 @@ const PassengerDetailsPage = () => {
       newErrors.firstName = "First name is required.";
     } else if (trimmedFirst.length < 2) {
       newErrors.firstName = "First name must be at least 2 characters.";
+    } else if (trimmedFirst.length > 50) {
+      newErrors.firstName = "First name must be at most 50 characters.";
     }
 
     if (!trimmedLast) {
       newErrors.lastName = "Last name is required.";
     } else if (trimmedLast.length < 2) {
       newErrors.lastName = "Last name must be at least 2 characters.";
+    } else if (trimmedLast.length > 50) {
+      newErrors.lastName = "Last name must be at most 50 characters.";
     }
 
     if (!trimmedNat) {
@@ -159,6 +136,8 @@ const PassengerDetailsPage = () => {
       newErrors.passportNumber = "Passport / ID number is required.";
     } else if (trimmedPassport.length < 6) {
       newErrors.passportNumber = "Passport / ID number must be at least 6 characters.";
+    } else if (trimmedPassport.length > 20) {
+      newErrors.passportNumber = "Passport / ID number must be at most 20 characters.";
     }
 
     if (!dobMonth || !dobDay || !dobYear) {
@@ -238,6 +217,7 @@ const PassengerDetailsPage = () => {
                   value={firstName}
                   onChange={handleFirstNameChange}
                   placeholder="Enter first name"
+                  maxLength={100}
                 />
                 {errors.firstName && <p className="mt-1 text-xs text-rose-500">{errors.firstName}</p>}
               </div>
@@ -248,6 +228,7 @@ const PassengerDetailsPage = () => {
                   value={lastName}
                   onChange={handleLastNameChange}
                   placeholder="Enter last name"
+                  maxLength={100}
                 />
                 {errors.lastName && <p className="mt-1 text-xs text-rose-500">{errors.lastName}</p>}
               </div>
@@ -288,6 +269,7 @@ const PassengerDetailsPage = () => {
                   }}
                   onFocus={() => setShowDropdown(true)}
                   placeholder="Type to search nationality..."
+                  maxLength={100}
                 />
                 {showDropdown && (
                   <div className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
@@ -321,6 +303,7 @@ const PassengerDetailsPage = () => {
                   value={passportNumber}
                   onChange={handlePassportChange}
                   placeholder="Enter passport or ID number"
+                  maxLength={100}
                 />
                 {errors.passportNumber && <p className="mt-1 text-xs text-rose-500">{errors.passportNumber}</p>}
               </div>
