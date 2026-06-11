@@ -14,7 +14,8 @@ axiosClient.interceptors.request.use((config) => {
   if (token) {
     if (isTokenExpired(token)) {
       localStorage.removeItem("token");
-      window.location.href = "/login";
+      const nextUrl = encodeURIComponent(window.location.pathname + window.location.search);
+      window.location.href = `/login?redirect=${nextUrl}`;
       return Promise.reject(new Error("Session expired. Please log in again."));
     }
     config.headers.Authorization = `Bearer ${token}`;
@@ -28,7 +29,8 @@ axiosClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
-      window.location.href = "/login";
+      const nextUrl = encodeURIComponent(window.location.pathname + window.location.search);
+      window.location.href = `/login?redirect=${nextUrl}`;
     }
     return Promise.reject(error);
   },

@@ -81,7 +81,7 @@ const PassengerDetailsPage = () => {
 
   const handleFirstNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    if (nameRegex.test(val)) {
+    if (nameRegex.test(val) && val.length <= 30) {
       setFirstName(val);
       setErrors((prev) => ({ ...prev, firstName: "" }));
     }
@@ -89,7 +89,7 @@ const PassengerDetailsPage = () => {
 
   const handleLastNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    if (nameRegex.test(val)) {
+    if (nameRegex.test(val) && val.length <= 30) {
       setLastName(val);
       setErrors((prev) => ({ ...prev, lastName: "" }));
     }
@@ -97,7 +97,7 @@ const PassengerDetailsPage = () => {
 
   const handlePassportChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/\s/g, ""); // strip space immediately
-    if (passportRegex.test(val)) {
+    if (passportRegex.test(val) && val.length <= 20) {
       setPassportNumber(val);
       setErrors((prev) => ({ ...prev, passportNumber: "" }));
     }
@@ -114,16 +114,16 @@ const PassengerDetailsPage = () => {
       newErrors.firstName = "First name is required.";
     } else if (trimmedFirst.length < 2) {
       newErrors.firstName = "First name must be at least 2 characters.";
-    } else if (trimmedFirst.length > 50) {
-      newErrors.firstName = "First name must be at most 50 characters.";
+    } else if (trimmedFirst.length > 30) {
+      newErrors.firstName = "First name must be at most 30 characters.";
     }
 
     if (!trimmedLast) {
       newErrors.lastName = "Last name is required.";
     } else if (trimmedLast.length < 2) {
       newErrors.lastName = "Last name must be at least 2 characters.";
-    } else if (trimmedLast.length > 50) {
-      newErrors.lastName = "Last name must be at most 50 characters.";
+    } else if (trimmedLast.length > 30) {
+      newErrors.lastName = "Last name must be at most 30 characters.";
     }
 
     if (!trimmedNat) {
@@ -217,7 +217,7 @@ const PassengerDetailsPage = () => {
                   value={firstName}
                   onChange={handleFirstNameChange}
                   placeholder="Enter first name"
-                  maxLength={100}
+                  maxLength={30}
                 />
                 {errors.firstName && <p className="mt-1 text-xs text-rose-500">{errors.firstName}</p>}
               </div>
@@ -228,7 +228,7 @@ const PassengerDetailsPage = () => {
                   value={lastName}
                   onChange={handleLastNameChange}
                   placeholder="Enter last name"
-                  maxLength={100}
+                  maxLength={30}
                 />
                 {errors.lastName && <p className="mt-1 text-xs text-rose-500">{errors.lastName}</p>}
               </div>
@@ -303,7 +303,7 @@ const PassengerDetailsPage = () => {
                   value={passportNumber}
                   onChange={handlePassportChange}
                   placeholder="Enter passport or ID number"
-                  maxLength={100}
+                  maxLength={20}
                 />
                 {errors.passportNumber && <p className="mt-1 text-xs text-rose-500">{errors.passportNumber}</p>}
               </div>
@@ -370,4 +370,4 @@ const PassengerDetailsPage = () => {
   );
 };
 
-export default PassengerDetailsPage;
+export default PassengerDetailsPage;

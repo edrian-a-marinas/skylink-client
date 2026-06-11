@@ -53,6 +53,34 @@ const PaymentPage = () => {
     cvv: "",
   });
 
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (/^[0-9\s]*$/.test(val) && val.length <= 19) {
+      setCardDetails(prev => ({ ...prev, cardNumber: val }));
+    }
+  };
+
+  const handleCardNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (/^[A-Za-z\s'-]*$/.test(val) && val.length <= 50) {
+      setCardDetails(prev => ({ ...prev, cardName: val }));
+    }
+  };
+
+  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (/^[0-9\s/]*$/.test(val) && val.length <= 7) {
+      setCardDetails(prev => ({ ...prev, expiry: val }));
+    }
+  };
+
+  const handleCvvChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (/^[0-9]*$/.test(val) && val.length <= 4) {
+      setCardDetails(prev => ({ ...prev, cvv: val }));
+    }
+  };
+
   const handlePay = async () => {
     try {
       setIsProcessing(true);
@@ -169,10 +197,11 @@ const PaymentPage = () => {
                   </label>
                   <input
                     value={cardDetails.cardNumber}
-                    onChange={(e) => setCardDetails(prev => ({...prev, cardNumber: e.target.value}))}
+                    onChange={handleCardNumberChange}
                     disabled={isProcessing}
                     className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm disabled:opacity-50"
                     placeholder="0000 0000 0000 0000"
+                    maxLength={19}
                   />
                 </div>
                 <div className="sm:col-span-2">
@@ -181,10 +210,11 @@ const PaymentPage = () => {
                   </label>
                   <input
                     value={cardDetails.cardName}
-                    onChange={(e) => setCardDetails(prev => ({...prev, cardName: e.target.value}))}
+                    onChange={handleCardNameChange}
                     disabled={isProcessing}
                     className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm disabled:opacity-50"
                     placeholder="AS WRITTEN ON CARD"
+                    maxLength={50}
                   />
                 </div>
                 <div>
@@ -193,10 +223,11 @@ const PaymentPage = () => {
                   </label>
                   <input
                     value={cardDetails.expiry}
-                    onChange={(e) => setCardDetails(prev => ({...prev, expiry: e.target.value}))}
+                    onChange={handleExpiryChange}
                     disabled={isProcessing}
                     className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm disabled:opacity-50"
                     placeholder="MM / YY"
+                    maxLength={7}
                   />
                 </div>
                 <div>
@@ -205,10 +236,11 @@ const PaymentPage = () => {
                   </label>
                   <input
                     value={cardDetails.cvv}
-                    onChange={(e) => setCardDetails(prev => ({...prev, cvv: e.target.value}))}
+                    onChange={handleCvvChange}
                     disabled={isProcessing}
                     className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm disabled:opacity-50"
                     placeholder="***"
+                    maxLength={4}
                   />
                 </div>
                 <div className="sm:col-span-2 flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">
