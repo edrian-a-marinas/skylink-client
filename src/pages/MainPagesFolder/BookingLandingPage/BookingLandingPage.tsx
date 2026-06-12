@@ -242,6 +242,54 @@ function RouteCard({ route }: { route: Route }) {
   );
 }
 
+function DealCardSkeleton() {
+  return (
+    <div className="bg-bg-page border border-tertiary-30 rounded-[14px] overflow-hidden shadow-[0px_2px_8px_rgba(0,0,0,0.04)] text-left w-full p-4 space-y-4 animate-pulse">
+      <div className="h-35 bg-slate-200 rounded-lg w-full" />
+      <div className="space-y-2">
+        <div className="h-4 bg-slate-200 rounded w-3/4" />
+        <div className="flex gap-2 items-baseline mt-2">
+          <div className="h-6 bg-slate-200 rounded w-1/3" />
+          <div className="h-4 bg-slate-200 rounded w-1/4" />
+        </div>
+        <div className="h-3 bg-slate-200 rounded w-1/2 mt-2" />
+      </div>
+    </div>
+  );
+}
+
+function RouteCardSkeleton() {
+  return (
+    <div className="bg-bg-page border border-tertiary-30 rounded-[14px] p-4 flex items-center justify-between shadow-sm w-full animate-pulse">
+      <div className="flex items-center gap-3 w-2/3">
+        <div className="space-y-2 w-1/3">
+          <div className="h-4 bg-slate-200 rounded w-3/4" />
+          <div className="h-3 bg-slate-200 rounded w-1/2" />
+        </div>
+        <svg
+          className="h-3.75 w-3.75 shrink-0 text-slate-200"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M5 12h14M12 5l7 7-7 7" />
+        </svg>
+        <div className="space-y-2 w-1/3">
+          <div className="h-4 bg-slate-200 rounded w-3/4" />
+          <div className="h-3 bg-slate-200 rounded w-1/2" />
+        </div>
+      </div>
+      <div className="space-y-2 w-1/4 flex flex-col items-end">
+        <div className="h-5 bg-slate-200 rounded w-3/4" />
+        <div className="h-3 bg-slate-200 rounded w-1/2" />
+      </div>
+    </div>
+  );
+}
+
 function DestinationCard({ destination }: { destination: Destination }) {
   return (
     <Link
@@ -605,10 +653,7 @@ const BookingLandingPage = () => {
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {[1, 2, 3].map((n) => (
-                <div
-                  key={n}
-                  className="h-[260px] rounded-[14px] bg-slate-100 animate-pulse"
-                />
+                <DealCardSkeleton key={n} />
               ))}
             </div>
           ) : (
@@ -633,11 +678,8 @@ const BookingLandingPage = () => {
           />
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[1, 2, 3].map((n) => (
-                <div
-                  key={n}
-                  className="h-[80px] rounded-[14px] bg-slate-100 animate-pulse"
-                />
+              {[1, 2, 3, 4, 5, 6].map((n) => (
+                <RouteCardSkeleton key={n} />
               ))}
             </div>
           ) : (
@@ -654,18 +696,29 @@ const BookingLandingPage = () => {
           )}
         </section>
 
-        {derivedDestinations.length > 0 && (
+        {(isLoading || derivedDestinations.length > 0) && (
           <section>
             <SectionHeader
               title="Explore Destinations"
               linkLabel="View all"
               to={ROUTES.EXPLORE}
             />
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {derivedDestinations.map((dest) => (
-                <DestinationCard key={dest.id} destination={dest} />
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {[1, 2, 3, 4].map((n) => (
+                  <div
+                    key={n}
+                    className="h-50 rounded-[14px] bg-slate-200 animate-pulse"
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {derivedDestinations.map((dest) => (
+                  <DestinationCard key={dest.id} destination={dest} />
+                ))}
+              </div>
+            )}
           </section>
         )}
       </div>
