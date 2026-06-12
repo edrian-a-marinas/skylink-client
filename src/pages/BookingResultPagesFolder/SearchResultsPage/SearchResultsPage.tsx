@@ -123,7 +123,14 @@ const SearchResultsPage = () => {
     return response.map(mapFlightToResult);
   }, [cabinParam, dateParam, fromLabel, fromParam, paxParam, toLabel, toParam]);
 
-  const { data: fetchedFlights, isLoading } = useAsyncValue(loader);
+  const { data: fetchedFlights, isLoading } = useAsyncValue(loader, [
+    "search-results-flights",
+    fromParam,
+    toParam,
+    dateParam,
+    cabinParam,
+    paxParam,
+  ]);
   const baseFlights = fetchedFlights ?? [];
 
   const filteredFlights = useMemo(() => {

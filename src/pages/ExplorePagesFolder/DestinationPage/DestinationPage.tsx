@@ -45,8 +45,8 @@ const DestinationPage = () => {
     });
   }, [iata_code]);
 
-  const { data: airport, isLoading: airportLoading } = useAsyncValue(airportLoader);
-  const { data: flightData, isLoading: flightsLoading } = useAsyncValue(flightLoader);
+  const { data: airport, isLoading: airportLoading } = useAsyncValue(airportLoader, ["destination-airport", iata_code]);
+  const { data: flightData, isLoading: flightsLoading } = useAsyncValue(flightLoader, ["destination-flights", iata_code]);
   const availableFlights = flightData ?? [];
 
   if (airportLoading) {

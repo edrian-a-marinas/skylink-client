@@ -26,7 +26,7 @@ const PromosPage = () => {
     return data || [];
   }, []);
 
-  const { data: promotions, isLoading } = useAsyncValue(loader);
+  const { data: promotions, isLoading } = useAsyncValue(loader, ["promotions-list"]);
 
   const deals = useMemo(() => {
     const allDeals: Deal[] = (promotions || []).map((promo) => {

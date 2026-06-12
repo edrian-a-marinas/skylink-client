@@ -33,7 +33,7 @@ const BookingSummaryPage = () => {
     return getFlightById(selectedFlightId);
   }, [selectedFlightId]);
   
-  const { data: flight } = useAsyncValue(flightLoader);
+  const { data: flight } = useAsyncValue(flightLoader, ["booking-summary-flight", selectedFlightId]);
   
   const baseFare = formatCurrency(pricing ? Math.round(pricing.baseFare) : 0);
   const taxes = formatCurrency(pricing ? Math.round(pricing.taxes) : 0);

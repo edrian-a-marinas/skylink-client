@@ -87,7 +87,13 @@ const PaymentPage = () => {
       setErrorMsg("");
 
       // 1. Create Payment Intent via Backend
-      const intentRes = await createPaymentIntent(bookingId);
+      const intentRes = await createPaymentIntent(bookingId, method);
+
+      if (method === "gcash" || method === "paymaya") {
+        navigate(`${ROUTES.PAYMENT_PROCESSING}${searchSuffix}`);
+        return;
+      }
+
       if (!intentRes?.client_key) {
         throw new Error("Failed to initialize payment intent.");
       }
@@ -132,7 +138,11 @@ const PaymentPage = () => {
       }
     } catch (err: any) {
       console.error("Payment error:", err);
-      setErrorMsg(err.message || "An error occurred during payment processing.");
+      const msg =
+        err.details?.detail ||
+        err.message ||
+        "An error occurred during payment processing.";
+      setErrorMsg(msg);
       setIsProcessing(false);
     }
   };
@@ -169,9 +179,9 @@ const PaymentPage = () => {
             )}
             <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 pb-3 text-xs">
               {[
-                { id: "card", label: "Credit / Debit Card" },
                 { id: "gcash", label: "GCash" },
                 { id: "paymaya", label: "Maya" },
+                { id: "card", label: "Credit / Debit Card" }
               ].map((tab) => (
                 <button
                   key={tab.id}

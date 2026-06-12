@@ -14,7 +14,7 @@ const SeatSelectionPage = () => {
   const navigate = useNavigate();
   const searchSuffix = location.search ?? "";
   const backHref = `${ROUTES.BOOKING_PASSENGER_DETAILS}${searchSuffix}`;
-  const { data: bookingData } = useAsyncValue(loadBookingData);
+  const { data: bookingData } = useAsyncValue(loadBookingData, ["seat-selection-booking-data"]);
   const booking = bookingData ?? BOOKING_DATA;
   const [selectedSeat, setSelectedSeat] = useState<string | null>(null);
 

@@ -17,7 +17,7 @@ const PaymentProcessingPage = () => {
   const query = new URLSearchParams(location.search);
   const bookingId = query.get("booking_id");
   
-  const { data: bookingData } = useAsyncValue(loadBookingData);
+  const { data: bookingData } = useAsyncValue(loadBookingData, ["payment-processing-booking-data", bookingId]);
   const booking = bookingData ?? BOOKING_DATA;
 
   const [pollingError, setPollingError] = useState(false);
