@@ -14,7 +14,6 @@ axiosClient.interceptors.request.use((config) => {
   if (token) {
     if (isTokenExpired(token)) {
       localStorage.removeItem("token");
-      window.location.href = "/login";
       return Promise.reject(new Error("Session expired. Please log in again."));
     }
     config.headers.Authorization = `Bearer ${token}`;
@@ -28,7 +27,6 @@ axiosClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
-      window.location.href = "/login";
     }
     return Promise.reject(error);
   },

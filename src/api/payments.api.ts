@@ -65,9 +65,12 @@ export async function getPaymentFailure(
 
 // --- PayMongo Integrations ---
 
-export async function createPaymentIntent(bookingId: string): Promise<{ client_key: string }> {
+export async function createPaymentIntent(bookingId: string, paymentMethod?: string): Promise<{ client_key: string }> {
   try {
-    const res = await axiosClient.post(`/payments/create-intent?booking_id=${bookingId}`);
+    const url = paymentMethod
+      ? `/payments/create-intent?booking_id=${bookingId}&payment_method=${paymentMethod}`
+      : `/payments/create-intent?booking_id=${bookingId}`;
+    const res = await axiosClient.post(url);
     return res.data;
   } catch (err) {
     handleApiError(err);

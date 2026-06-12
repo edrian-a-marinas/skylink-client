@@ -18,8 +18,9 @@ const ManageBookingCancelPage = () => {
   const navigate = useNavigate();
   const [isCancelling, setIsCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
-  const { data: booking, isLoading } = useAsyncValue(() =>
-    loadManageBookingById(id),
+  const { data: booking, isLoading } = useAsyncValue(
+    () => loadManageBookingById(id),
+    ["manage-booking-detail", id],
   );
 
   if (isLoading && !booking) {

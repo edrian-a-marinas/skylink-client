@@ -128,7 +128,7 @@ const ResultsBookingPage = () => {
     return [mapFlightToSummary(flight)];
   }, [id]);
 
-  const { data: loadedFlights, isLoading } = useAsyncValue(loader);
+  const { data: loadedFlights, isLoading } = useAsyncValue(loader, ["flight-detail-pool", id]);
   const flightPool = loadedFlights ?? [];
 
   const flight = useMemo(() => {

@@ -37,7 +37,7 @@ const ReschedulePickPage = () => {
     return { booking, flights: alternatives, origin, destination };
   }, [id]);
 
-  const { data, isLoading } = useAsyncValue(loader);
+  const { data, isLoading } = useAsyncValue(loader, ["reschedule-pick-flights", id]);
 
   const filteredFlights = useMemo(() => {
     if (!data?.flights) return [];

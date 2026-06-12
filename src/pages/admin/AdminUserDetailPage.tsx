@@ -73,7 +73,7 @@ const AdminUserDetailPage = () => {
     }
   }, [fallbackUser, id]);
 
-  const { data, isLoading, refetch } = useAsyncValue(loader);
+  const { data, isLoading, refetch } = useAsyncValue(loader, ["admin-user-detail", id]);
   const user = data?.user ?? fallbackUser;
   const bookingRows = useMemo(() => {
     const bookings = data?.bookings ?? [];

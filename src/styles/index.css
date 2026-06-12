@@ -203,3 +203,9 @@
     margin: 15mm;
   }
 }
+
+@media screen {
+  .print-only {
+    display: none !important;
+  }
+}

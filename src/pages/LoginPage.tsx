@@ -46,6 +46,8 @@ const GoogleDivider = () => (
 
 const LoginPage = ({ defaultTab = "login" }: LoginPageProps) => {
   const navigate = useNavigate();
+  const query = new URLSearchParams(window.location.search);
+  const redirectParam = query.get("redirect");
   const { signIn, signUp, signInWithGoogle } = useAuth();
   const [activeTab, setActiveTab] = useState<AuthTab>(defaultTab);
   const [showLoginPassword, setShowLoginPassword] = useState(false);
@@ -91,7 +93,7 @@ const LoginPage = ({ defaultTab = "login" }: LoginPageProps) => {
     setServerError(null);
     try {
       await signIn({ email: data.email, password: data.password });
-      navigate(ROUTES.HOME);
+      navigate(redirectParam || ROUTES.HOME);
     } catch (err: unknown) {
       const apiErr = err as { details?: { detail?: unknown }; message?: string };
       const detail = apiErr?.details?.detail;
@@ -133,7 +135,7 @@ const LoginPage = ({ defaultTab = "login" }: LoginPageProps) => {
       const mode = activeTabRef.current;
       try {
         await signInWithGoogle(tokenResponse.access_token, mode);
-        navigate(ROUTES.HOME);
+        navigate(redirectParam || ROUTES.HOME);
       } catch (err: unknown) {
         const apiErr = err as { details?: { detail?: unknown }; message?: string };
         const detail = apiErr?.details?.detail;

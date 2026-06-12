@@ -7,8 +7,9 @@ import useAsyncValue from "@/hooks/useAsyncValue";
 
 const ManageBookingDetailsPage = () => {
   const { id } = useParams();
-  const { data: booking, isLoading } = useAsyncValue(() =>
-    loadManageBookingById(id),
+  const { data: booking, isLoading } = useAsyncValue(
+    () => loadManageBookingById(id),
+    ["manage-booking-detail", id],
   );
 
   if (isLoading && !booking) {

@@ -33,7 +33,7 @@ const BookingSummaryPage = () => {
     return getFlightById(selectedFlightId);
   }, [selectedFlightId]);
   
-  const { data: flight } = useAsyncValue(flightLoader);
+  const { data: flight } = useAsyncValue(flightLoader, ["booking-summary-flight", selectedFlightId]);
   
   const baseFare = formatCurrency(pricing ? Math.round(pricing.baseFare) : 0);
   const taxes = formatCurrency(pricing ? Math.round(pricing.taxes) : 0);
@@ -47,10 +47,15 @@ const BookingSummaryPage = () => {
 
     try {
       setError("");
+      
+      const searchParams = new URLSearchParams(searchSuffix);
+      const cabinParam = searchParams.get("cabin") ?? "Economy";
+      const seatClassId = cabinParam.toLowerCase() === "business" ? 2 : 1;
+
       // Align with backend snake_case and schema requirements
       const payload = {
         flight_id: selectedFlightId,
-        seat_class_id: 1, // Default to Economy (1) for now
+        seat_class_id: seatClassId,
         seat_number: seatLabel !== "—" && seatLabel !== "Auto-assign" ? seatLabel : undefined,
         passengers: passengers.map(p => ({
           first_name: p.firstName,
@@ -72,7 +77,17 @@ const BookingSummaryPage = () => {
         throw new Error("Failed to create booking. Please try again.");
       }
     } catch (err: any) {
-      setError(err.message || "An error occurred while creating your booking.");
+      let errMsg = "An error occurred while creating your booking.";
+      if (err.details?.detail) {
+        if (typeof err.details.detail === "string") {
+          errMsg = err.details.detail;
+        } else if (Array.isArray(err.details.detail)) {
+          errMsg = err.details.detail.map((d: any) => d.msg).join(", ");
+        }
+      } else if (err.message) {
+        errMsg = err.message;
+      }
+      setError(errMsg);
     }
   };
 

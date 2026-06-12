@@ -71,7 +71,7 @@ export function useBookingActions() {
       return await createBooking(payload);
     } catch (err) {
       setError(err as APIError);
-      return null;
+      throw err;
     } finally {
       setIsLoading(false);
     }
