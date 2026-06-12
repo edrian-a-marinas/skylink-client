@@ -1,18 +1,67 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { ArrowRight, CheckCircle2, Copy, Download } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { ArrowRight, CheckCircle2, Copy, Download, Loader2 } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
-import {
-  BOOKING_DATA,
-  loadBookingData,
-} from "@/pages/BookingPagesFolder/bookingData";
-import useAsyncValue from "@/hooks/useAsyncValue";
+import { useBookingDetail } from "@/hooks/useBookings";
 
 const BookingConfirmationPage = () => {
   const [copied, setCopied] = useState(false);
-  const { data: bookingData } = useAsyncValue(loadBookingData, ["booking-confirmation-data"]);
-  const booking = bookingData ?? BOOKING_DATA;
-  const meal = booking.meal ?? "Standard Meal";
+  const location = useLocation();
+  const query = new URLSearchParams(location.search);
+  const bookingId = query.get("booking_id");
+
+  const { data: bookingDetail, isLoading } = useBookingDetail(bookingId || undefined);
+
+  const formatTimeSafe = (timeStr?: string) => {
+    if (!timeStr) return "—";
+    const d = new Date(timeStr);
+    if (isNaN(d.getTime())) return "—";
+    try {
+      return d.toISOString().slice(11, 16);
+    } catch {
+      return "—";
+    }
+  };
+
+  const getDuration = (depStr?: string, arrStr?: string) => {
+    if (!depStr || !arrStr) return "—";
+    const dep = new Date(depStr);
+    const arr = new Date(arrStr);
+    if (isNaN(dep.getTime()) || isNaN(arr.getTime())) return "—";
+    const diffMs = arr.getTime() - dep.getTime();
+    const diffHrs = Math.floor(diffMs / 3600000);
+    const diffMins = Math.round((diffMs % 3600000) / 60000);
+    return `${diffHrs}h ${diffMins}m`;
+  };
+
+  const detail = bookingDetail as any;
+  const passenger = detail?.passengers?.[0];
+
+  const rawCabin = detail?.seat_class?.name || detail?.flight?.cabinClass || "Economy";
+  const cabinFormatted = rawCabin.charAt(0).toUpperCase() + rawCabin.slice(1).toLowerCase();
+
+  const depTimeRaw = detail?.flight?.departure_time || detail?.flight?.departureTime;
+  const arrTimeRaw = detail?.flight?.arrival_time || detail?.flight?.arrivalTime;
+
+  const booking = {
+    pnr: detail?.pnr || "—",
+    fromCode: detail?.flight?.origin_airport?.iata_code || detail?.flight?.origin || "—",
+    toCode: detail?.flight?.destination_airport?.iata_code || detail?.flight?.destination || "—",
+    departTime: formatTimeSafe(depTimeRaw),
+    arriveTime: formatTimeSafe(arrTimeRaw),
+    duration: getDuration(depTimeRaw, arrTimeRaw),
+    flightCode: detail?.flight?.flight_number || detail?.flight?.flightNumber || "—",
+    cabin: cabinFormatted,
+    seat: detail?.seat_number || passenger?.seatNumber || "Auto-assigned",
+    meal: passenger?.mealPreference 
+      ? (passenger.mealPreference.charAt(0).toUpperCase() + passenger.mealPreference.slice(1)) 
+      : "Standard Meal",
+    passengerName: passenger 
+      ? `${passenger.first_name || passenger.firstName || ""} ${passenger.last_name || passenger.lastName || ""}`.trim() 
+      : "—",
+  };
+
+  const meal = booking.meal;
 
   const handleCopy = async () => {
     if (!navigator.clipboard?.writeText) {
@@ -31,6 +80,14 @@ const BookingConfirmationPage = () => {
   const handlePrint = () => {
     window.print();
   };
+
+  if (isLoading) {
+    return (
+      <main className="flex min-h-[calc(100vh-160px)] items-center justify-center bg-[#F3F5F7]">
+        <Loader2 className="h-8 w-8 animate-spin text-[#496B92]" />
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-[calc(100vh-160px)] bg-[#F3F5F7] px-4 py-12 sm:px-6">
