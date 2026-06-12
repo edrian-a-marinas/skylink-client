@@ -12,9 +12,48 @@ import {
 } from "@/pages/ManageBookingPagesFolder/manageBookingData";
 import useAsyncValue from "@/hooks/useAsyncValue";
 
+function ManageBookingCardSkeleton() {
+  return (
+    <div className="flex w-full flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between animate-pulse">
+      <div className="flex items-center gap-4">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-300">
+          <Plane className="h-5 w-5" />
+        </div>
+
+        <div className="space-y-2">
+          <div className="h-4 bg-slate-200 rounded w-28" />
+          <div className="h-3 bg-slate-200 rounded w-20" />
+        </div>
+      </div>
+
+      <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:gap-8">
+        <div className="grid w-full grid-cols-2 gap-4 text-xs text-slate-500 sm:ml-auto sm:w-auto sm:flex sm:items-center sm:gap-10 sm:text-right">
+          <div className="space-y-1.5">
+            <div className="h-2 bg-slate-200 rounded w-8 sm:ml-auto" />
+            <div className="h-3.5 bg-slate-200 rounded w-16 sm:ml-auto" />
+            <div className="h-2.5 bg-slate-200 rounded w-20 sm:ml-auto" />
+          </div>
+
+          <div className="space-y-1.5">
+            <div className="h-2 bg-slate-200 rounded w-8 sm:ml-auto" />
+            <div className="h-3.5 bg-slate-200 rounded w-14 sm:ml-auto" />
+          </div>
+
+          <div className="col-span-2 sm:col-span-1 space-y-1.5">
+            <div className="h-2 bg-slate-200 rounded w-8 sm:ml-auto" />
+            <div className="h-3.5 bg-slate-200 rounded w-12 sm:ml-auto" />
+          </div>
+        </div>
+
+        <div className="hidden h-5 w-5 bg-slate-200 rounded sm:block" />
+      </div>
+    </div>
+  );
+}
+
 const ManageBookingsPage = () => {
   const [activeTab, setActiveTab] = useState<ManageBookingStatus>("upcoming");
-  const { data: loadedBookings } = useAsyncValue(loadManageBookings, ["manage-bookings-list"]);
+  const { data: loadedBookings, isLoading } = useAsyncValue(loadManageBookings, ["manage-bookings-list"]);
   const bookingsData = loadedBookings ?? [];
 
   const counts = useMemo(() => {
@@ -94,91 +133,101 @@ const ManageBookingsPage = () => {
       {/* BOOKINGS SECTION */}
       <section className="mx-auto w-full max-w-5xl px-4 py-6 md:px-8">
         <div className="space-y-4">
-          {bookings.map((booking: ManageBooking) => {
-            const statusLabel = getStatusLabel(booking.status);
+          {isLoading ? (
+            <>
+              <ManageBookingCardSkeleton />
+              <ManageBookingCardSkeleton />
+              <ManageBookingCardSkeleton />
+            </>
+          ) : (
+            <>
+              {bookings.map((booking: ManageBooking) => {
+                const statusLabel = getStatusLabel(booking.status);
 
-            const badgeClass =
-              booking.status === "upcoming"
-                ? "bg-[#EAF0F7] text-[#5D7FA7]"
-                : getStatusBadgeClass(booking.status);
+                const badgeClass =
+                  booking.status === "upcoming"
+                    ? "bg-[#EAF0F7] text-[#5D7FA7]"
+                    : getStatusBadgeClass(booking.status);
 
-            return (
-              <Link
-                key={booking.id}
-                to={ROUTES.MANAGE_BOOKING_DETAIL.replace(":id", booking.id)}
-                className="flex w-full flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#EAF0F7] text-[#5D7FA7]">
-                    <Plane className="h-5 w-5" />
-                  </div>
+                return (
+                  <Link
+                    key={booking.id}
+                    to={ROUTES.MANAGE_BOOKING_DETAIL.replace(":id", booking.id)}
+                    className="flex w-full flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#EAF0F7] text-[#5D7FA7]">
+                        <Plane className="h-5 w-5" />
+                      </div>
 
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-base font-semibold text-slate-800">
-                        {booking.fromCode} {"->"} {booking.toCode}
-                      </p>
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-base font-semibold text-slate-800">
+                            {booking.fromCode} {"->"} {booking.toCode}
+                          </p>
 
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] ${badgeClass}`}
-                      >
-                        {statusLabel}
-                      </span>
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] ${badgeClass}`}
+                          >
+                            {statusLabel}
+                          </span>
+                        </div>
+
+                        <p className="text-xs text-slate-500">
+                          {booking.fromCity} {"->"} {booking.toCity}
+                        </p>
+                      </div>
                     </div>
 
-                    <p className="text-xs text-slate-500">
-                      {booking.fromCity} {"->"} {booking.toCity}
-                    </p>
-                  </div>
+                    <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:gap-8">
+                      <div className="grid w-full grid-cols-2 gap-4 text-xs text-slate-500 sm:ml-auto sm:w-auto sm:flex sm:items-center sm:gap-10 sm:text-right">
+                        <div>
+                          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                            Date
+                          </p>
+
+                          <p className="mt-1 text-sm font-semibold text-slate-700">
+                            {booking.date}
+                          </p>
+
+                          <p className="text-[11px] text-slate-400">
+                            {booking.departTime} - {booking.cabin}
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                            PNR
+                          </p>
+
+                          <p className="mt-1 text-sm font-semibold text-[#5D7FA7]">
+                            {booking.pnr}
+                          </p>
+                        </div>
+
+                        <div className="col-span-2 sm:col-span-1">
+                          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                            Total
+                          </p>
+
+                          <p className="mt-1 text-sm font-semibold text-slate-800">
+                            {formatPeso(booking.total)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <ChevronRight className="hidden h-5 w-5 text-slate-300 sm:block" />
+                    </div>
+                  </Link>
+                );
+              })}
+
+              {bookings.length === 0 && (
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center text-sm text-slate-500">
+                  No bookings found in this category.
                 </div>
-
-                <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:gap-8">
-                  <div className="grid w-full grid-cols-2 gap-4 text-xs text-slate-500 sm:ml-auto sm:w-auto sm:flex sm:items-center sm:gap-10 sm:text-right">
-                    <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
-                        Date
-                      </p>
-
-                      <p className="mt-1 text-sm font-semibold text-slate-700">
-                        {booking.date}
-                      </p>
-
-                      <p className="text-[11px] text-slate-400">
-                        {booking.departTime} - {booking.cabin}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
-                        PNR
-                      </p>
-
-                      <p className="mt-1 text-sm font-semibold text-[#5D7FA7]">
-                        {booking.pnr}
-                      </p>
-                    </div>
-
-                    <div className="col-span-2 sm:col-span-1">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
-                        Total
-                      </p>
-
-                      <p className="mt-1 text-sm font-semibold text-slate-800">
-                        {formatPeso(booking.total)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <ChevronRight className="hidden h-5 w-5 text-slate-300 sm:block" />
-                </div>
-              </Link>
-            );
-          })}
-
-          {bookings.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center text-sm text-slate-500">
-              No bookings found in this category.
-            </div>
+              )}
+            </>
           )}
         </div>
       </section>

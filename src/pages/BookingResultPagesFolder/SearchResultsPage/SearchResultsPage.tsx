@@ -4,6 +4,7 @@ import { ROUTES } from "@/constants/routes";
 import FiltersPanel from "./components/FiltersPanel";
 import FlightResultCard, {
   type FlightResult,
+  FlightResultCardSkeleton,
 } from "./components/FlightResultCard";
 import { searchFlights } from "@/api/flights.api";
 import type { CabinClass, Flight, FlightSearchParams } from "@/types";
@@ -206,13 +207,21 @@ const SearchResultsPage = () => {
                 ? "Loading flights..."
                 : `${filteredFlights.length} flights found`}
             </p>
-            {filteredFlights.map((flight) => (
-              <FlightResultCard
-                key={flight.id}
-                flight={flight}
-                queryString={queryString}
-              />
-            ))}
+            {isLoading ? (
+              <>
+                <FlightResultCardSkeleton />
+                <FlightResultCardSkeleton />
+                <FlightResultCardSkeleton />
+              </>
+            ) : (
+              filteredFlights.map((flight) => (
+                <FlightResultCard
+                  key={flight.id}
+                  flight={flight}
+                  queryString={queryString}
+                />
+              ))
+            )}
           </div>
         </div>
       </section>

@@ -105,4 +105,53 @@ const FlightResultCard = ({ flight, queryString }: FlightResultCardProps) => {
   );
 };
 
+export const FlightResultCardSkeleton = () => {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm animate-pulse">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        {/* Left Column: Airline details */}
+        <div className="flex flex-1 items-center gap-4">
+          <div className="h-10 w-10 rounded-xl bg-slate-200" />
+          <div className="space-y-2 w-1/2">
+            <div className="h-4 bg-slate-200 rounded w-3/4" />
+            <div className="h-3 bg-slate-200 rounded w-1/2" />
+          </div>
+        </div>
+
+        {/* Center: Times & Routes */}
+        <div className="flex flex-1 items-center justify-between gap-4">
+          <div className="space-y-2 w-1/4 flex flex-col items-center">
+            <div className="h-5 bg-slate-200 rounded w-3/4" />
+            <div className="h-3 bg-slate-200 rounded w-1/2" />
+          </div>
+          <div className="flex flex-col items-center gap-1 w-1/3">
+            <div className="h-3 bg-slate-200 rounded w-1/2" />
+            <div className="h-3 w-3 bg-slate-200 rounded-full" />
+            <div className="h-3 bg-slate-200 rounded w-3/4" />
+          </div>
+          <div className="space-y-2 w-1/4 flex flex-col items-center">
+            <div className="h-5 bg-slate-200 rounded w-3/4" />
+            <div className="h-3 bg-slate-200 rounded w-1/2" />
+          </div>
+        </div>
+
+        {/* Baggage & Status */}
+        <div className="flex items-center gap-3 w-1/5">
+          <div className="h-4 bg-slate-200 rounded w-1/2" />
+          <div className="h-4 bg-slate-200 rounded w-1/2" />
+        </div>
+
+        {/* Price & Select CTA */}
+        <div className="flex items-center justify-between gap-4 md:flex-col md:items-end w-1/6">
+          <div className="space-y-2 w-full flex flex-col md:items-end">
+            <div className="h-5 bg-slate-200 rounded w-3/4" />
+            <div className="h-3 bg-slate-200 rounded w-1/2" />
+          </div>
+          <div className="h-8 bg-slate-200 rounded w-2/3" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default FlightResultCard;
