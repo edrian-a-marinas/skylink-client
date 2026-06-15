@@ -1,18 +1,17 @@
 import HeroImage from "@/assets/BackgroundImages/homepagePlane.png";
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { getPublicAirports } from "@/api/destinations.api";
-import type { Airport } from "@/types/destinations.types";
 import FlightSearchForm from "@/pages/_shared/components/flights/FlightSearchForm";
 import { ArrowRight, ConciergeBell, Plane, Leaf } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
 import { Link } from "react-router-dom";
 
 const HomePage = () => {
-  const [airports, setAirports] = useState<Airport[]>([]);
-
-  useEffect(() => {
-    getPublicAirports().then(setAirports).catch(console.error);
-  }, []);
+  const { data: airports = [] } = useQuery({
+    queryKey: ["public-airports"],
+    queryFn: () => getPublicAirports().then(r => r || []),
+    staleTime: 30 * 60 * 1000,
+  });
 
   const escapes = airports.slice(0, 4);
   const [featured, ...rest] = escapes;

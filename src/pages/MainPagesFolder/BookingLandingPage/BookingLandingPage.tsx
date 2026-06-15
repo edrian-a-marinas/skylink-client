@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { colors, typography } from "@/constants/theme";
 import { ROUTES } from "@/constants/routes";
@@ -13,9 +14,7 @@ import PassengerSelector, {
 import { getPromotions } from "@/api/promotions.api";
 import { searchFlights } from "@/api/flights.api";
 import { getPublicAirports } from "@/api/destinations.api";
-import type { Flight } from "@/types";
 import type { Promotion } from "@/types/promotion.types";
-import type { Airport } from "@/types/destinations.types";
 import { cn } from "@/utils/cn";
 
 type Route = {
@@ -367,53 +366,22 @@ const BookingLandingPage = () => {
   const [cabinClass, setCabinClass] = useState<CabinClass>("Economy");
   const [openField, setOpenField] = useState<"from" | "to" | null>(null);
   const [dropdownFocusIndex, setDropdownFocusIndex] = useState(-1);
-  const [promotions, setPromotions] = useState<Promotion[]>([]);
-  const [flights, setFlights] = useState<Flight[]>([]);
-  const [airports, setAirports] = useState<Airport[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    setDropdownFocusIndex(-1);
-  }, [openField]);
-
-  const fromRef = useRef<HTMLDivElement>(null);
-  const toRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const [promosData, flightsData, airportsData] = await Promise.all([
-          getPromotions(),
-          searchFlights(),
-          getPublicAirports(),
-        ]);
-        setPromotions(promosData || []);
-        setFlights(flightsData || []);
-        setAirports(airportsData || []);
-      } catch (err) {
-        console.error("Failed to fetch landing page data", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    const handler = (event: MouseEvent) => {
-      if (fromRef.current?.contains(event.target as Node)) {
-        return;
-      }
-      if (toRef.current?.contains(event.target as Node)) {
-        return;
-      }
-      setOpenField(null);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
+  const { data: promotions = [], isLoading: promosLoading } = useQuery({
+    queryKey: ["promotions"],
+    queryFn: () => getPromotions().then(r => r || []),
+    staleTime: 30 * 60 * 1000,
+  });
+  const { data: flights = [], isLoading: flightsLoading } = useQuery({
+    queryKey: ["flights-search"],
+    queryFn: () => searchFlights().then(r => r || []),
+    staleTime: 30 * 60 * 1000,
+  });
+  const { data: airports = [], isLoading: airportsLoading } = useQuery({
+    queryKey: ["public-airports"],
+    queryFn: () => getPublicAirports().then(r => r || []),
+    staleTime: 30 * 60 * 1000,
+  });
+  const isLoading = promosLoading || flightsLoading || airportsLoading;
   const selectedFromCode = getCode(fromQuery);
   const selectedToCode = getCode(toQuery);
   const fromOptions = filterAirports(fromQuery).filter(
@@ -422,6 +390,13 @@ const BookingLandingPage = () => {
   const toOptions = filterAirports(toQuery).filter(
     (option) => option.code !== selectedFromCode,
   );
+
+  useEffect(() => {
+    setDropdownFocusIndex(-1);
+  }, [openField]);
+
+  const fromRef = useRef<HTMLDivElement>(null);
+  const toRef = useRef<HTMLDivElement>(null);
 
   const selectFrom = (option: AirportOption) => {
     setFromQuery(`${option.city} (${option.code})`);

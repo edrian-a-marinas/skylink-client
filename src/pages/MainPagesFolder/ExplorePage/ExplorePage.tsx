@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { colors, typography } from "@/constants/theme";
 import { ROUTES } from "@/constants/routes";
@@ -7,9 +8,7 @@ import { HiChevronRight } from "react-icons/hi2";
 import { getPromotions } from "@/api/promotions.api";
 import { getPublicAirports } from "@/api/destinations.api";
 import { searchFlights } from "@/api/flights.api";
-import type { Flight } from "@/types";
 import type { Promotion } from "@/types/promotion.types";
-import type { Airport } from "@/types/destinations.types";
 import { Compass, MapPin, Tag } from "lucide-react";
 
 // ─── Derived types ────────────────────────────────────────────────────────────
@@ -150,30 +149,22 @@ function DealCardSkeleton() {
 
 const ExplorePage = () => {
   const [search, setSearch] = useState("");
-  const [promotions, setPromotions] = useState<Promotion[]>([]);
-  const [flights, setFlights] = useState<Flight[]>([]);
-  const [airports, setAirports] = useState<Airport[]>([]); // <-- add
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [promosData, flightsData, airportsData] = await Promise.all([
-          getPromotions(),
-          searchFlights(),
-          getPublicAirports(), // <-- add
-        ]);
-        setPromotions(promosData || []);
-        setFlights(flightsData || []);
-        setAirports(airportsData || []); // <-- add
-      } catch (err) {
-        console.error("Failed to fetch explore page data", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+  const { data: promotions = [], isLoading: promosLoading } = useQuery({
+    queryKey: ["promotions"],
+    queryFn: () => getPromotions().then(r => r || []),
+    staleTime: 30 * 60 * 1000,
+  });
+  const { data: flights = [], isLoading: flightsLoading } = useQuery({
+    queryKey: ["flights-search"],
+    queryFn: () => searchFlights().then(r => r || []),
+    staleTime: 30 * 60 * 1000,
+  });
+  const { data: airports = [], isLoading: airportsLoading } = useQuery({
+    queryKey: ["public-airports"],
+    queryFn: () => getPublicAirports().then(r => r || []),
+    staleTime: 30 * 60 * 1000,
+  });
+  const isLoading = promosLoading || flightsLoading || airportsLoading;
 
   const destinations = useMemo(() => {
     const seen = new Set<string>();
