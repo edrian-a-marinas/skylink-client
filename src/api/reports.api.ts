@@ -51,9 +51,9 @@ export async function getRouteReport(): Promise<RouteReport> {
  * Admin: Get Cancellation Report
  * GET /api/v1/admin/reports/cancellations
  */
-export async function getCancellationReport(query?: ReportQuery): Promise<CancellationReport> {
+export async function getCancellationReport(): Promise<CancellationReport> {
   try {
-    const res = await axiosClient.get("/admin/reports/cancellations", { params: query });
+    const res = await axiosClient.get("/admin/reports/cancellations");
     return res.data as CancellationReport;
   } catch (err) {
     handleApiError(err);

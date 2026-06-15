@@ -17,52 +17,55 @@ interface Props {
   customEndDate?: string;
 }
 
-const getDateParams = (dateRange: DateRange, customStartDate?: string, customEndDate?: string) => {
+const filterMonthlyPoints = <T extends { month: string; year: number }>(
+  points: T[],
+  dateRange: DateRange,
+  customStartDate?: string,
+  customEndDate?: string,
+): T[] => {
   const now = new Date();
-  if (dateRange === "custom") {
-    if (!customStartDate || !customEndDate) return {};
-    return {
-      date_from: new Date(customStartDate + "T00:00:00.000Z").toISOString(),
-      date_to: new Date(customEndDate + "T23:59:59.999Z").toISOString(),
-    };
-  }
+  let from: Date | null = null;
+  let to: Date | null = null;
+
   if (dateRange === "today") {
-    const start = new Date(now); start.setHours(0, 0, 0, 0);
-    return { date_from: start.toISOString(), date_to: now.toISOString() };
+    from = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    to = now;
+  } else if (dateRange === "week") {
+    from = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+    to = now;
+  } else if (dateRange === "month") {
+    from = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+    to = now;
+  } else if (dateRange === "3months") {
+    from = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+    to = now;
+  } else if (dateRange === "custom" && customStartDate && customEndDate) {
+    from = new Date(customStartDate);
+    to = new Date(customEndDate);
   }
-  if (dateRange === "week") {
-    const start = new Date(now); start.setDate(now.getDate() - 7);
-    return { date_from: start.toISOString(), date_to: now.toISOString() };
-  }
-  if (dateRange === "month") {
-    const start = new Date(now); start.setMonth(now.getMonth() - 1);
-    return { date_from: start.toISOString(), date_to: now.toISOString() };
-  }
-  if (dateRange === "3months") {
-    const start = new Date(now); start.setMonth(now.getMonth() - 3);
-    return { date_from: start.toISOString(), date_to: now.toISOString() };
-  }
-  return {};
+
+  if (!from && !to) return points;
+  return points.filter((p) => {
+    const pointDate = new Date(`${p.year}-${String(new Date(`${p.month} 1`).getMonth() + 1).padStart(2, "0")}-01`);
+    return (!from || pointDate >= new Date(from.getFullYear(), from.getMonth(), 1))
+      && (!to || pointDate <= new Date(to.getFullYear(), to.getMonth(), 1));
+  });
 };
 
 const CancellationRate = ({ dateRange, dateRangeLabel, onToast, customStartDate, customEndDate }: Props) => {
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
-
-  const dateParams = useMemo(
-    () => getDateParams(dateRange, customStartDate, customEndDate),
-    [dateRange, customStartDate, customEndDate]
-  );
-
   const { data, isLoading } = useQuery({
-    queryKey: ["cancellation-report", dateRange, customStartDate, customEndDate],
+    queryKey: ["cancellation-report"],
     queryFn: async () => {
-      const res = await getCancellationReport(Object.keys(dateParams).length ? (dateParams as any) : undefined);
+      const res = await getCancellationReport();
       return (res?.monthly_cancellations ?? []) as MonthlyCancellationPoint[];
     },
     staleTime: 5 * 60 * 1000,
   });
-
-  const points = data ?? [];
+  const points = useMemo(
+    () => filterMonthlyPoints(data ?? [], dateRange, customStartDate, customEndDate),
+    [data, dateRange, customStartDate, customEndDate]
+  );
 
   const tableRows: CancellationDataRow[] = useMemo(() =>
     points.map((d, idx, arr) => {

@@ -132,7 +132,7 @@ const AdminReportsPage = () => {
               <div className="space-y-2 md:text-right">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block md:pr-1">Date Range</span>
                 <div className="flex flex-wrap gap-2 md:justify-end">
-                  {(["all", "today", "week", "month", "3months", "custom"] as DateRange[]).map((range) => {
+                  {reportType === "demand" ? <span className="text-xs text-slate-400 font-medium italic py-2">Not applicable for demand forecast</span> : (["all", "today", "week", "month", "3months", "custom"] as DateRange[]).map((range) => {
                     const label = range === "all" ? "All Time" : range === "today" ? "Today" : range === "week" ? "This Week" : range === "month" ? "This Month" : range === "3months" ? "Last 3 Months" : "Custom";
                     return (
                       <button key={range} onClick={() => handleRangeClick(range)} className={cn("px-3.5 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer", dateRange === range ? "border-[#496B92] text-[#496B92] bg-[#496B92]/5" : "border-slate-200 text-slate-500 bg-white hover:border-[#496B92]/30")}>
