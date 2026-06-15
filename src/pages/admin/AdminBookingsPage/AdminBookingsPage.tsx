@@ -325,7 +325,7 @@ const AdminBookingsPage = () => {
       <AdminBookingDrawer
         bookingId={selectedBookingId}
         onClose={() => setSelectedBookingId(null)}
-      />app/routers/bookings.py
+      />
     </AdminLayout>
   );
 };
