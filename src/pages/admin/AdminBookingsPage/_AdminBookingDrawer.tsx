@@ -33,7 +33,7 @@ const AdminBookingDrawer = ({ bookingId, onClose }: Props) => {
   const { data: risk, isLoading: riskLoading } = useQuery({
     queryKey: ["cancellation-risk", bookingId],
     queryFn: () => getCancellationRisk(bookingId!),
-    enabled: !!bookingId,
+    enabled: !!bookingId && !bookingLoading && booking?.status !== "cancelled",
     staleTime: 5 * 60 * 1000,
   });
 
