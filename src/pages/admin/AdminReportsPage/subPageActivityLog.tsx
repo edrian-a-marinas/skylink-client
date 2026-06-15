@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import DataTable, { type TableColumn } from "@/pages/_shared/components/ui/DataTable";
 import type { ActivityLogItem } from "@/types/report.types";
@@ -7,41 +8,28 @@ import { getActivityLogs } from "@/api/reports.api";
 const LOGS_PER_PAGE = 8;
 
 const ActivityLogTab = () => {
-  const [logs, setLogs] = useState<ActivityLogItem[]>([]);
-  const [total, setTotal] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
   const [logSearch, setLogSearch] = useState("");
   const [logDateFilter, setLogDateFilter] = useState("");
   const [logPage, setLogPage] = useState(1);
 
-  const totalPages = Math.max(1, Math.ceil(total / LOGS_PER_PAGE));
-
-  const fetchLogs = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const params: Record<string, string | number> = {
-        page: logPage,
-        size: LOGS_PER_PAGE,
-      };
+  const { data, isLoading } = useQuery({
+    queryKey: ["activity-logs", logPage, logSearch, logDateFilter],
+    queryFn: async () => {
+      const params: Record<string, string | number> = { page: logPage, size: LOGS_PER_PAGE };
       if (logSearch) params.search = logSearch;
       if (logDateFilter) {
         params.date_from = `${logDateFilter}T00:00:00Z`;
         params.date_to = `${logDateFilter}T23:59:59Z`;
       }
       const res = await getActivityLogs(params as any);
-      setLogs(res.logs ?? []);
-      setTotal(res.total ?? 0);
-    } catch (err) {
-      console.error("Failed to load activity logs:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [logPage, logSearch, logDateFilter]);
+      return { logs: res.logs ?? [], total: res.total ?? 0 };
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
-  useEffect(() => {
-    fetchLogs();
-  }, [fetchLogs]);
-
+  const logs = data?.logs ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / LOGS_PER_PAGE));
   const handleSearch = (val: string) => {
     setLogSearch(val);
     setLogPage(1);

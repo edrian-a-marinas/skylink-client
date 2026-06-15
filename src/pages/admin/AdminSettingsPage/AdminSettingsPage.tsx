@@ -1,4 +1,5 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -770,23 +771,15 @@ function AdminAccountsTab() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
   const [submitMessage, setSubmitMessage] = useState("");
-  const [admins, setAdmins] = useState<AdminUser[]>([]);
-  const [loadingAdmins, setLoadingAdmins] = useState(false);
 
-  const loadAdmins = useCallback(async () => {
-    setLoadingAdmins(true);
-    try {
+  const { data: admins = [], isLoading: loadingAdmins, refetch: refetchAdmins } = useQuery({
+    queryKey: ["admin-users"],
+    queryFn: async () => {
       const users = await getUsers();
-      setAdmins(users.filter((u: any) => u.role_id === 1));
-    } catch {
-      // silent
-    } finally {
-      setLoadingAdmins(false);
-    }
-  }, []);
-
-  // Load on mount
-  useState(() => { loadAdmins(); });
+      return users.filter((u: any) => u.role_id === 1) as AdminUser[];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
   const onSubmit = async (data: AdminAccountValues) => {
     setSubmitStatus("idle");
@@ -802,7 +795,7 @@ function AdminAccountsTab() {
       setSubmitStatus("success");
       setSubmitMessage(`Admin account for ${data.email} created successfully.`);
       reset();
-      await loadAdmins();
+      await refetchAdmins();
     } catch (err: any) {
       setSubmitStatus("error");
       setSubmitMessage(

@@ -1,4 +1,3 @@
-import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles/index.css";
 import App from "./App.tsx";
@@ -21,17 +20,15 @@ const queryClient = new QueryClient({
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string;
 
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-          <AuthProvider>
-            <BookingFlowProvider>
-              <PaymentFlowProvider>
-                <App />
-              </PaymentFlowProvider>
-            </BookingFlowProvider>
-          </AuthProvider>
-        </GoogleOAuthProvider>
-      </QueryClientProvider>
-    </StrictMode>
+  <QueryClientProvider client={queryClient}>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <AuthProvider>
+        <BookingFlowProvider>
+          <PaymentFlowProvider>
+            <App />
+          </PaymentFlowProvider>
+        </BookingFlowProvider>
+      </AuthProvider>
+    </GoogleOAuthProvider>
+  </QueryClientProvider>
 );
