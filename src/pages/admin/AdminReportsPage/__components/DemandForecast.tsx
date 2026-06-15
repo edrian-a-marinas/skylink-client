@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { FileSpreadsheet, FileText } from "lucide-react";
 import DataTable, { type TableColumn } from "@/pages/_shared/components/ui/DataTable";
@@ -6,8 +6,7 @@ import { cn } from "@/utils/cn";
 import { getDemandForecast } from "@/api/reports.api";
 import { exportCSV, exportPDF } from "../__docs/export";
 import type { DemandForecastRoute } from "@/types";
-import type { ReportDataRow } from "./types";
-import type { DateRange } from "./types";
+import type { ReportDataRow, DateRange } from "./types";
 
 interface Props {
   dateRange: DateRange;
@@ -22,47 +21,23 @@ const confidenceBadge = (confidence: string) => {
 };
 
 const DemandForecast = ({ dateRangeLabel, onToast }: Props) => {
-  const [data, setData] = useState<DemandForecastRoute[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    const fetch = async () => {
-      setIsLoading(true);
-      try {
-        const result = await getDemandForecast();
-        setData(result.routes);
-      } catch (err) {
-        console.error("Failed to load demand forecast:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetch();
-  }, []);
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["demand-forecast"],
+    queryFn: async () => {
+      const result = await getDemandForecast();
+      return result.routes as DemandForecastRoute[];
+    },
+    staleTime: 10 * 60 * 1000,
+  });
 
   const maxPredicted = Math.max(...data.map((r) => r.predicted_bookings_next_30_days), 1);
 
   const columns: TableColumn<DemandForecastRoute>[] = [
+    { key: "route", header: "ROUTE", cell: (row) => <span className="font-bold text-slate-800">{row.route}</span> },
+    { key: "predicted_bookings_next_30_days", header: "PREDICTED (30 DAYS)", cell: (row) => <span className="font-bold text-[#496B92]">{row.predicted_bookings_next_30_days}</span> },
+    { key: "avg_monthly_bookings", header: "AVG MONTHLY", cell: (row) => <span className="text-slate-600 font-medium">{row.avg_monthly_bookings}</span> },
     {
-      key: "route",
-      header: "ROUTE",
-      cell: (row) => <span className="font-bold text-slate-800">{row.route}</span>,
-    },
-    {
-      key: "predicted_bookings_next_30_days",
-      header: "PREDICTED (30 DAYS)",
-      cell: (row) => (
-        <span className="font-bold text-[#496B92]">{row.predicted_bookings_next_30_days}</span>
-      ),
-    },
-    {
-      key: "avg_monthly_bookings",
-      header: "AVG MONTHLY",
-      cell: (row) => <span className="text-slate-600 font-medium">{row.avg_monthly_bookings}</span>,
-    },
-    {
-      key: "confidence",
-      header: "CONFIDENCE",
+      key: "confidence", header: "CONFIDENCE",
       cell: (row) => (
         <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold uppercase", confidenceBadge(row.confidence))}>
           {row.confidence}
@@ -107,7 +82,6 @@ const DemandForecast = ({ dateRangeLabel, onToast }: Props) => {
           </div>
         </div>
 
-        {/* Bar chart */}
         {isLoading ? (
           <div className="flex justify-center py-16">
             <div className="animate-spin size-8 border-4 border-[#496B92] border-t-transparent rounded-full" />
@@ -139,7 +113,6 @@ const DemandForecast = ({ dateRangeLabel, onToast }: Props) => {
         )}
       </div>
 
-      {/* Table */}
       <section className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-50 bg-slate-50/30">
           <h3 className="text-sm font-bold text-slate-900">Route Breakdown</h3>

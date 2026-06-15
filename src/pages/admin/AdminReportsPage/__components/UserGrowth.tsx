@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { FileSpreadsheet, FileText } from "lucide-react";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import DataTable, { type TableColumn } from "@/pages/_shared/components/ui/DataTable";
 import { cn } from "@/utils/cn";
 import { exportCSV, exportPDF } from "../__docs/export";
@@ -16,62 +17,55 @@ interface Props {
   customEndDate?: string;
 }
 
+const getDateParams = (dateRange: DateRange, customStartDate?: string, customEndDate?: string) => {
+  const now = new Date();
+  if (dateRange === "custom") {
+    if (!customStartDate || !customEndDate) return {};
+    return {
+      date_from: new Date(customStartDate + "T00:00:00.000Z").toISOString(),
+      date_to: new Date(customEndDate + "T23:59:59.999Z").toISOString(),
+    };
+  }
+  if (dateRange === "today") {
+    const start = new Date(now); start.setHours(0, 0, 0, 0);
+    return { date_from: start.toISOString(), date_to: now.toISOString() };
+  }
+  if (dateRange === "week") {
+    const start = new Date(now); start.setDate(now.getDate() - 7);
+    return { date_from: start.toISOString(), date_to: now.toISOString() };
+  }
+  if (dateRange === "month") {
+    const start = new Date(now); start.setMonth(now.getMonth() - 1);
+    return { date_from: start.toISOString(), date_to: now.toISOString() };
+  }
+  if (dateRange === "3months") {
+    const start = new Date(now); start.setMonth(now.getMonth() - 3);
+    return { date_from: start.toISOString(), date_to: now.toISOString() };
+  }
+  return {};
+};
+
 const UserGrowth = ({ dateRange, dateRangeLabel, onToast, customStartDate, customEndDate }: Props) => {
-  const [data, setData] = useState<MonthlyUserGrowthPoint[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
 
-  useEffect(() => {
-    const now = new Date();
-    let date_from: string | undefined;
-    let date_to: string | undefined = now.toISOString();
+  const dateParams = useMemo(
+    () => getDateParams(dateRange, customStartDate, customEndDate),
+    [dateRange, customStartDate, customEndDate]
+  );
 
-    if (dateRange === "custom") {
-      if (customStartDate && customEndDate) {
-        date_from = new Date(customStartDate + "T00:00:00.000Z").toISOString();
-        date_to = new Date(customEndDate + "T23:59:59.999Z").toISOString();
-      } else {
-        date_from = undefined;
-        date_to = undefined;
-      }
-    } else if (dateRange === "today") {
-      const start = new Date(now); start.setHours(0, 0, 0, 0);
-      date_from = start.toISOString();
-    } else if (dateRange === "week") {
-      const start = new Date(now); start.setDate(now.getDate() - 7);
-      date_from = start.toISOString();
-    } else if (dateRange === "month") {
-      const start = new Date(now); start.setMonth(now.getMonth() - 1);
-      date_from = start.toISOString();
-    } else if (dateRange === "3months") {
-      const start = new Date(now); start.setMonth(now.getMonth() - 3);
-      date_from = start.toISOString();
-    } else {
-      date_from = undefined;
-      date_to = undefined;
-    }
+  const { data, isLoading } = useQuery({
+    queryKey: ["user-growth-report", dateRange, customStartDate, customEndDate],
+    queryFn: async () => {
+      const res = await getUserGrowthReport(Object.keys(dateParams).length ? (dateParams as any) : undefined);
+      return (res?.monthly_growth ?? []) as MonthlyUserGrowthPoint[];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
-    const fetch = async () => {
-      setIsLoading(true);
-      try {
-        const res = await getUserGrowthReport(
-          date_from !== undefined
-            ? ({ date_from, date_to } as any)
-            : undefined
-        );
-        setData(res.monthly_growth ?? []);
-      } catch (err) {
-        console.error("Failed to load user growth report:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetch();
-  }, [dateRange, customStartDate, customEndDate]);
+  const points = data ?? [];
 
   const tableRows: UserGrowthDataRow[] = useMemo(() =>
-    data.map((d, idx, arr) => {
+    points.map((d, idx, arr) => {
       const prev = arr[idx - 1];
       const changeValue = prev
         ? parseFloat((((d.new_users - prev.new_users) / prev.new_users) * 100).toFixed(1))
@@ -82,26 +76,24 @@ const UserGrowth = ({ dateRange, dateRangeLabel, onToast, customStartDate, custo
         change: changeValue !== undefined ? `${changeValue > 0 ? "+" : ""}${changeValue}%` : "—",
         changeValue,
       };
-    }),
-    [data]
-  );
+    }), [points]);
 
   const chartPoints = useMemo(() => {
-    if (data.length === 0) return [];
-    const count = data.length;
+    if (points.length === 0) return [];
+    const count = points.length;
     const xStart = 120, xEnd = 660;
-    const xCoords = data.map((_, i) =>
+    const xCoords = points.map((_, i) =>
       count === 1 ? (xStart + xEnd) / 2 : xStart + (i / (count - 1)) * (xEnd - xStart)
     );
-    const maxVal = Math.max(...data.map(d => d.new_users), 1);
+    const maxVal = Math.max(...points.map(d => d.new_users), 1);
     const maxY = Math.ceil(maxVal * 1.3);
-    return data.map((d, idx) => ({
+    return points.map((d, idx) => ({
       x: xCoords[idx],
       y: 260 - (d.new_users / maxY) * 200,
       value: d.new_users,
       period: `${d.month} ${d.year}`,
     }));
-  }, [data]);
+  }, [points]);
 
   const chartSmoothPath = useMemo(() => {
     if (chartPoints.length === 0) return "";
@@ -120,14 +112,8 @@ const UserGrowth = ({ dateRange, dateRangeLabel, onToast, customStartDate, custo
   }, [chartSmoothPath, chartPoints]);
 
   const columns: TableColumn<UserGrowthDataRow>[] = [
-    {
-      key: "period", header: "PERIOD",
-      cell: (row) => <span className="font-bold text-slate-800">{row.period}</span>,
-    },
-    {
-      key: "value", header: "NEW USERS",
-      cell: (row) => <span className="font-bold text-slate-900">{(row.value as number).toLocaleString()}</span>,
-    },
+    { key: "period", header: "PERIOD", cell: (row) => <span className="font-bold text-slate-800">{row.period}</span> },
+    { key: "value", header: "NEW USERS", cell: (row) => <span className="font-bold text-slate-900">{(row.value as number).toLocaleString()}</span> },
     {
       key: "change", header: "CHANGE",
       cell: (row) => {
@@ -145,7 +131,6 @@ const UserGrowth = ({ dateRange, dateRangeLabel, onToast, customStartDate, custo
 
   return (
     <div className="space-y-6">
-      {/* Chart Card */}
       <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-50">
           <div>
@@ -168,7 +153,6 @@ const UserGrowth = ({ dateRange, dateRangeLabel, onToast, customStartDate, custo
           </div>
         </div>
 
-        {/* Line Chart */}
         <div className="relative pt-6 min-h-[320px] flex items-center justify-center bg-slate-50/20 rounded-2xl border border-slate-100/50">
           {isLoading ? (
             <div className="animate-spin size-8 border-4 border-[#496B92] border-t-transparent rounded-full" />
@@ -195,9 +179,7 @@ const UserGrowth = ({ dateRange, dateRangeLabel, onToast, customStartDate, custo
                       return (
                         <g key={idx}>
                           <line x1="80" y1={y} x2="720" y2={y} stroke="#f1f5f9" strokeWidth="1" />
-                          <text x="70" y={y + 4} textAnchor="end" className="text-[10px] font-bold fill-slate-400">
-                            {formattedVal}
-                          </text>
+                          <text x="70" y={y + 4} textAnchor="end" className="text-[10px] font-bold fill-slate-400">{formattedVal}</text>
                         </g>
                       );
                     })}
@@ -235,7 +217,6 @@ const UserGrowth = ({ dateRange, dateRangeLabel, onToast, customStartDate, custo
         </div>
       </div>
 
-      {/* Data Table */}
       <section className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-50 bg-slate-50/30">
           <h3 className="text-sm font-bold text-slate-900">Data Table</h3>

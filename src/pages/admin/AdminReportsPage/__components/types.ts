@@ -21,7 +21,7 @@ export interface ReportDataRow {
   period: string;
   value: number | string;
   change: string;
-  changeValue?: number;
+  changeValue?: number | undefined;
 }
 
 export interface ActivityLog {

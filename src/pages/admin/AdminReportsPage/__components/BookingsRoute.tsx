@@ -1,8 +1,9 @@
-import { useState, useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { FileSpreadsheet, FileText } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import DataTable, { type TableColumn } from "@/pages/_shared/components/ui/DataTable";
 import { exportCSV, exportPDF } from "../__docs/export";
-import type { DateRange, RouteDataRow } from "./types"; 
+import type { DateRange, RouteDataRow } from "./types";
 import type { RouteBookingPoint } from "@/types/report.types";
 import { getRouteReport } from "@/api/reports.api";
 
@@ -14,88 +15,66 @@ interface Props {
   customEndDate?: string;
 }
 
-const BookingsRoute = ({ dateRange, dateRangeLabel, onToast, customStartDate, customEndDate }: Props) => {
-  const [routes, setRoutes] = useState<RouteBookingPoint[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    const now = new Date();
-    let date_from: string | undefined;
-    let date_to: string | undefined = now.toISOString();
-
-    if (dateRange === "custom") {
-      if (customStartDate && customEndDate) {
-        date_from = new Date(customStartDate + "T00:00:00.000Z").toISOString();
-        date_to = new Date(customEndDate + "T23:59:59.999Z").toISOString();
-      } else {
-        date_from = undefined;
-        date_to = undefined;
-      }
-    } else if (dateRange === "today") {
-      const start = new Date(now); start.setHours(0, 0, 0, 0);
-      date_from = start.toISOString();
-    } else if (dateRange === "week") {
-      const start = new Date(now); start.setDate(now.getDate() - 7);
-      date_from = start.toISOString();
-    } else if (dateRange === "month") {
-      const start = new Date(now); start.setMonth(now.getMonth() - 1);
-      date_from = start.toISOString();
-    } else if (dateRange === "3months") {
-      const start = new Date(now); start.setMonth(now.getMonth() - 3);
-      date_from = start.toISOString();
-    } else {
-      date_from = undefined;
-      date_to = undefined;
-    }
-
-    const fetch = async () => {
-      setIsLoading(true);
-      try {
-        const data = await getRouteReport(
-          date_from !== undefined
-            ? ({ date_from, date_to } as any)
-            : undefined
-        );
-        setRoutes(data.routes ?? []);
-      } catch (err) {
-        console.error("Failed to load route report:", err);
-      } finally {
-        setIsLoading(false);
-      }
+const getDateParams = (dateRange: DateRange, customStartDate?: string, customEndDate?: string) => {
+  const now = new Date();
+  if (dateRange === "custom") {
+    if (!customStartDate || !customEndDate) return {};
+    return {
+      date_from: new Date(customStartDate + "T00:00:00.000Z").toISOString(),
+      date_to: new Date(customEndDate + "T23:59:59.999Z").toISOString(),
     };
+  }
+  const endOfToday = new Date(now); endOfToday.setHours(23, 59, 59, 999);
 
-    fetch();
-  }, [dateRange, customStartDate, customEndDate]);
+  if (dateRange === "today") {
+    const start = new Date(now); start.setHours(0, 0, 0, 0);
+    return { date_from: start.toISOString(), date_to: endOfToday.toISOString() };
+  }
+  if (dateRange === "week") {
+    const start = new Date(now); start.setHours(0, 0, 0, 0); start.setDate(now.getDate() - 7);
+    return { date_from: start.toISOString(), date_to: endOfToday.toISOString() };
+  }
+  if (dateRange === "month") {
+    const start = new Date(now); start.setHours(0, 0, 0, 0); start.setMonth(now.getMonth() - 1);
+    return { date_from: start.toISOString(), date_to: endOfToday.toISOString() };
+  }
+  if (dateRange === "3months") {
+    const start = new Date(now); start.setHours(0, 0, 0, 0); start.setMonth(now.getMonth() - 3);
+    return { date_from: start.toISOString(), date_to: endOfToday.toISOString() };
+  }
+  return {};
+};
 
-  // Chart: horizontal bar chart — top routes by bookings
+const BookingsRoute = ({ dateRange, dateRangeLabel, onToast, customStartDate, customEndDate }: Props) => {
+  const dateParams = useMemo(
+    () => getDateParams(dateRange, customStartDate, customEndDate),
+    [dateRange, customStartDate, customEndDate]
+  );
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["route-report", dateParams],
+    queryFn: async () => {
+      const res = await getRouteReport(Object.keys(dateParams).length ? (dateParams as any) : undefined);
+      return (res?.routes ?? []) as RouteBookingPoint[];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const routes = data ?? [];
+
   const maxBookings = useMemo(() => Math.max(...routes.map(r => r.bookings), 1), [routes]);
 
-  
-  const tableRows: RouteDataRow[] = useMemo(() => 
+  const tableRows: RouteDataRow[] = useMemo(() =>
     routes.map(r => ({
       route: r.route,
       bookings: r.bookings,
       revenue: `₱${Number(r.revenue).toLocaleString()}`,
-    })),
-    [routes]
-  );
+    })), [routes]);
 
-  const columns: TableColumn<RouteDataRow>[] = [ 
-    {
-      key: "route", 
-      header: "ROUTE",
-      cell: (row) => <span className="font-bold text-slate-800">{row.route}</span>, 
-    },
-    {
-      key: "bookings", 
-      header: "BOOKINGS",
-      cell: (row) => <span className="font-bold text-slate-900">{row.bookings.toLocaleString()}</span>,
-    },
-    {
-      key: "revenue", 
-      header: "REVENUE",
-      cell: (row) => <span className="font-bold text-slate-900">{row.revenue}</span>,
-    },
+  const columns: TableColumn<RouteDataRow>[] = [
+    { key: "route", header: "ROUTE", cell: (row) => <span className="font-bold text-slate-800">{row.route}</span> },
+    { key: "bookings", header: "BOOKINGS", cell: (row) => <span className="font-bold text-slate-900">{row.bookings.toLocaleString()}</span> },
+    { key: "revenue", header: "REVENUE", cell: (row) => <span className="font-bold text-slate-900">{row.revenue}</span> },
   ];
 
   return (
@@ -123,7 +102,6 @@ const BookingsRoute = ({ dateRange, dateRangeLabel, onToast, customStartDate, cu
           </div>
         </div>
 
-        {/* Horizontal Bar Chart */}
         <div className="relative min-h-[200px] flex items-center justify-center">
           {isLoading ? (
             <div className="animate-spin size-8 border-4 border-[#496B92] border-t-transparent rounded-full" />
