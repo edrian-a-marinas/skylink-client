@@ -1,4 +1,4 @@
-# Skylink — Flight Booking & Reservation Management API
+# Skylink — Flight Booking & Reservation Management
 
 🔗 **[Live Demo](skylink-frontend-two.vercel.app)** · 🎬 **[Demo Video](https://drive.google.com/file/d/1qPAw76EiD4wf2H8K3PXTD4AjTSnyFDEk/view?usp=sharing)** · 💻 **[Backend Repo](https://github.com/edrian-a-marinas/skylink-api)**
 
